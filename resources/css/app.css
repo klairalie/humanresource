@@ -1,0 +1,244 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@tailwind utilities;
+
+/* Sidebar */
+.sidebar {
+  @apply bg-black p-6 shadow-amber-100 flex flex-col w-full max-w-xs min-h-screen space-y-4 flex-shrink-0 top-0 fixed left-0 right-0 bottom-0 overflow-y-auto;
+}
+.sidebar-header {
+  @apply p-6 text-2xl font-bold border-b border-gray-700;
+}
+.sidebar-menu {
+  @apply flex-1 p-4 space-y-4; 
+}
+.menu-item {
+  @apply flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#99FF33];
+}
+.menu-item.active {
+  @apply bg-[#66CC00] text-[#000000];
+}
+
+/* Header */
+.header {
+  @apply flex justify-between items-center px-6 py-4 bg-transparent backdrop-blur-md shadow;
+}
+.search-bar {
+  @apply flex items-center space-x-2 p-2 rounded bg-[#1A1A1A] w-xl;
+}
+.search-bar input {
+  @apply bg-transparent outline-none w-xl;
+}
+.user-actions {
+  @apply flex items-center space-x-6;
+}
+.user-profile {
+  @apply flex items-center space-x-2 cursor-pointer;
+}
+.user-avatar {
+  @apply w-9 h-9 rounded-l-2xl bg-[#99FF33] hover:text-[#000000] flex items-center justify-center text-black font-bold;
+}
+.notification {
+  @apply relative cursor-pointer;
+}
+.notification-badge {
+  @apply absolute top-0 right-0 bg-red-500 text-xs text-white w-4 h-4 rounded-full flex items-center justify-center;
+}
+
+/* Stats Cards */
+.stats-container {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-transparent;
+}
+.stat-card {
+  @apply bg-transparent p-4 rounded-lg shadow;
+}
+.stat-card-header {
+  @apply flex justify-between items-center bg-[#1A1A1A] px-4 py-4 rounded-se-2xl; 
+}
+.stat-value {
+  @apply text-2xl font-bold;
+}
+.stat-label {
+  @apply text-gray-500;
+}
+.stat-icon {
+  @apply text-xl p-3 rounded-full bg-[#99FF33];
+}
+.stat-icon.users {
+  @apply bg-[#99FF33] text-black;
+}
+.stat-icon.sessions {
+  @apply bg-[#99FF33] text-black;
+}
+.stat-icon.health {
+  @apply bg-[#99FF33] text-black;
+}
+.stat-icon.alerts {
+  @apply bg-[#99FF33] text-black;
+}
+
+/* Main Grid */
+.content-grid {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-6 px-6 pb-6;
+}
+.left-column {
+  @apply col-span-3 space-y-6 w-full;
+}
+.right-column {
+  @apply mt-73;
+}
+
+/* Chart & Recent Actions */
+
+.recent-actions,
+.system-status {
+  @apply bg-[#1A1A1A] p-4 rounded-lg shadow;
+}
+
+.chart-container{
+    @apply w-full bg-[#1A1A1A] p-4 rounded-lg shadow; 
+}
+
+.section-header {
+  @apply flex justify-between items-center mb-4;
+}
+.section-title {
+  @apply text-lg font-semibold text-shadow-white;
+}
+.chart-placeholder {
+  @apply h-40 flex items-center justify-center text-gray-400 bg-transparent rounded-2xl;
+}
+.actions-list {
+  @apply space-y-4;
+}
+.action-item {
+  @apply flex items-start space-x-4;
+}
+.action-icon {
+  @apply text-lg p-3 bg-gray-200 rounded-full text-blue-500;
+}
+.action-details {
+  @apply flex flex-col;
+}
+.action-title {
+  @apply font-medium;
+}
+.action-time {
+  @apply text-sm text-gray-500;
+}
+
+/* System Status */
+.status-list {
+  @apply space-y-4;
+}
+.status-item {
+  @apply flex justify-between;
+}
+.status-label {
+  @apply text-gray-600;
+}
+.status-value {
+  @apply font-medium;
+}
+.status-value.good {
+  @apply text-green-600;
+}
+.status-value.warning {
+  @apply text-yellow-600;
+}
+
+/* Quick Actions */
+.quick-actions {
+  @apply grid grid-cols-2 gap-4;
+}
+.action-btn {
+  @apply bg-blue-500 text-white py-2 px-4 rounded flex items-center space-x-2 justify-center hover:bg-blue-600 transition;
+}
+.option{
+    @apply bg-black backdrop-blur-md;
+}
+
+.button{
+    @apply bg-transparent rounded-lg py-3 px-6 hover:bg-[#66CC00] cursor-pointer mr-8
+}
+
+.container{
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-black font-serif flex-1 overflow-y-auto bg-gray-400; 
+}
+
+.card{
+    @apply p-4 border rounded shadow mb-6 mt-20;
+}
+.card a{
+    @apply text-shadow-black hover:text-green-600 text-lg font-semibold hover:underline ml-70 border-r-8 bg-gray-300 px-4 py-4 rounded;
+} 
+.card h1{
+   @apply text-xl font-bold mb-4 mt-4;
+}
+
+//employeeprofiles
+
+/* Container */
+.employee-form {
+    @apply w-full max-w-5xl mx-auto bg-white dark:bg-neutral-900 p-8 rounded-xl shadow-lg space-y-6;
+}
+
+/* Labels */
+.employee-form label {
+    @apply block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1;
+}
+
+/* Inputs */
+.employee-form input {
+    @apply block w-full px-4 py-2 text-base border border-gray-300 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+           dark:bg-neutral-800 dark:border-neutral-700 dark:text-white;
+}
+
+/* Error Text */
+.employee-form .error {
+    @apply text-red-500 text-sm mt-1;
+}
+
+/* Buttons */
+.employee-form button {
+    @apply w-full py-3 px-4 text-lg font-semibold text-white bg-blue-600 rounded-lg
+           hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* Table */
+.employee-table {
+    @apply w-full border-collapse bg-white dark:bg-neutral-900 shadow-md rounded-lg overflow-hidden;
+}
+
+.employee-table th {
+    @apply px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 border-b;
+}
+
+.employee-table td {
+    @apply px-6 py-4 text-sm text-gray-600 dark:text-gray-300 border-b;
+}
+
+/* Fingerprint Cell */
+.fingerprint-cell {
+    @apply flex flex-col items-center justify-center space-y-2;
+}
+
+.fingerprint-button {
+    @apply py-2 px-4 bg-green-600 text-white rounded-lg shadow-sm
+           hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500;
+}
+
+.fingerprint-status {
+    @apply text-xs font-medium text-gray-500 dark:text-gray-400;
+}
