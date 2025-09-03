@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Employeeprofiles;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\LeaveOvertimeRequest;
 
 class AttendanceController extends Controller
 {
@@ -19,11 +20,23 @@ class AttendanceController extends Controller
         return view('HR.manage_leave');
     }
 
-    public function showOvertime()
-    {
-        return view('HR.list_overtime');
-    }
+    public function showOvertime(Request $request)
+{
+    $search = $request->input('search');
 
+    $overtimeRequests = LeaveOvertimeRequest::with('employeeprofiles')
+        ->when($search, function ($query, $search) {
+            $query->whereHas('employeeprofiles', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%");
+            })
+            ->orWhere('request_date', 'like', "%{$search}%");
+        })
+        ->get();
+
+    return view('HR.list_overtime', [
+        'overtimeRequests' => $overtimeRequests,
+    ]);
+}
 
     public function showAttendanceform()
 {
@@ -45,16 +58,17 @@ class AttendanceController extends Controller
     $attendance->status = $validatedData['status'];
     $attendance->date = $validatedData['date'];
     $attendance->flag = $validatedData['flag'];
-    $attendance->time_in = now();
+  $attendance->time_in = $request->input('time_in');
 
-    // Only save time_out if status is Present
+    
     if ($validatedData['status'] === 'Present') {
-        $attendance->time_out = now();
+      $attendance->time_out = Carbon::createFromFormat('H:i', $request->input('time_out'))->format('H:i:s');
     }
 
     $attendance->save();
 
     return redirect()->back()->with('success', 'Attendance recorded successfully.');
 }
+
 
 }

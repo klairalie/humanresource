@@ -1,52 +1,184 @@
 <x-guest-layout>
-
-
-
     <div class="min-h-screen bg-transparent p-6">
-        <!-- Header Section with Search and Add Button -->
+        <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <h1 class="text-2xl font-bold mb-4 md:mb-0">Employee Profiles</h1>
             <div class="flex items-center space-x-4">
-                <input type="text" placeholder="Search employee..."
-                    class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
+
+                <!-- Search -->
+                <form method="GET" action="" class="flex space-x-2">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search employee..."
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-64">
+
+                    <!-- Position Filter -->
+                    <select name="position" onchange="this.form.submit()"
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400">
+                        <option value="">All Positions</option>
+                        <option value="Administrative Manager"
+                            {{ request('position') == 'Administrative Manager' ? 'selected' : '' }}>Administrative
+                            Manager</option>
+                        <option value="Human Resource Manager"
+                            {{ request('position') == 'Human Resource Manager' ? 'selected' : '' }}>Human Resource
+                            Manager</option>
+                        <option value="Finance Manager"
+                            {{ request('position') == 'Finance Manager' ? 'selected' : '' }}>Finance Manager</option>
+                        <option value="Technician" {{ request('position') == 'Technician' ? 'selected' : '' }}>
+                            Technician</option>
+                        <option value="Helper" {{ request('position') == 'Helper' ? 'selected' : '' }}>Helper</option>
+                        <option value="Assistant Technician"
+                            {{ request('position') == 'Assistant Technician' ? 'selected' : '' }}>Assistant Technician
+                        </option>
+                    </select>
+                </form>
+
+                <!-- Add Employee -->
                 <a href="/HR/employeeprofiles"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-full text-xl flex items-center justify-center">
+                    class="bg-gray-800 hover:bg-gray-900 text-white font-semibold px-4 py-2 rounded-full text-xl flex items-center justify-center">
                     +
+                </a>
+
+                <!-- View Archived -->
+                <a href="{{ route('archived.profiles') }}"
+                    class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-full text-md flex items-center justify-center">
+                    View Archived Profiles
                 </a>
             </div>
         </div>
 
-        <!-- Employee Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach ($employee as $emp)
-                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-300">
-                    <div class="flex justify-between items-start mb-4">
-                        <h4 class="text-xl font-bold text-gray-800">
-                            {{ $emp['first_name'] }} <span class="font-medium">{{ $emp['last_name'] }}</span>
-                        </h4>
+        <!-- Employee Table -->
+        <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="px-6 py-3 text-left font-semibold text-sm uppercase tracking-wide">ID No.</th>
+                        <th class="px-6 py-3 text-left font-semibold text-sm uppercase tracking-wide">Employee</th>
+                        <th class="px-6 py-3 text-right font-semibold text-sm uppercase tracking-wide">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @foreach ($employee as $emp)
+                        <tr x-data="{ open: false, deactivateOpen: false }" class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-3">
+                                {{ $emp['employeeprofiles_id'] }}  
+                            </td>
+                            <td class="px-6 py-3 text-md">
+                             {{ $emp->last_name }}, {{ $emp->first_name }}  
+                            </td>
+                            <td class="px-6 py-3 text-right mr-30">
+                                <button @click="open = true" class="text-gray-800 font-medium hover:underline">
+                                    View Details
+                                </button>
 
-                        <form action="{{ route('show.edit', $emp['employeeprofiles_id']) }}" method="GET">
+                                <!-- Main Modal -->
+                                <div x-show="open"
+                                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+                                    x-transition @click.self="open = false" x-cloak>
+                                    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
 
-                            <button type="submit"
-                                class="bg-transparent hover:underline text-black px-4 py-2 rounded-md">Edit</button>
-                        </form>
+                                        <!-- Header -->
+                                        <h2 class="text-xl font-bold mb-4 border-b pb-2">
+                                            ID No. {{ $emp['employeeprofiles_id'] }} &nbsp;&nbsp;
+                                            {{ $emp->last_name }}, {{ $emp->first_name }}
+                                        </h2>
 
-                    </div>
+                                        <!-- Details Grid -->
+                                        <dl class="grid grid-cols-3 gap-y-3 gap-x-4 leading-relaxed text-sm">
+                                            <dt class="font-semibold">Address:</dt>
+                                            <dd class="col-span-2">{{ $emp['address'] }}</dd>
 
-                    <div class="space-y-2 text-gray-700 text-sm">
-                        <p><span class="font-semibold">Employee ID:</span> {{ $emp['employeeprofiles_id'] }}</p>
-                        <p><span class="font-semibold">Address:</span> {{ $emp['address'] }}</p>
-                        <p><span class="font-semibold">Position:</span> {{ $emp['position'] }}</p>
-                        <p><span class="font-semibold">Contact:</span> {{ $emp['contact_info'] }}</p>
-                        <p><span class="font-semibold">Hire Date:</span> {{ $emp['hire_date'] }}</p>
-                        <p><span class="font-semibold">Status:</span> {{ $emp['status'] }}</p>
-                        <p><span class="font-semibold">Emergency Contact:</span> {{ $emp['emergency_contact'] }}</p>
-                        <p class="font-semibold">Fingerprint:</p>
-                        <img src="data:image/png;base64,{{ $emp['fingerprint_data'] }}" alt="Fingerprint"
-                            class="w-32 h-auto border border-gray-300 rounded">
-                    </div>
-                </div>
-            @endforeach
+                                            <dt class="font-semibold">Position:</dt>
+                                            <dd class="col-span-2">{{ $emp['position'] }}</dd>
+
+                                            <dt class="font-semibold">Contact:</dt>
+                                            <dd class="col-span-2">{{ $emp['contact_info'] }}</dd>
+
+                                            <dt class="font-semibold">Hire Date:</dt>
+                                            <dd class="col-span-2">{{ $emp['hire_date'] }}</dd>
+
+                                            <dt class="font-semibold">Status:</dt>
+                                            <dd class="col-span-2">{{ $emp['status'] }}</dd>
+
+                                            <dt class="font-semibold">Emergency Contact:</dt>
+                                            <dd class="col-span-2">{{ $emp['emergency_contact'] }}</dd>
+                                        </dl>
+
+                                        <!-- Fingerprint Section -->
+                                        <div class="mt-6">
+                                            <p class="font-semibold mb-2">Fingerprint:</p>
+                                            <img src="data:image/png;base64,{{ $emp['fingerprint_data'] }}"
+                                                alt="Fingerprint"
+                                                class="w-24 h-auto border border-gray-300 rounded-md shadow-sm">
+                                        </div>
+
+                                        <!-- Footer -->
+                                        <div class="mt-6 flex justify-end space-x-3">
+                                            <!-- Edit Button -->
+                                            <a href="{{ route('show.edit', $emp->employeeprofiles_id) }}"
+                                                class="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                                                Edit
+                                            </a>
+
+                                            <!-- Deactivate Button (triggers reason modal) -->
+                                            <button @click="deactivateOpen = true"
+                                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                                                Deactivate
+                                            </button>
+
+                                            <!-- Close Button -->
+                                            <button @click="open = false"
+                                                class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                                                Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Reason Modal -->
+                                <div x-show="deactivateOpen"
+                                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+                                    x-transition @click.self="deactivateOpen = false" x-cloak>
+                                    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
+                                        <h2 class="text-xl font-bold mb-4 border-b pb-2">
+                                            Deactivate {{ $emp->last_name }}, {{ $emp->first_name }}
+                                        </h2>
+
+                                        <form method="POST"
+                                            action="{{ route('employee.deactivate', $emp->employeeprofiles_id) }}">
+                                            @csrf
+                                            <div class="mb-4">
+                                                <label for="reason" class="block text-sm font-medium">
+                                                    Reason for Deactivation
+                                                </label>
+                                                <textarea name="reason" id="reason" rows="3" required
+                                                    class="mt-1 px-3 py-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-red-500"></textarea>
+                                            </div>
+
+                                            <div class="flex justify-end space-x-3">
+                                                <button type="submit"
+                                                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                                    Confirm Deactivate
+                                                </button>
+                                                <button type="button" @click="deactivateOpen = false"
+                                                    class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-6 mb-10">
+            {{ $employee->appends(request()->query())->links() }}
         </div>
     </div>
+
+    <!-- Alpine.js -->
+    <script src="//unpkg.com/alpinejs" defer></script>
 </x-guest-layout>

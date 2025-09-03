@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('leaveovertimerequests', function (Blueprint $table) {
             $table->id('request_id');
             $table->foreignId('employeeprofiles_id')->constrained('employeeprofiles', 'employeeprofiles_id')->onDelete('cascade');
-            $table->integer('leave_days')->nullable();
-            $table->integer('overtime_hours')->nullable();
-            $table->string('status')->nullable();
+            $table->integer('leave_days')->nullable()->default(0);
+            $table->integer('overtime_hours')->nullable()->default(0);
+            $table->string('leave_type')->nullable()->default('No request');
+            $table->string('status')->default('No request');
             $table->dateTime('request_date')->nullable();
             
         });

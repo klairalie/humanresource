@@ -22,13 +22,14 @@ class Employeeprofiles extends Model
         'status',
         'emergency_contact',
         'fingerprint_data',
+
     ];
     /** @use HasFactory<\Database\Factories\EmployeeprofilesFactory> */
     use HasFactory;
 
       public function attendances()
     {
-        return $this->hasMany(Attendance::class);
+        return $this->hasMany(Attendance::class, 'employeeprofiles_id', 'employeeprofiles_id');
     }
 
       public function expenses()
@@ -50,9 +51,14 @@ class Employeeprofiles extends Model
     {
         return $this->hasMany(Payroll::class);
     }
-
-    public function salaries()
+    
+    public function archiveprofiles()
     {
-        return $this->hasMany(Salaries::class);
+        return $this->hasMany(Archiveprofile::class);
+    }
+
+    public function deductions()
+    {
+        return $this->hasMany(Deduction::class, 'employeeprofiles_id', 'employeeprofiles_id');
     }
 }

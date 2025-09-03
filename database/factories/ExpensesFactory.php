@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Employeeprofiles;
+use App\Models\Invoices;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,8 +18,14 @@ class ExpensesFactory extends Factory
      */
     public function definition(): array
     {
+        $invoice = Invoices::inRandomOrder()->first();
+        $employee = Employeeprofiles::inRandomOrder()->first();
         return [
-            //
+             'invoices_id' => $invoice->invoices_id,
+        'employeeprofiles_id' => $employee->employeeprofiles_id,
+        'amount' => fake()->random_int(1, 1000),
+        'description' => fake()->sentence(2),
+        'date' => fake()->date(),
         ];
     }
 }

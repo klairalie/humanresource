@@ -9,16 +9,17 @@ class Salaries extends Model
 {
     protected $fillable = [
 
-        'employeeprofiles_id',
         'basic_salary',
-        'effective_date',
-        'status'
+        'position'
+    
     ];
     /** @use HasFactory<\Database\Factories\SalariesFactory> */
     use HasFactory;
+    protected $table = 'salaries';
+    protected $primaryKey = 'salaries_id';
 
     public function employeeprofiles()
     {
-        return $this->belongsTo(Employeeprofiles::class);
+        return $this->hasMany(Employeeprofiles::class, 'salaries_id', 'salaries_id');
     }
 }

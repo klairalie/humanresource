@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Administrativeaccount;
+use App\Models\Quotation;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,13 +18,16 @@ class BillingFactory extends Factory
      */
     public function definition(): array
     {
+        $quotation = Quotation::inRandomOrder()->first();
+        $user = Administrativeaccount::inRandomOrder()->first();
+
         return [
-            'billing_id',
-            'quotation_id',
-            'user_id',
-            'amount',
-            'status',
-            'date'
+            
+            'quotation_id' => $quotation->quotation_id,
+            'user_id' => $user->user_id,
+            'amount' => fake()->random_int(1, 1000),
+            'status' => fake()->randomElement(['Paid', 'Cancelled', 'Partial']),
+            'date' => fake()->date(),
         ];
     }
 }

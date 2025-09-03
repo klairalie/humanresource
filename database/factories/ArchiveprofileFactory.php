@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Salaries>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\archiveprofile>
  */
-class SalariesFactory extends Factory
+class ArchiveprofileFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,8 +17,7 @@ class SalariesFactory extends Factory
     public function definition(): array
     {
         return [
-            'basic_salary' => $this->faker->numberBetween(30000, 100000),
-            'position' => $this->faker->jobTitle(),
+            //
         ];
     }
 }

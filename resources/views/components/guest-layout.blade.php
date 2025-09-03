@@ -16,71 +16,115 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
+
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet">
 </head>
-<body class="bg-black text-white h-full overflow-hidden">
+<body class="text-black h-full overflow-hidden" x-data="{ sidebarOpen: false }">
 
-<div x-data="{ expanded: false }" class="h-full w-full flex">
-
-    <!-- Sidebar -->
-    <div 
-        class="bg-black p-6 shadow-amber-100 flex flex-col space-y-4 fixed top-0 left-0 bottom-0 transition-all duration-300 ease-in-out z-50 scrollbar-hide"
-        @mouseenter="expanded = true"
-        @mouseleave="expanded = false"
-        :class="expanded ? 'w-64' : 'w-20'"
-        x-cloak
-    >
-        <!-- Sidebar Header -->
-        <div class="p-6 text-lg text-center font-bold border-b border-gray-700" x-show="expanded" x-cloak>
-            <h2>(HR Admin's Name)</h2>
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-40 bg-[linear-gradient(to_right,_#f89b5f,_#f2bcbc80,_rgba(255,255,255,0))] backdrop-blur-md px-6 py-3 flex justify-between items-center">
+        <!-- Left -->
+        <div>
+            <h2 class="font-dancing font-weight-900 text-3xl italic">3Rs AirConditioningSolution</h2>
         </div>
 
-        <!-- Sidebar Menu -->
-        <div class="flex-1 p-4 space-y-4 text-md">
-            <a href="{{ route('show.dashboard') }}" class="block">
-                <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#99FF33] bg-[#66CC00] text-black">
-                    <i class="fas fa-home text-xl"></i>
-                    <span x-show="expanded" class="transition-opacity duration-300" x-cloak>Dashboard</span>
-                </div>
-            </a>
+        <!-- Right -->
+        <div class="flex items-center space-x-6">
+            <!-- Search bar -->
+            <div class="relative">
 
-            <a href="{{ route('show.employeeprofiles') }}" class="block">
-                <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#99FF33]">
-                    <i class="fas fa-user-tie text-xl"></i>
-                    <span x-show="expanded" class="transition-opacity duration-300" x-cloak>Manage Employee Profiles</span>
-                </div>
-            </a>
+            </div>
 
-            <a href="{{ route('show.attendance') }}" class="block">
-                <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#99FF33]">
-                    <i class="fas fa-user-clock text-xl"></i>
-                    <span x-show="expanded" class="transition-opacity duration-300" x-cloak>Manage Attendance and OT</span>
+            <!-- Notification -->
+            <button class="relative">
+                 <i class="fas fa-bell text-xl"></i>
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">3</span>
+            </button>
+
+            <!-- Profile dropdown -->
+            <div x-data="{ open: false }" class="relative">
+                <div @click="open = !open" class="flex items-center space-x-2 cursor-pointer select-none">
+                    <img src="https://via.placeholder.com/35" class="rounded-full border" />
+                    <span class="font-medium">(HR Admin)</span>
+                    <i class="fas fa-caret-down text-gray-500"></i>
                 </div>
-            </a>
-             <a href="{{ route('view.payroll') }}" class="block"> 
-            <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#99FF33]">
-                <i class="fas fa-coins text-xl"></i>
-                <span x-show="expanded" class="transition-opacity duration-300" x-cloak>Payroll Data Operation</span>
+
+                <!-- Dropdown Menu -->
+                <div 
+                    x-show="open" 
+                    x-cloak
+                    @click.away="open = false" 
+                    x-transition 
+                    class="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                >
+                    <a href="" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-cog mr-2 text-gray-500"></i> Settings
+                    </a>
+                    <form method="POST" action="">
+                        @csrf
+                        <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-sign-out-alt mr-2 text-gray-500"></i> Logout
+                        </button>
+                    </form>
+                </div>
             </div>
-             </a>
-            <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#99FF33]">
-                <i class="fas fa-file-alt text-xl"></i>
-                <span x-show="expanded" class="transition-opacity duration-300" x-cloak>Evaluate Employee Services</span>
+        </div>
+    </nav>
+
+    <div class="h-full w-full flex pt-16 bg-[url('/Backbone.png')] bg-cover bg-center">
+
+        <!-- Sidebar -->
+        <div 
+            x-cloak
+            @mouseenter="sidebarOpen = true"
+            @mouseleave="sidebarOpen = false"
+            class="group bg-gradient-to-b from-[#f89b5fBE] to-[#f2bcbcBE] p-4 shadow-md flex flex-col space-y-4 fixed top-14.5 left-0 bottom-0 z-30 transition-all duration-300 ease-in-out"
+            :class="sidebarOpen ? 'w-64' : 'w-20'"
+        >
+            <div class="flex-1 p-2 space-y-9 mt-10">
+                <a href="{{ route('show.dashboard') }}" class="block">
+                    <div class="flex items-center space-x-4 p-4 rounded-md cursor-pointer bg-orange-200 hover:bg-orange-300 text-black">
+                        <i class="fas fa-home text-xl"></i>
+                        <span x-show="sidebarOpen" x-transition>Dashboard</span>
+                    </div>
+                </a>
+                <a href="{{ route('show.employeeprofiles') }}" class="block">
+                    <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+                        <i class="fas fa-user-tie text-xl"></i>
+                        <span x-show="sidebarOpen" x-transition>Manage Employee Profiles</span>
+                    </div>
+                </a>
+                <a href="{{ route('show.attendance') }}" class="block">
+                    <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+                        <i class="fas fa-user-clock text-xl"></i>
+                        <span x-show="sidebarOpen" x-transition>Manage Attendance and OT</span>
+                    </div>
+                </a>
+                <a href="{{ route('view.payroll') }}" class="block"> 
+                    <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+                        <i class="fas fa-coins text-xl"></i>
+                        <span x-show="sidebarOpen" x-transition>Payroll Data Operation</span>
+                    </div>
+                </a>
+                <a href="{{ route('show.evaluateservices') }}" class="block"> 
+                    <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+                        <i class="fas fa-file-alt text-xl"></i>
+                        <span x-show="sidebarOpen" x-transition>Evaluate Employee Services</span>
+                    </div>
+                </a>
             </div>
+        </div>
+
+        <!-- Main Content -->
+        <div 
+            class="absolute right-0 top-16 h-screen overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out p-5 text-black"
+            :class="sidebarOpen ? 'ml-64' : 'ml-20'"
+            :style="sidebarOpen ? 'width: calc(100% - 16rem);' : 'width: calc(100% - 5rem);'"
+        >
+            <main class="min-h-screen bg-transparent text-black">
+                {{ $slot }}
+            </main>
         </div>
     </div>
-
-    <!-- Main Content -->
-    <div 
-        class="absolute right-0 top-0 h-screen overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out p-6 bg-[url('/backgroundmain.png')] bg-cover bg-center"
-        :class="expanded ? 'ml-64' : 'ml-20'"
-        style="width: calc(100% - 5rem);"
-        x-effect="$el.style.width = expanded ? 'calc(100% - 16rem)' : 'calc(100% - 5rem)'"
-        x-cloak
-    >
-        <main class="min-h-screen bg-transparent">
-    {{ $slot }}
-</main>
-
-</div>
 </body>
 </html>

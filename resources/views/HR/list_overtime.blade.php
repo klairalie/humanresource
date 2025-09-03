@@ -7,35 +7,43 @@
         </div>
 
         <!-- Search/Filter -->
-        <form method="GET" action="" class="mb-6 flex space-x-3">
-            <input type="text" name="search" placeholder="Search by name or date"
-                   class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 w-full">
-            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-4 py-2 rounded-lg transition">
-                Search
-            </button>
-        </form>
+<form method="GET" action="" class="mb-10 flex justify-end space-x-5">
+    <input type="text" name="search" placeholder="Search by name or date"
+           class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 w-64 text-black">
+    <button type="submit" 
+            class="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-4 py-2 rounded-lg transition">
+        Search
+    </button>
+</form>
 
         <!-- Overtime Table -->
         <div class="overflow-x-auto">
             <table class="w-full border border-gray-300 rounded-lg overflow-hidden">
-                <thead class="bg-gray-100 text-gray-700">
+                <thead class="bg-gray-100 text-black">
                     <tr>
-                        <th class="px-4 py-2 text-left">Employee ID</th>
-                        <th class="px-4 py-2 text-left">Name</th>
-                        <th class="px-4 py-2 text-left">Date</th>
-                        <th class="px-4 py-2 text-left">Overtime Hours</th>
+                        <th class="px-4 py-2 text-center">Employee ID</th>
+                        <th class="px-4 py-2 text-center">Name</th>
+                        <th class="px-4 py-2 text-center">Date</th>
+                        <th class="px-4 py-2 text-center">Overtime Hours</th>
                     </tr>
                 </thead>
-                {{-- <tbody class="text-gray-800">
-                    @foreach()
-                        <tr class="border-t">
-                            <td class="px-4 py-2">{{ $ot->employee_id }}</td>
-                            <td class="px-4 py-2">{{ $ot->name }}</td>
-                            <td class="px-4 py-2">{{ $ot->date }}</td>
-                            <td class="px-4 py-2">{{ $ot->hours }}</td>
-                        </tr>
-                    @endforeach
-                </tbody> --}}
+               <tbody class="text-gray-800 text-center">
+    @forelse($overtimeRequests as $ot)
+        <tr class="border-t">
+            <td class="px-4 py-2">{{ $ot->employeeprofiles_id }}</td>
+            <td class="px-4 py-2">
+                {{ $ot->employeeprofiles?->first_name ?? 'N/A' }}
+                {{ $ot->employeeprofiles?->last_name ?? '' }}
+            </td>
+            <td class="px-4 py-2">{{ $ot->request_date }}</td>
+            <td class="px-4 py-2">{{ $ot->overtime_hours }}</td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="4" class="px-4 py-2 text-center text-gray-500">No overtime requests found.</td>
+        </tr>
+    @endforelse
+</tbody>
             </table>
         </div>
     </div>

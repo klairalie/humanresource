@@ -9,10 +9,21 @@ class Quotation extends Model
 {
     protected $fillable = [
 
-        'services_id',
-        'quotation_file',
-        'created_at',
-        'created_by'
+         'services_id',
+        'company_name',
+        'contact_number',
+        'company_email',
+        'client_name',
+        'attention',
+        'subject',
+        'quotation_date',
+        'equipment_terms',
+        'installation_terms',
+        'warranty',
+        'payable_to',
+        'exception',
+        'guarantee',
+        'proprietor_name',
     ];
 
     /** @use HasFactory<\Database\Factories\QuotationFactory> */
@@ -23,8 +34,13 @@ class Quotation extends Model
         return $this->hasMany(Billing::class);
     }
 
+     public function items()
+    {
+        return $this->hasMany(QuotationItem::class, 'quotation_id', 'quotation_id');
+ }
+
     public function services()
     {
-        return $this->belongsTo(Services::class);
+        return $this->belongsTo(Services::class, 'services_id', 'services_id');
     }
 }

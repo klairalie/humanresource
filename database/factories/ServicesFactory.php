@@ -17,7 +17,7 @@ class ServicesFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'service_type' => fake()->randomElement(['Cleaning', 'Repair', 'Install']),
         ];
     }
 }

@@ -16,9 +16,10 @@ class Leaveovertimerequest extends Model
     ];
     /** @use HasFactory<\Database\Factories\LeaveovertimerequestFactory> */
     use HasFactory;
+protected $table = 'leaveovertimerequests';
 
-    public function employeeprofiles() {
-
-        return $this->belongsTo(Employeeprofiles::class);
+    public function employeeprofiles()
+    {
+        return $this->belongsTo(Employeeprofiles::class, 'employeeprofiles_id');
     }
 }

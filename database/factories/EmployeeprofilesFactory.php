@@ -22,10 +22,10 @@ class EmployeeprofilesFactory extends Factory
         'first_name' => fake()->firstName(),
         'last_name' => fake()->lastName(),
         'address' => fake()->streetAddress(),
-        'position' => fake()->sentence(2),
+        'position' => fake()->randomElement(['Technician', 'Assistant Technician', 'Helper', 'Human Resource Manager', 'Administrative Manager', 'Finance Manager']),
         'contact_info' => fake()->phoneNumber(11),
         'hire_date' => fake()->date(),
-        'status' => fake()->randomElement(['pending', 'paid', 'cancelled']),
+        'status' => fake()->randomElement(['active', 'reactivated', 'deactivated']),
         'emergency_contact' => fake()->phoneNumber(11),
         'fingerprint_data' => $fakeBase64Fingerprint, // static test image
     ];

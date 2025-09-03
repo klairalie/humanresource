@@ -37,6 +37,7 @@ class PayrollFactory extends Factory
             'basic_salary' => $basicSalary,
             'overtime_pay' => $overtimePay,
             'deductions' => $deductions,
+            'bonuses' => fake()->randomElement(['none as of the moment']),
             'net_pay' => $netPay,
             'status' => fake()->randomElement(['Pending', 'Processed', 'Paid']),
         ];

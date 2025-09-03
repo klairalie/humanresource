@@ -1,3 +1,21 @@
+
+/* Import your font */
+@font-face {
+  font-family: 'Magneton';
+  src: url('/fonts/Magneton-Regular.woff2') format('woff2'),
+       url('/fonts/Magneton-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Magneton';
+  src: url('/fonts/Magneton-Bold.woff2') format('woff2'),
+       url('/fonts/Magneton-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -8,9 +26,12 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+      --font-dancing: 'Dancing Script', cursive;
+      --font-magneton: 'Magneton', sans-serif;
 }
 
 @tailwind utilities;
+
 
 /* Sidebar */
 .sidebar {
@@ -34,7 +55,7 @@
   @apply flex justify-between items-center px-6 py-4 bg-transparent backdrop-blur-md shadow;
 }
 .search-bar {
-  @apply flex items-center space-x-2 p-2 rounded bg-[#1A1A1A] w-xl;
+  @apply flex items-center space-x-2 p-2 rounded bg-[#ad8550c4] w-xl;
 }
 .search-bar input {
   @apply bg-transparent outline-none w-xl;
@@ -46,7 +67,7 @@
   @apply flex items-center space-x-2 cursor-pointer;
 }
 .user-avatar {
-  @apply w-9 h-9 rounded-l-2xl bg-[#99FF33] hover:text-[#000000] flex items-center justify-center text-black font-bold;
+  @apply w-9 h-9 rounded-l-2xl bg-[#8cc553] hover:text-[#000000] flex items-center justify-center text-black font-bold;
 }
 .notification {
   @apply relative cursor-pointer;
@@ -69,10 +90,10 @@
   @apply text-2xl font-bold;
 }
 .stat-label {
-  @apply text-gray-500;
+  @apply text-black;
 }
 .stat-icon {
-  @apply text-xl p-3 rounded-full bg-[#99FF33];
+  @apply text-xl p-3 rounded-full bg-[#8ccc4d];
 }
 .stat-icon.users {
   @apply bg-[#99FF33] text-black;
@@ -116,7 +137,7 @@
   @apply text-lg font-semibold text-shadow-white;
 }
 .chart-placeholder {
-  @apply h-40 flex items-center justify-center text-gray-400 bg-transparent rounded-2xl;
+  @apply h-40 flex items-center justify-center text-gray-400 bg-[radial-gradient(at_0%_0%,#ffd2c9,#ffffff)] rounded-2xl;
 }
 .actions-list {
   @apply space-y-4;

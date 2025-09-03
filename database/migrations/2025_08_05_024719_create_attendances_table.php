@@ -15,7 +15,7 @@ return new class extends Migration
          $table->id('attendance_id');
         $table->foreignId('employeeprofiles_id')->constrained('employeeprofiles', 'employeeprofiles_id')->onDelete('cascade');
         $table->date('date');
-        $table->time('time_in');
+        $table->time('time_in')->nullable();
         $table->time('time_out')->nullable();
         $table->integer('flag');
         $table->string('status');

@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payroll extends Model
 {
+
+        protected $primaryKey = 'payroll_id';   // 👈 set your actual PK column
+    public $incrementing = true;            // if it’s auto-increment
+    protected $keyType = 'int'; 
+    
     protected $fillable = [
 
         
@@ -17,7 +22,8 @@ class Payroll extends Model
         'pay_period_end',
         'basic_salary', 
         'overtime_pay', 
-        'deductions', 
+        'deductions',
+        'bonuses', 
         'net_pay', 
         'status', 
     ];
@@ -36,6 +42,11 @@ class Payroll extends Model
     public function employeeprofiles()
 {
     return $this->belongsTo(Employeeprofiles::class, 'employeeprofiles_id', 'employeeprofiles_id');
+}
+
+public function deductions()
+{
+    return $this->hasMany(Deduction::class, 'payroll_id', 'payroll_id');
 }
 
 }
