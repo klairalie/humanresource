@@ -5,36 +5,10 @@
             <h1 class="text-2xl font-bold mb-4 md:mb-0">Employee Profiles</h1>
             <div class="flex items-center space-x-4">
 
-                <!-- Search -->
-                <form method="GET" action="" class="flex space-x-2">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search employee..."
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-64">
-
-                    <!-- Position Filter -->
-                    <select name="position" onchange="this.form.submit()"
-                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400">
-                        <option value="">All Positions</option>
-                        <option value="Administrative Manager"
-                            {{ request('position') == 'Administrative Manager' ? 'selected' : '' }}>Administrative
-                            Manager</option>
-                        <option value="Human Resource Manager"
-                            {{ request('position') == 'Human Resource Manager' ? 'selected' : '' }}>Human Resource
-                            Manager</option>
-                        <option value="Finance Manager"
-                            {{ request('position') == 'Finance Manager' ? 'selected' : '' }}>Finance Manager</option>
-                        <option value="Technician" {{ request('position') == 'Technician' ? 'selected' : '' }}>
-                            Technician</option>
-                        <option value="Helper" {{ request('position') == 'Helper' ? 'selected' : '' }}>Helper</option>
-                        <option value="Assistant Technician"
-                            {{ request('position') == 'Assistant Technician' ? 'selected' : '' }}>Assistant Technician
-                        </option>
-                    </select>
-                </form>
-
                 <!-- Add Employee -->
-                <a href="/HR/employeeprofiles"
-                    class="bg-gray-800 hover:bg-gray-900 text-white font-semibold px-4 py-2 rounded-full text-xl flex items-center justify-center">
-                    +
+                <a href="{{ route('view.payroll') }}"
+                    class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-full text-md flex items-center justify-center">
+                    Payroll Operation
                 </a>
 
                 <!-- View Archived -->
@@ -47,29 +21,49 @@
 
         <!-- Employee Table -->
         <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
+            
+            <!-- Search & Filter inside table container -->
+            <div class="p-4 border-b flex items-center space-x-4">
+                <form method="GET" action="" class="flex space-x-2 w-full">
+                    <input type="text" name="search" value="{{ request('search') }}" 
+                        placeholder="Search employee..."
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-64">
+
+                    <select name="position" onchange="this.form.submit()"
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400">
+                        <option value="">All Positions</option>
+                        <option value="Administrative Manager"
+                            {{ request('position') == 'Administrative Manager' ? 'selected' : '' }}>Administrative Manager</option>
+                        <option value="Human Resource Manager"
+                            {{ request('position') == 'Human Resource Manager' ? 'selected' : '' }}>Human Resource Manager</option>
+                        <option value="Finance Manager"
+                            {{ request('position') == 'Finance Manager' ? 'selected' : '' }}>Finance Manager</option>
+                        <option value="Technician" {{ request('position') == 'Technician' ? 'selected' : '' }}>Technician</option>
+                        <option value="Helper" {{ request('position') == 'Helper' ? 'selected' : '' }}>Helper</option>
+                        <option value="Assistant Technician"
+                            {{ request('position') == 'Assistant Technician' ? 'selected' : '' }}>Assistant Technician</option>
+                    </select>
+                </form>
+            </div>
+
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="bg-gray-200">
-                        <th class="px-6 py-3 text-left font-semibold text-sm uppercase tracking-wide">ID No.</th>
-                        <th class="px-6 py-3 text-left font-semibold text-sm uppercase tracking-wide">Employee</th>
-                        <th class="px-6 py-3 text-right font-semibold text-sm uppercase tracking-wide">Actions</th>
+                        <th class="px-4 py-2 text-left font-semibold text-sm uppercase tracking-wide">ID No.</th>
+                        <th class="px-4 py-2 text-left font-semibold text-sm uppercase tracking-wide">Employee</th>
+                        <th class="px-4 py-2 text-right font-semibold text-sm uppercase tracking-wide">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @foreach ($employee as $emp)
                         <tr x-data="{ open: false, deactivateOpen: false }" class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-3">
-                                {{ $emp['employeeprofiles_id'] }}  
-                            </td>
-                            <td class="px-6 py-3 text-md">
-                             {{ $emp->last_name }}, {{ $emp->first_name }}  
-                            </td>
-                            <td class="px-6 py-3 text-right mr-30">
+                            <td class="px-4 py-2">{{ $emp['employeeprofiles_id'] }}</td>
+                            <td class="px-4 py-2 text-md">{{ $emp->last_name }}, {{ $emp->first_name }}</td>
+                            <td class="px-4 py-2 text-right">
                                 <button @click="open = true" class="text-gray-800 font-medium hover:underline">
                                     View Details
                                 </button>
-
-                                <!-- Main Modal -->
+                          <!-- Main Modal -->
                                 <div x-show="open"
                                     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
                                     x-transition @click.self="open = false" x-cloak>

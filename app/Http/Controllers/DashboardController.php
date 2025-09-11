@@ -41,4 +41,24 @@ return view('HR.dashboard', [
 ]);
 
 }
+
+public function showEditProfile() {
+
+    return view('HR.editprofile');
+}
+
+// public function storeProfile(Request $request, $employeeprofiles_id){
+
+//     $profile = Employeeprofiles::findOrFail($employeeprofiles_id);
+//     $validated = $request->validate([
+//         'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+//         'first_name' => 'required|string|max:255',
+//         'last_name' => 'required|string|max:255',
+//         'address' => 'nullable|string|max:255',
+//         'user_name' => 'nullable|string|max:255',
+//         'password' =>'', //current password fetched from the database
+       
+//     ]);
+// }
+
 }

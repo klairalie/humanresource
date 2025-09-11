@@ -23,8 +23,7 @@ class Payroll extends Model
         'basic_salary', 
         'overtime_pay', 
         'deductions',
-        'bonuses', 
-        'net_pay', 
+        'bonuses',  
         'status', 
     ];
 
@@ -32,21 +31,16 @@ class Payroll extends Model
     use HasFactory;
 
      protected $casts = [
+        'deductions' => 'decimal:2',
         'basic_salary' => 'decimal:2',
         'overtime_pay' => 'decimal:2',
-        'deductions' => 'decimal:2',
-        'net_pay' => 'decimal:2',
+    
     ];
 
 
     public function employeeprofiles()
 {
     return $this->belongsTo(Employeeprofiles::class, 'employeeprofiles_id', 'employeeprofiles_id');
-}
-
-public function deductions()
-{
-    return $this->hasMany(Deduction::class, 'payroll_id', 'payroll_id');
 }
 
 }

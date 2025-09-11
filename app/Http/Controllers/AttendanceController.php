@@ -62,7 +62,9 @@ class AttendanceController extends Controller
 
     
     if ($validatedData['status'] === 'Present') {
-      $attendance->time_out = Carbon::createFromFormat('H:i', $request->input('time_out'))->format('H:i:s');
+      $attendance->time_out = $request->filled('time_out')
+    ? Carbon::createFromFormat('H:i', $request->input('time_out'))->format('H:i:s')
+    : null;
     }
 
     $attendance->save();

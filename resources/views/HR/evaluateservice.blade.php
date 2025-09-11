@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="min-h-screen bg-gray-100 p-6">
+    <div class="min-h-screen p-6">
 
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">

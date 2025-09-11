@@ -12,67 +12,80 @@ class DeductionController extends Controller
     /**
      * Show create form
      */
-
     public function showDeductionForm()
     {
-        return view('HR.deductionform');
-    }
-
-    public function createDeduction()
-    {
         $employees = Employeeprofiles::all();
-        $payroll   = Payroll::all(); 
-
-       redirect()->route('show.deductionform', [
-            'employees' => $employees,
-            'payroll'   => $payroll,
-        ]);
+        return view('HR.deductionform', compact('employees'));
     }
 
     /**
-     * Store a new deduction (cash advance or partial payment)
+     * Fetch payroll by employee (AJAX)
      */
-    public function store(Request $request)
+
+    /**
+     * Store a new deduction
+     */
+    public function storeDeduction(Request $request)
     {
         $validated = $request->validate([
-            'payroll_id'          => 'required|exists:payrolls,payroll_id',
             'employeeprofiles_id' => 'required|exists:employeeprofiles,employeeprofiles_id',
             'deduction_type'      => 'required|string',
             'amount'              => 'required|numeric|min:0',
-            'partial_payment'     => 'nullable|numeric|min:0',
-            'date'                => 'required|date',
+            'deduction_date'      => 'required|date',
         ]);
 
-        // ✅ Save the deduction record
-        $deduction = Deduction::create($validated);
+        Deduction::create($validated);
 
-        // ✅ Calculate remaining balance (total amount - sum of partials)
-        $totalPartial = Deduction::where('employeeprofiles_id', $validated['employeeprofiles_id'])
-            ->where('payroll_id', $validated['payroll_id'])
-            ->sum('partial_payment');
+       
+        $totalDeductions = Deduction::with('payroll')->where('employeeprofiles_id', $validated['employeeprofiles_id'])->sum('amount');
 
-        $remaining = $validated['amount'] - $totalPartial;
-
-    
-        $payroll = Payroll::find($validated['payroll_id']);
-        if ($payroll) {
-            $payroll->deductions = $totalPartial;
-            $payroll->save();
-        }
-
-        return redirect()->route('HR.deductionform')
-            ->with('success', "Deduction saved. Remaining Balance: ₱{$remaining}");
+        return redirect()->route('show.deductionform')
+            ->with('success', "Deduction saved successfully. Total deductions for this payroll: ₱{$totalDeductions}");
     }
 
-    /**
-     * List deductions
-     */
-    public function index()
+    public function viewDeductionRecords()
     {
-        $deductions = Deduction::with('employeeprofiles', 'payroll')
-            ->orderBy('date', 'desc')
-            ->paginate(10);
+        $deductions = Deduction::with('employeeprofiles')->paginate(10);
+        return view('HR.deductionrecords', ["deductions" => $deductions]);
+    }
 
-        return view('HR.deductions.index', compact('deductions'));
+    public function editDeduction($deduction_id)
+    {
+        $deduction = Deduction::findOrFail($deduction_id);
+        return view('HR.editdeduction', ["deduction" => $deduction]);
+    }
+
+   public function updateDeduction(Request $request, $deduction_id)
+{
+    $deduction = Deduction::findOrFail($deduction_id);
+
+    $validated = $request->validate([
+        'partial_payment' => 'nullable|numeric|min:0',
+    ]);
+
+    // ✅ Create a new record instead of updating the old one
+    if (!is_null($validated['partial_payment'])) {
+        Deduction::create([
+            'employeeprofiles_id' => $deduction->employeeprofiles_id,   // keep same employee
+            'deduction_type'      => $deduction->deduction_type,       // carry forward type
+            'partial_payment'     => $validated['partial_payment'],    // new payment
+            'amount'              => $deduction->amount,               // keep original amount
+            'deduction_date'      => $deduction->deduction_date,       // keep original deduction date
+            'partialpay_date'     => now()->toDateString(),            // new date
+        ]);
+    }
+
+    return redirect()->route('view.deductionrecords')
+        ->with('success', "Deduction recorded successfully. Old record kept, new partial payment saved.");
+}
+
+
+    public function deleteDeduction($deduction_id)
+    {
+        $deduction = Deduction::findOrFail($deduction_id);
+        $deduction->delete();
+
+        return redirect()->route('view.deductionrecords', ['id' => $deduction_id])
+            ->with('success', "Deduction deleted successfully.");
     }
 }

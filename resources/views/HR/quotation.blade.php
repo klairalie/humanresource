@@ -9,11 +9,9 @@
                 <!-- Header -->
                 <div class="flex justify-between items-start mb-8">
                     <div>
-                        <!-- Logo Placeholder -->
-                        <!-- Logo -->
-                        <div class="h-16 w-48 flex items-center">
-                            <img src="{{ asset('storage/company-logo.png') }}" alt="Company Logo"
-                                class="h-full w-auto object-contain">
+
+                        <div class="h-16 w-lg flex items-center mb-7 mt-0">
+                            <img src="{{ url('/3Rs_logo.png') }}" alt="company logo" class="h-12 w-full">
                         </div>
 
                         <div class="mt-4 space-y-2 text-sm text-gray-700">
@@ -102,6 +100,7 @@
                                         class="w-full text-right focus:outline-none font-bold" />
                                 </td>
                             </tr>
+                        
                         </tbody>
                     </table>
 

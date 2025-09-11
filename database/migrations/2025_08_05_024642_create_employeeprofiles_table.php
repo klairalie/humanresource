@@ -16,11 +16,13 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->string('address');
+            $table->string('email');
             $table->string('position');
-            $table->string('contact_info');
-            $table->date('hire_date');
+            $table->date('date_of_birth');
+            $table->string('contact_number');
+            $table->date('hire_date')->nullable();
             $table->string('status');
-            $table->string('emergency_contact');
+            $table->string('emergency_contact')->nullable();
             $table->longText('fingerprint_data')->nullable();
             $table->timestamps();
         });

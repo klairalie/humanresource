@@ -7,13 +7,16 @@ use App\Http\Controllers\DeductionController;
 use App\Http\Controllers\EmployeeprofilesController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\EvaluateservicesController;
-use App\Models\Employeeprofiles;
-use App\Models\Archiveprofile;
-use App\Models\Deduction;
+use App\Http\Controllers\ApplicantController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('index');
+});
 
 Route::controller(DashboardController::class)->group(function () {
 Route::get('/HR', 'dashboard')->name('show.dashboard');
+Route::get('/editprofile', 'showEditProfile')->name('show.editprofile');
 });
 
 Route::controller(AttendanceController::class)->group(function () {
@@ -40,7 +43,7 @@ Route::controller(PayrollController::class)->group( function(){
     Route::post('/payrollform', 'createPayroll')->name('create.payroll');
     Route::get('/view_payroll', 'viewpayroll')->name('view.payroll');
     Route::post('/view_payroll/submit-summary', 'submitSummary')->name('payroll.submitSummary');
-
+    Route::put('/payroll/store', 'storePayroll')->name('store.payroll');
 
 });
 
@@ -61,6 +64,24 @@ Route::put('/archivedprofiles/{archiveprofile_id}/reactivate', 'reactivate')->na
 
 Route::controller(DeductionController::class)->group(function () {
     Route::get('/deductionform', 'showDeductionForm')->name('show.deductionform');
-    Route::get('/deductions/create', 'createDeduction')->name('create.deduction');
-    Route::post('/deductions', 'store')->name('deductions.store');
+    Route::post('/deductionform', 'storeDeduction')->name('store.deduction');
+    Route::get('/deductionrecords', 'viewDeductionRecords')->name('view.deductionrecords');
+    Route::get('/deductionrecords/{deduction_id}/edit', 'editDeduction')->name('edit.deduction');
+    Route::put('/deductionrecords/{deduction_id}/update', 'updateDeduction')->name('update.deduction');
+    Route::delete('/deductionrecords/{deduction_id}/delete', 'deleteDeduction')->name('delete.deduction');
+});
+
+Route::get('/payroll/records/{employeeprofiles_id}', [PayrollController::class, 'getEmployeePayroll'])
+    ->name('employee.payroll.records');
+
+
+Route::controller(ApplicantController::class)->group(function () {
+    Route::post('/applicationform', 'store')->name('applicants.store');
+    Route::get('/applicationform', 'showForm')->name('show.applicationform');
+    Route::get('/applicants', 'index')->name('show.listapplicants');
+    Route::get('/applicants/{applicant_id}', 'show')->name('applicants.show');
+
+    Route::post('/validate-applicant', 'validateField')->name('validate.applicant');
+    Route::post('/applicants/{applicant_id}/summarize', 'summarize')->name('applicants.summarize');
+    Route::get('/summary/{applicant_summary_id}', 'showSummary')->name('applicants.summary.show');
 });

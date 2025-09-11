@@ -20,9 +20,8 @@ return new class extends Migration
             $table->date('pay_period_end');
             $table->decimal('basic_salary');
             $table->decimal('overtime_pay')->nullable()->default(0);
-            $table->string('deductions')->nullable()->default('none as of the moment');
+            $table->decimal('deductions')->nullable()->default('0');
             $table->string('bonuses')->nullable()->default('none as of the moment');
-            $table->decimal('net_pay')->nullable()->default(0);
             $table->string('status')->default('Pending');
             $table->timestamps();
             

@@ -7,82 +7,74 @@ use App\Models\Attendance;
 use App\Models\Employeeprofiles;
 use App\Models\Leaveovertimerequest;
 use App\Models\Payroll;
+use App\Models\Deduction;
 use Illuminate\Http\Request;
 
 class PayrollController extends Controller
 {
+    public function viewPayroll(Request $request)
+    {
+        $search = $request->input('search');
+        $employees = Employeeprofiles::all();
+        $payPeriod = $this->getCurrentPayPeriod();
 
-   public function viewPayroll(Request $request)
-{
-    $search = $request->input('search');
+        foreach ($employees as $employee) {
+            $salaryRecord = Salaries::whereRaw('TRIM(LOWER(position)) = ?', [strtolower(trim($employee->position))])->first();
+            $basicSalary = $salaryRecord ? $salaryRecord->basic_salary : 0;
 
- 
-    $employees = Employeeprofiles::all();
+            $deduction = Deduction::where('employeeprofiles_id', $employee->employeeprofiles_id)
+                ->whereBetween('deduction_date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
+                ->sum('amount');
 
+            $totalDaysOfWork = Attendance::where('employeeprofiles_id', $employee->employeeprofiles_id)
+                ->whereBetween('date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
+                ->where('status', 'Present')
+                ->count();
 
-    $payPeriod = $this->getCurrentPayPeriod();
+            $overtimePay = 100 * Leaveovertimerequest::where('employeeprofiles_id', $employee->employeeprofiles_id)
+                ->whereBetween('request_date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
+                ->sum('overtime_hours');
 
-    foreach ($employees as $employee) {
+            $existingPayroll = Payroll::where('employeeprofiles_id', $employee->employeeprofiles_id)
+                ->where('pay_period_start', $payPeriod['pay_period_start'])
+                ->where('pay_period_end', $payPeriod['pay_period_end'])
+                ->first();
 
-        
-        $salaryRecord = Salaries::whereRaw('TRIM(LOWER(position)) = ?', [strtolower(trim($employee->position))])->first();
-        $basicSalary = $salaryRecord ? $salaryRecord->basic_salary : 0;
-
-       
-        $totalDaysOfWork = Attendance::where('employeeprofiles_id', $employee->employeeprofiles_id)
-            ->whereBetween('date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
-            ->where('status', 'Present')
-            ->count();
-
-        $overtimePay = 100 * Leaveovertimerequest::where('employeeprofiles_id', $employee->employeeprofiles_id)
-            ->whereBetween('request_date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
-            ->sum('overtime_hours');
-
-        $existingPayroll = Payroll::where('employeeprofiles_id', $employee->employeeprofiles_id)
-            ->where('pay_period_start', $payPeriod['pay_period_start'])
-            ->where('pay_period_end', $payPeriod['pay_period_end'])
-            ->first();
-
-        if (!$existingPayroll) {
-            Payroll::create([
-                'employeeprofiles_id' => $employee->employeeprofiles_id,
-                'basic_salary'        => $basicSalary,
-                'total_days_of_work'  => $totalDaysOfWork, 
-                'overtime_pay'        => $overtimePay,
-                'deductions'          => 0,
-                'bonuses'             => 'none as of the moment',
-                'net_pay'             => 0,
-                'status'              => 'Pending',
-                'pay_period_start'    => $payPeriod['pay_period_start'],
-                'pay_period_end'      => $payPeriod['pay_period_end'],
-                'pay_period'          => $payPeriod['pay_period_start'] . ' to ' . $payPeriod['pay_period_end'],
-            ]);
-        } else {
-            
-            $existingPayroll->update([
-                'basic_salary'       => $basicSalary,
-                'total_days_of_work' => $totalDaysOfWork,
-                'overtime_pay'       => $overtimePay,
-            ]);
+            if (!$existingPayroll) {
+                Payroll::create([
+                    'employeeprofiles_id' => $employee->employeeprofiles_id,
+                    'basic_salary'        => $basicSalary,
+                    'total_days_of_work'  => $totalDaysOfWork,
+                    'overtime_pay'        => $overtimePay,
+                    'deductions'          => $deduction,
+                    'bonuses'             => 'none as of the moment',
+                    'status'              => 'Pending',
+                    'pay_period_start'    => $payPeriod['pay_period_start'],
+                    'pay_period_end'      => $payPeriod['pay_period_end'],
+                    'pay_period'          => $payPeriod['pay_period_start'] . ' to ' . $payPeriod['pay_period_end'],
+                ]);
+            } else {
+                $existingPayroll->update([
+                    'deductions'         => $deduction,
+                    'basic_salary'       => $basicSalary,
+                    'total_days_of_work' => $totalDaysOfWork,
+                    'overtime_pay'       => $overtimePay,
+                ]);
+            }
         }
+
+        $payroll = Payroll::with('employeeprofiles')
+            ->when($search, function ($query, $search) {
+                $query->whereHas('employeeprofiles', function ($q) use ($search) {
+                    $q->where('first_name', 'LIKE', "%$search%")
+                        ->orWhere('last_name', 'LIKE', "%$search%")
+                        ->orWhere('employeeprofiles_id', 'LIKE', "%$search%");
+                })->orWhere('pay_period', 'LIKE', "%$search%");
+            })
+            ->paginate(10);
+
+        return view('HR.view_payroll', compact('payroll', 'search'));
     }
-
-    
-    $payroll = Payroll::with('employeeprofiles')
-        ->when($search, function ($query, $search) {
-            $query->whereHas('employeeprofiles', function ($q) use ($search) {
-                $q->where('first_name', 'LIKE', "%$search%")
-                    ->orWhere('last_name', 'LIKE', "%$search%")
-                    ->orWhere('employeeprofiles_id', 'LIKE', "%$search%");
-            })->orWhere('pay_period', 'LIKE', "%$search%");
-        })
-        ->paginate(10);
-
-    return view('HR.view_payroll', compact('payroll', 'search'));
-}
-
-
-
 
     public function showPayrollform()
     {
@@ -110,55 +102,76 @@ class PayrollController extends Controller
         ];
     }
 
+   public function storePayroll(Request $request)
+{
+    // Validate the request
+    $validated = $request->validate([
+        'employeeprofiles_id' => 'required|exists:employeeprofiles,employeeprofiles_id',
+        'total_days_of_work'  => 'required|integer',
+        'basic_salary'        => 'required|numeric',
+        'overtime_pay'        => 'required|numeric',
+        'deductions'          => 'nullable|string',
+        'bonuses'             => 'nullable|string',
+        'pay_period_start'    => 'required|date',
+        'pay_period_end'      => 'required|date',
+        'pay_period'          => 'required|string',
+    ]);
 
-      public function submitSummary(Request $request)
-    {
-        // ✅ Validate inputs
-        $validated = $request->validate([
-            'employeeprofiles_id' => 'required|exists:employeeprofiles,employeeprofiles_id',
-            'overtime_pay'        => 'nullable|numeric',
-            'deductions'          => 'nullable|numeric',
-            'bonuses'             => 'nullable|string',
-            'pay_period_start'    => 'required|date',
-            'pay_period_end'      => 'required|date',
-        ]);
+    // Merge defaults and status
+    $data = array_merge($validated, [
+        'deductions' => $validated['deductions'] ?? 'no deduction',
+        'bonuses'    => $validated['bonuses'] ?? 'none as of the moment',
+        'status'     => 'Pending'
+    ]);
 
-        // ✅ Fetch employee
-        $employee = Employeeprofiles::findOrFail($validated['employeeprofiles_id']);
+    // Create a new payroll record
+    Payroll::create($data);
 
-        // ✅ Auto-count total days of work from attendances table
-        $totalDaysOfWork = Attendance::where('employeeprofiles_id', $employee->employeeprofiles_id)
-            ->where('status', 'Present')
-            ->count();
+    // Return JSON response for AJAX
+    return response()->json([
+        'success' => true,
+        'message' => 'Payroll record stored successfully!'
+    ]);
+}
 
-        // ✅ Basic salary (readonly - taken from DB, not from request)
-        $basicSalary = $employee->basic_salary;
+public function getEmployeePayroll($employeeprofiles_id)
+{
+    $records = Payroll::where('employeeprofiles_id', $employeeprofiles_id)->get();
+    return response()->json($records);
+}
 
-        // ✅ Compute net pay
-        $overtime   = $validated['overtime_pay'] ?? 0;
-        $deductions = $validated['deductions'] ?? 0;
-        $bonuses    = $validated['bonuses'] ?? 'none as of the moment';
+// public function updatePayroll(Request $request, $payroll_id)
+// {
+//     $validated = $request->validate([
+//         'total_days_of_work'  => 'required|integer',
+//         'basic_salary'        => 'required|numeric',
+//         'overtime_pay'        => 'required|numeric',
+//         'deductions'          => 'nullable|string',
+//         'bonuses'             => 'nullable|string',
+//         'pay_period_start'    => 'required|date',
+//         'pay_period_end'      => 'required|date',
+//         'pay_period'          => 'required|string',
+//     ]);
 
-        $netPay = ($basicSalary + $overtime) - $deductions;
+//     $payroll = Payroll::findOrFail($payroll_id);
 
-        // ✅ Create new payroll record (not update)
-        Payroll::create([
-            'employeeprofiles_id' => $employee->employeeprofiles_id,
-            'basic_salary'        => $basicSalary,
-            'total_days_of_work'  => $totalDaysOfWork,
-            'overtime_pay'        => $overtime,
-            'deductions'          => $deductions,
-            'bonuses'             => $bonuses,
-            'net_pay'             => $netPay,
-            'status'              => 'Pending',
-            'pay_period_start'    => $validated['pay_period_start'],
-            'pay_period_end'      => $validated['pay_period_end'],
-            'pay_period'          => $validated['pay_period_start'] . ' to ' . $validated['pay_period_end'],
-        ]);
+//     $payroll->update([
+//         'total_days_of_work' => $validated['total_days_of_work'],
+//         'basic_salary'       => $validated['basic_salary'],
+//         'overtime_pay'       => $validated['overtime_pay'],
+//         'deductions'         => $validated['deductions'] ?? 'no deduction',
+//         'bonuses'            => $validated['bonuses'] ?? 'none as of the moment',
+//         'pay_period_start'   => $validated['pay_period_start'],
+//         'pay_period_end'     => $validated['pay_period_end'],
+//         'pay_period'         => $validated['pay_period'],
+//         'status'             => 'Updated',
+//     ]);
 
-        // ✅ Redirect to payroll list (avoid GET error on submit-summary)
-        return redirect()->route('payroll.index')
-            ->with('success', 'Payroll summary submitted successfully!');
-    }
+//     return response()->json([
+//         'success' => true,
+//         'message' => 'Payroll record updated successfully!',
+//         'updated_record' => $payroll
+//     ]);
+// }
 
 }

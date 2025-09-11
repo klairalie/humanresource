@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('deductions', function (Blueprint $table) {
             $table->id('deduction_id');
-            $table->foreignId('payroll_id')->constrained('payrolls', 'payroll_id')->onDelete('cascade');
             $table->foreignId('employeeprofiles_id')->constrained('employeeprofiles', 'employeeprofiles_id')->onDelete('cascade');
             $table->string('deduction_type');
-            $table->decimal('partial_payment', 10, 2)->nullable()->default(0);
+            $table->decimal('partial_payment',10, 2)->nullable();
             $table->decimal('amount', 10, 2);
-            $table->date('date');
+            $table->date('deduction_date'); 
+            $table->date('partialpay_date')->nullable();
             $table->timestamps();
         });
     }

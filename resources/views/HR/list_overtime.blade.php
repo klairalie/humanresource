@@ -7,14 +7,14 @@
         </div>
 
         <!-- Search/Filter -->
-<form method="GET" action="" class="mb-10 flex justify-end space-x-5">
-    <input type="text" name="search" placeholder="Search by name or date"
-           class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 w-64 text-black">
-    <button type="submit" 
-            class="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-4 py-2 rounded-lg transition">
-        Search
-    </button>
-</form>
+        <form method="GET" action="" class="mb-10 flex justify-end space-x-5">
+            <input type="text" name="search" placeholder="Search by name or date"
+                   class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 w-64 text-black">
+            <button type="submit" 
+                    class="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-4 py-2 rounded-lg transition">
+                Search
+            </button>
+        </form>
 
         <!-- Overtime Table -->
         <div class="overflow-x-auto">
@@ -23,27 +23,37 @@
                     <tr>
                         <th class="px-4 py-2 text-center">Employee ID</th>
                         <th class="px-4 py-2 text-center">Name</th>
-                        <th class="px-4 py-2 text-center">Date</th>
-                        <th class="px-4 py-2 text-center">Overtime Hours</th>
+                        <th class="px-4 py-2 text-center">Action</th>
                     </tr>
                 </thead>
-               <tbody class="text-gray-800 text-center">
-    @forelse($overtimeRequests as $ot)
-        <tr class="border-t">
-            <td class="px-4 py-2">{{ $ot->employeeprofiles_id }}</td>
-            <td class="px-4 py-2">
-                {{ $ot->employeeprofiles?->first_name ?? 'N/A' }}
-                {{ $ot->employeeprofiles?->last_name ?? '' }}
-            </td>
-            <td class="px-4 py-2">{{ $ot->request_date }}</td>
-            <td class="px-4 py-2">{{ $ot->overtime_hours }}</td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="4" class="px-4 py-2 text-center text-gray-500">No overtime requests found.</td>
-        </tr>
-    @endforelse
-</tbody>
+                <tbody class="text-gray-800 text-center">
+                    @forelse($overtimeRequests as $ot)
+                        <tr class="border-t">
+                            <td class="px-4 py-2">{{ $ot->employeeprofiles_id }}</td>
+                            <td class="px-4 py-2">
+                                {{ $ot->employeeprofiles?->first_name ?? 'N/A' }}
+                                {{ $ot->employeeprofiles?->last_name ?? '' }}
+                            </td>
+                            <td class="px-4 py-2">
+                                <!-- Card-style View Details button -->
+                                <div class="flex justify-center">
+                                    <div class="bg-white border rounded-xl shadow-md p-3 hover:shadow-lg transition">
+                                        <button onclick="openDetailsModal({{ $ot->employeeprofiles_id }})"
+                                                class="text-amber-600 font-semibold hover:underline">
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="px-4 py-2 text-center text-gray-500">
+                                No overtime requests found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
             </table>
         </div>
     </div>
