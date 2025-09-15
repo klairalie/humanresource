@@ -12,15 +12,6 @@
                     class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 w-64">
             </form>
 
-            <div class="flex space-x-2 mt-2 md:mt-0">
-                <a href="{{ route('show.deductionform') }}">
-                    <button class="px-4 py-2 font-sans bg-gradient-to-r from-orange-100 via-orange-300 to-orange-200 hover:from-orange-300 hover:to-orange-100 text-black rounded-lg">+ Deduction</button>
-                </a>
-                <a href="{{ route('view.deductionrecords') }}">
-                    <button class="px-4 py-2 font-sans bg-gradient-to-r from-orange-100 via-orange-300 to-orange-200 hover:from-orange-300 hover:to-orange-100 text-black rounded-lg">Manage
-                        Deduction</button>
-                </a>
-            </div>
         </div>
 
         <!-- Payroll Table -->

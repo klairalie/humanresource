@@ -8,6 +8,13 @@ use App\Http\Controllers\EmployeeprofilesController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\EvaluateservicesController;
 use App\Http\Controllers\ApplicantController;
+use App\Http\Controllers\ResumeController;
+use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\AssessmentController;
+use App\Http\Controllers\AssessmentTokenController;
+use App\Http\Controllers\AssessmentResultController;
+use App\Http\Controllers\AssessmentQuestionController;
+use App\Models\Assessment;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -80,8 +87,76 @@ Route::controller(ApplicantController::class)->group(function () {
     Route::get('/applicationform', 'showForm')->name('show.applicationform');
     Route::get('/applicants', 'index')->name('show.listapplicants');
     Route::get('/applicants/{applicant_id}', 'show')->name('applicants.show');
-
-    Route::post('/validate-applicant', 'validateField')->name('validate.applicant');
+    Route::post('/applicants/validate', 'validateField')->name('validate.applicant');
     Route::post('/applicants/{applicant_id}/summarize', 'summarize')->name('applicants.summarize');
     Route::get('/summary/{applicant_summary_id}', 'showSummary')->name('applicants.summary.show');
+    Route::get('/applicants/{applicant_id}/review', 'review')->name('review.document');
+    Route::post('/applicants/{applicant_id}/reviewed', 'markReviewed')->name('applicant.markReviewed');
+    Route::get('/summary/{applicant_id}/resume/view', 'viewResume')->name('applicant.resume.view');
+    
+
+
 });
+
+Route::get('/resumeupload', [ResumeController::class, 'showResumeForm'])->name('resume.form');
+Route::post('/resumeupload', [ResumeController::class, 'upload'])->name('resume.upload');
+Route::delete('/resumeupload/{resume_format_id}', [ResumeController::class, 'delete'])->name('resume.delete');
+Route::get('/resumeupload/{resume_format_id}/details', [ResumeController::class, 'details'])->name('resume.details');
+Route::get('/resumeupload/download', [ResumeController::class, 'download'])->name('resume.download');
+
+
+Route::get('/queue-failures', [QueueMonitorController::class, 'index'])->name('queue.failures');
+
+// Assessments (CRUD for admin/HR)
+// Route::prefix('assessmentque')->group(function () {
+//     Route::get('/', [AssessmentController::class, 'index'])->name('assessments.index');
+//     Route::get('/create', [AssessmentController::class, 'create'])->name('assessments.create');
+//     Route::post('/', [AssessmentController::class, 'store'])->name('assessments.store');
+//     Route::get('/{assessment_id}', [AssessmentController::class, 'show'])->name('assessments.show');
+//     Route::get('/{assessment_id}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit');
+//     Route::put('/{assessment_id}', [AssessmentController::class, 'update'])->name('assessments.update');
+//     Route::delete('/{assessment_id}', [AssessmentController::class, 'destroy'])->name('assessments.destroy');
+// });
+
+// Tokens (Send assessment links to applicants)
+Route::post('/applicants/{applicant_id}/send-assessment', [AssessmentTokenController::class, 'send'])
+    ->name('assessment.send');
+
+// Public route for applicants to open their assessment (via token)
+
+// Submit results
+Route::post('/assessment/submit/{token}', [AssessmentResultController::class, 'store'])
+    ->name('assessment.submit');
+
+// HR/Staff view applicant results
+
+Route::controller(AssessmentTokenController::class)->group(function(){
+
+Route::post('/assessment/{applicant_id}/{assessment_id}', 'sendAssessment')->name('send.assessment');
+Route::get('/assessment/results/{applicant_id}', 'show')->name('assessment.results.show');
+
+});
+
+
+    Route::controller(AssessmentQuestionController::class)->group( function() {
+        Route::get('/AssessmentQuestions/viewquestions', 'assessmentView')->name('view.questions');
+        Route::get('/AssessmentQuestions/create', 'create')->name('Questions.create');
+        Route::post('/AssessmentQuestions/store', 'store')->name('Questions.store');
+        Route::delete('/AssessmentQuestions/destroy-all', 'destroyAll')->name('Questions.destroyAll');
+        Route::get('AssessmentQuestions/edit', 'edit')->name('Questions.edit');
+        Route::put('AssessmentQuestions/update/{assessmentQuestion}', 'update')->name('Questions.update');
+
+    });
+
+    Route::controller(AssessmentController::class)->group(function() {
+
+        Route::get('/assessments/create', 'create')->name('assessments.create');
+        Route::post('/assessments/store', 'store')->name('assessments.store');
+Route::post('/assessment/begin', 'begin')->name('assessment.begin');
+
+ // For showing the assessment page when clicking the email link
+Route::get('/assessment/start/{token}', [AssessmentController::class, 'showStartPage'])
+    ->name('assessment.start');
+
+
+    });

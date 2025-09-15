@@ -10,6 +10,7 @@
 
     <!-- Alpine.js -->
     <script src="//unpkg.com/alpinejs" defer></script>
+    
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,10 +31,11 @@
     <nav
         class="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-orange-200 via-white to-gray-300 backdrop-blur-md px-6 py-3 flex justify-between items-center">
         <!-- Left -->
+        <a href="{{ route('show.dashboard') }}">
         <div>
             <img src="{{ url('/3Rs_logo.png') }}" alt="company logo" class="h-10 w-auto">
         </div>
-
+        </a>
         <!-- Right -->
         <div class="flex items-center space-x-6">
             <!-- Search bar -->
@@ -41,11 +43,18 @@
 
             </div>
 
-            <!-- Notification -->
-            <button class="relative">
-                <i class="fas fa-bell text-2xl"></i>
-                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1"></span>
-            </button>
+           <!-- Notification Bell -->
+<a href="{{ route('queue.failures') }}" class="relative">
+    <i class="fas fa-bell text-2xl"></i>
+    @if($failedCount > 0)
+        <span
+            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+            {{ $failedCount }}
+        </span>
+    @endif
+</a>
+
+
 
             <!-- Profile dropdown -->
             <div x-data="{ open: false }" class="relative">
@@ -67,8 +76,11 @@
                 <!-- Dropdown Menu -->
                 <div x-show="open" x-cloak @click.away="open = false" x-transition
                     class="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    <a href="{{ route('show.editprofile') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                        <i class="fas fa-cog mr-2 text-gray-500"></i> Profile Settings
+                    <a href="{{ route('view.questions') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-cog mr-2 text-gray-500"></i> Settings
+                    </a>
+                    <a href="{{ route('assessments.create') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-cog mr-2 text-gray-500"></i> Assessments
                     </a>
                     <form method="POST" action="index">
                         @csrf
@@ -81,7 +93,7 @@
         </div>
     </nav>
 
-    <div class="h-full w-full flex pt-15 bg-[url('/Backbone.png')] bg-cover bg-center">
+    <div class="h-full w-full flex pt-15 bg-[url('/logo_3RS.jpg')] bg-cover bg-center">
 
         <!-- Sidebar -->
         <div x-cloak @mouseenter="sidebarOpen = true" @mouseleave="sidebarOpen = false"

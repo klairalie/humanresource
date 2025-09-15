@@ -35,11 +35,13 @@ return new class extends Migration
             $table->longText('achievements');      
             $table->longText('references');       
             $table->string('good_moral_file');    
-            $table->string('coe_file');            
+            $table->string('coe_file');    
+            $table->string('resume_file');        
             $table->enum('applicant_status', [
                 'Pending',
-                'Screening',
-                'For Interview',
+                'On Screening',
+                'Reviewed',
+                'scheduled Interview',
                 'Hired',
                 'Rejected'
             ])->default('Pending');

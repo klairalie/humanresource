@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+
+
+use App\Notifications\StatusChangedNotification;
+use App\Mail\ApplicantStatusChanged;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Applicant;
 use App\Models\ApplicantSummary;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpWord\IOFactory;
+use App\Models\Assessment;
+
 class ApplicantController extends Controller
 {
     public function showForm()
@@ -33,15 +40,25 @@ class ApplicantController extends Controller
         'references'        => 'required|string',
         'good_moral_file'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         'coe_file'          => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-    ]);
+        'resume_file'       => 'required|file|mimes:jpg,jpeg,png,doc,docx|max:5120', // ✅ allow docs & larger size
+]);
 
-    // Handle uploads
-    if ($request->hasFile('good_moral_file')) {
-        $validated['good_moral_file'] = $request->file('good_moral_file')->store('applicants_files', 'public');
-    }
-    if ($request->hasFile('coe_file')) {
-        $validated['coe_file'] = $request->file('coe_file')->store('applicants_files', 'public');
-    }
+// Handle uploads
+if ($request->hasFile('good_moral_file')) {
+    $validated['good_moral_file'] = $request->file('good_moral_file')
+        ->store('applicants_files', 'public');
+}
+
+if ($request->hasFile('coe_file')) {
+    $validated['coe_file'] = $request->file('coe_file')
+        ->store('applicants_files', 'public');
+}
+
+if ($request->hasFile('resume_file')) {
+    $validated['resume_file'] = $request->file('resume_file')
+        ->store('applicants_files', 'public');
+}
+
 
     Applicant::create($validated);
 
@@ -86,7 +103,9 @@ public function validateField(Request $request)
     public function index(Request $request)
     {
         $search = $request->input('search');
+    $assessments = Assessment::all();
 
+ 
         $applicants = Applicant::when($search, function ($query, $search) {
             return $query->where('full_name', 'like', "%{$search}%")
                          ->orWhere('email', 'like', "%{$search}%")
@@ -95,7 +114,8 @@ public function validateField(Request $request)
         ->orderBy('created_at', 'desc')
         ->paginate(10);
 
-        return view('HR.applicantlist', compact('applicants'));
+          // Return view with both applicants and assessments
+    return view('HR.applicantlist', compact('applicants', 'assessments'));
     }
 
     public function show($applicant_id)
@@ -125,7 +145,7 @@ public function validateField(Request $request)
         'finance manager' => ['accounting', 'budgeting', 'financial analysis', 'payroll', 'auditing'],
     ];
 
-    // Position objectives mapping (keywords only, expanded)
+    // Position objectives mapping
     $positionObjectives = [
         'helper' => [
             'assist', 'help', 'learn', 'cleanliness', 'safety',
@@ -187,9 +207,9 @@ public function validateField(Request $request)
         $matches = count($matchedSkills);
 
         if ($matches >= 3) {
-            $ratingScore += 2; 
+            $ratingScore += 2;
         } elseif ($matches >= 1) {
-            $ratingScore += 1; 
+            $ratingScore += 1;
         }
     }
 
@@ -203,21 +223,29 @@ public function validateField(Request $request)
         $objMatches = count($matchedObjectives);
 
         if ($objMatches >= 5) {
-            $ratingScore += 2; 
+            $ratingScore += 2;
         } elseif ($objMatches >= 2) {
-            $ratingScore += 1; 
+            $ratingScore += 1;
         }
     }
 
     // Rule 3: Document bonus points
     $goodMoral = $applicant->good_moral_file;
-    $coe = $applicant->coe_file;
+$coe = $applicant->coe_file;
+$resume = $applicant->resume_file;
 
-    if ($goodMoral && $coe) {
-        $ratingScore += 2;
-    } elseif ($goodMoral || $coe) {
-        $ratingScore += 1;
-    }
+if ($goodMoral && $coe && $resume) {
+    $ratingScore += 3;
+} elseif (
+    ($goodMoral && $coe) ||
+    ($goodMoral && $resume) ||
+    ($coe && $resume)
+) {
+    $ratingScore += 2;
+} elseif ($goodMoral || $coe || $resume) {
+    $ratingScore += 1;
+}
+
 
     // Final rating
     if ($ratingScore >= 5) {
@@ -229,25 +257,33 @@ public function validateField(Request $request)
     }
 
     // Save summary
-    $summary = ApplicantSummary::create([
-        'applicant_id'            => $applicant->applicant_id,
-        'performance_rating'      => $finalRating,
-        'good_moral_file'         => $goodMoral,
-        'coe_file'                => $coe,
-        'skills'                  => $applicant->skills ?? 'Not provided',
-        'achievements'            => $applicant->achievements ?? 'Not provided',
-        'career_objective'        => $applicant->career_objective ?? 'Not provided',
-        'position'                => $applicant->position ?? 'N/A',
-        'matched_skills'          => json_encode($matchedSkills),
-        'matched_career_objective'=> json_encode($matchedObjectives),
+    ApplicantSummary::create([
+        'applicant_id'             => $applicant->applicant_id,
+        'performance_rating'       => $finalRating,
+        'good_moral_file'          => $goodMoral,
+        'coe_file'                 => $coe,
+        'resume_file'              => $resume,
+        'skills'                   => $applicant->skills ?? 'Not provided',
+        'achievements'             => $applicant->achievements ?? 'Not provided',
+        'career_objective'         => $applicant->career_objective ?? 'Not provided',
+        'position'                 => $applicant->position ?? 'N/A',
+        'matched_skills'           => json_encode($matchedSkills),
+        'matched_career_objective' => json_encode($matchedObjectives),
     ]);
 
-    return redirect()->back()->with('success', 'Applicant summarized successfully.');
+    // Update status
+    $oldStatus = $applicant->applicant_status;
+    $applicant->applicant_status = 'On Screening';
+    $applicant->save();
+
+    // ✅ Send notification only if the status changed
+    if ($oldStatus !== $applicant->applicant_status) {
+        $applicant->notify(new StatusChangedNotification($applicant->applicant_status));
+    }
+
+    return redirect()->back()->with('success', 'Applicant summarized successfully, status updated, and email notification sent.');
 }
 
-/**
- * Helper: Flexible keyword/objective matching
- */
 private function textContains($text, $keyword)
 {
     $text = strtolower($text);
@@ -327,14 +363,108 @@ private function textContains($text, $keyword)
     return false;
 }
 
-
-
-
     public function showSummary($applicant_summary_id)
     {
         $summary = ApplicantSummary::findOrFail($applicant_summary_id);
         return view('HR.summary', compact('summary'));
     }
+
+
+    public function updateStatus(Request $request, $applicant_id)
+{
+    $applicant = Applicant::findOrFail($applicant_id);
+    $oldStatus = $applicant->applicant_status;
+
+    $applicant->applicant_status = $request->status;
+    $applicant->save();
+
+    // Only send email if status really changed
+    if ($oldStatus !== $request->status) {
+        Mail::to($applicant->email)->send(
+            new ApplicantStatusChanged($applicant, $request->status)
+        );
+    }
+
+    return back()->with('success', 'Applicant status updated and email sent.');
+}
+
+ public function review($applicant_id)
+    {
+        $applicant = Applicant::where('applicant_id', $applicant_id)->firstOrFail();
+        $summary = ApplicantSummary::where('applicant_id', $applicant_id)->first();
+
+        return view('HR.reviewdocument', compact('applicant', 'summary'));
+    }
+
+    
+  public function markReviewed($applicant_id)
+{
+    $applicant = Applicant::where('applicant_id', $applicant_id)->firstOrFail();
+    $oldStatus = $applicant->applicant_status;
+
+    $applicant->applicant_status = 'Reviewed';
+    $applicant->save();
+
+    // ✅ Send email only if status changed
+    if ($oldStatus !== $applicant->applicant_status) {
+        Mail::to($applicant->email)->send(
+            new ApplicantStatusChanged($applicant, $applicant->applicant_status)
+        );
+    }
+
+    return redirect()->route('review.document', $applicant_id)
+                     ->with('success', 'Applicant marked as Reviewed and email sent.');
+}
+
+public function viewResume($applicant_id)
+{
+    $applicant = Applicant::findOrFail($applicant_id);
+
+    if (!$applicant->resume_file) {
+        abort(404, 'No resume found for this applicant.');
+    }
+
+    $filePath = storage_path('app/public/' . $applicant->resume_file);
+
+    if (!file_exists($filePath)) {
+        abort(404, 'Resume file not found.');
+    }
+
+    $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+    // If DOC/DOCX → convert to PDF
+    if (in_array($extension, ['doc', 'docx'])) {
+        $pdfPath = storage_path('app/public/temp/resume_' . $applicant_id . '.pdf');
+
+        // Ensure temp directory exists
+        if (!is_dir(dirname($pdfPath))) {
+            mkdir(dirname($pdfPath), 0777, true);
+        }
+
+        // ⚠ PhpWord requires an external PDF renderer (TCPDF/mPDF/DomPDF)
+        $phpWord = IOFactory::load($filePath);
+        $pdfWriter = IOFactory::createWriter($phpWord, 'PDF');
+        $pdfWriter->save($pdfPath);
+
+        return response()->file($pdfPath, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    // If already PDF
+    if ($extension === 'pdf') {
+        return response()->file($filePath, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    // If image or other file (jpg, png, etc.)
+    return response()->file($filePath);
+}
+
+
+
+
 }
 
 

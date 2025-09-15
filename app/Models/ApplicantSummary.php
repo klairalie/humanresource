@@ -17,6 +17,7 @@ class ApplicantSummary extends Model
     'performance_rating',
     'good_moral_file',
     'coe_file',
+    'resume_file',
     'skills',
     'achievements',
     'career_objective',

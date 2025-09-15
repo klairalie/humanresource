@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use App\Models\Employeeprofiles;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     public function dashboard(Request $request)
@@ -33,11 +33,15 @@ $attendances = Attendance::with('employeeprofiles') // assumes relation in Atten
 
 $formattedDate = $selectedDate->format('l, F d Y');
 
+$failedCount = DB::table('failed_jobs')->count();
+
+
 return view('HR.dashboard', [
     "employeeCount"   => $employeeCount,
     "attendanceCount" => $attendanceCount,
     "formattedDate"   => $formattedDate,
     "attendances"     => $attendances,
+    "failedCount"     => $failedCount,
 ]);
 
 }

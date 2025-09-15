@@ -17,6 +17,7 @@ return new class extends Migration
     $table->string('performance_rating')->nullable();
     $table->string('good_moral_file')->nullable();
     $table->string('coe_file')->nullable();
+    $table->string('resume_file')->nullable();
     $table->text('skills')->nullable();
     $table->text('achievements')->nullable();
     $table->text('career_objective')->nullable();
