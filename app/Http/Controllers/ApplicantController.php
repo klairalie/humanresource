@@ -131,213 +131,217 @@ public function validateField(Request $request)
 
 
   public function summarize($applicant_id)
-    {
-        // Find applicant (your primary key appears to be applicant_id)
-        $applicant = Applicant::findOrFail($applicant_id);
+{
+    // Find applicant (your primary key appears to be applicant_id)
+    $applicant = Applicant::findOrFail($applicant_id);
 
-        // Prevent duplicate summary: if exists, redirect to it
-        $existingSummary = ApplicantSummary::where('applicant_id', $applicant->applicant_id)->first();
-        if ($existingSummary) {
-            return redirect()
-                ->route('applicants.summary.show', $existingSummary->id)
-                ->with('info', 'Applicant already summarized. Redirected to existing summary.');
+    // Prevent duplicate summary: if exists, redirect to it
+   $existingSummary = ApplicantSummary::where('applicant_id', $applicant->applicant_id)->first();
+if ($existingSummary) {
+    return redirect()
+        ->route('applicants.summary.show', $existingSummary->applicant_summary_id) // ✅ correct PK
+        ->with('info', 'Applicant already summarized. Redirected to existing summary.');
+}
+    // ------------------- Analyze assessment results -------------------
+
+    // Fetch latest assessment result
+    $assessment = DB::table('assessment_results')
+        ->where('applicant_id', $applicant->applicant_id)
+        ->latest()
+        ->first();
+
+    // ✅ fixed typo ($assessment_ → $assessment)
+    $totalScore = $assessment->total_score ?? 0;
+    $performanceRatingFromTest = $assessment->performance_rating ?? 'N/A';
+
+    // Determine strongest category (Strength, Ability, Knowledge)
+    $scores = [
+        'Strength'  => $assessment->strength_score ?? 0,
+        'Ability'   => $assessment->ability_score ?? 0,
+        'Knowledge' => $assessment->knowledge_score ?? 0,
+    ];
+    $maxScore = max($scores);
+    $topCategories = array_keys($scores, $maxScore);
+
+    // Mapping categories → positions
+    $categoryToPositions = [
+        'Strength'  => ['Helper'],
+        'Ability'   => ['Assistant Technician', 'Technician'],
+        'Knowledge' => ['Human Resource Manager', 'Administrative Manager', 'Finance Manager'],
+    ];
+
+    $mappedPositions = [];
+    foreach ($topCategories as $cat) {
+        if (isset($categoryToPositions[$cat])) {
+            $mappedPositions = array_merge($mappedPositions, $categoryToPositions[$cat]);
         }
+    }
 
-        // Fetch latest assessment result
-        $assessment = DB::table('assessment_results')
-            ->where('applicant_id', $applicant->applicant_id)
-            ->latest()
-            ->first();
-
-        $totalScore = $assessment_->total_score ?? 0;
-        $performanceRatingFromTest = $assessment->performance_rating ?? 'N/A';
-
-        // Determine strongest category (Strength, Ability, Knowledge)
-        $scores = [
-            'Strength'  => $assessment->strength_score ?? 0,
-            'Ability'   => $assessment->ability_score ?? 0,
-            'Knowledge' => $assessment->knowledge_score ?? 0,
-        ];
-        $maxScore = max($scores);
-        $topCategories = array_keys($scores, $maxScore);
-
-        // Mapping categories → positions
-        $categoryToPositions = [
-            'Strength'  => ['Helper'],
-            'Ability'   => ['Assistant Technician', 'Technician'],
-            'Knowledge' => ['Human Resource Manager', 'Administrative Manager', 'Finance Manager'],
-        ];
-
-        $mappedPositions = [];
-        foreach ($topCategories as $cat) {
-            if (isset($categoryToPositions[$cat])) {
-                $mappedPositions = array_merge($mappedPositions, $categoryToPositions[$cat]);
-            }
-        }
-
-        // 🔹 Decide capability
-        $positionName = $applicant->position ?? 'N/A';
-        if (in_array($positionName, $mappedPositions)) {
-            $capabilityResult = "Capable in {$positionName}";
+    // 🔹 Decide capability
+    $positionName = $applicant->position ?? 'N/A';
+    if (in_array($positionName, $mappedPositions)) {
+        $capabilityResult = "Capable in {$positionName}";
+    } else {
+        if (count($mappedPositions) > 1) {
+            $capabilityResult = "Capable in " . implode(' and ', $mappedPositions);
         } else {
-            if (count($mappedPositions) > 1) {
-                $capabilityResult = "Capable in " . implode(' and ', $mappedPositions);
-            } else {
-                $capabilityResult = "Not capable in {$positionName}";
+            // ✅ safer fallback if no position
+            $capabilityResult = $positionName ? "Not capable in {$positionName}" : "Not capable";
+        }
+    }
+
+    $position  = strtolower($applicant->position ?? '');
+    $skills    = strtolower($applicant->skills ?? '');
+    $objective = strtolower($applicant->career_objective ?? '');
+    $text      = $skills . ' ' . $objective;
+
+    // Position skills mapping
+    $positionSkills = [
+        'helper' => ['basic tools', 'cleaning', 'manual labor', 'support'],
+        'assistant technician' => ['wiring', 'maintenance', 'basic repair', 'installation'],
+        'technician' => ['diagnostics', 'air-conditioning', 'electrical', 'troubleshooting', 'hvac'],
+        'human resource manager' => ['recruitment', 'training', 'employee relations', 'hr management'],
+        'administrative manager' => ['organization', 'scheduling', 'documentation', 'office management'],
+        'finance manager' => ['accounting', 'budgeting', 'financial analysis', 'payroll', 'auditing'],
+    ];
+
+    // Position objectives mapping
+    $positionObjectives = [
+        'helper' => [
+            'assist', 'help', 'learn', 'cleanliness', 'safety',
+            'tools', 'equipment', 'support', 'manual', 'labor',
+            'response', 'downtime', 'experience', 'professionalism',
+            'teamwork', 'maintenance', 'organization', 'discipline'
+        ],
+        'assistant technician' => [
+            'support', 'help', 'repair', 'fix', 'tools',
+            'testing', 'installation', 'setup', 'wiring', 'maintenance',
+            'document', 'record', 'communication', 'coordination',
+            'training', 'learning', 'safety', 'trust', 'accuracy',
+            'technical', 'inspection'
+        ],
+        'technician' => [
+            'diagnose', 'troubleshoot', 'analyze', 'repair', 'fix',
+            'installation', 'install', 'maintenance', 'service', 'calibration',
+            'estimates', 'cost', 'quality', 'customer', 'client',
+            'satisfaction', 'training', 'guide', 'safety', 'precaution',
+            'electrical', 'hvac', 'air-conditioning', 'systems', 'technical'
+        ],
+        'human resource manager' => [
+            'recruitment', 'hiring', 'selection', 'onboarding',
+            'compliance', 'laws', 'policy', 'payroll', 'salary',
+            'culture', 'grievances', 'disputes', 'performance',
+            'records', 'documentation', 'career', 'growth',
+            'retention', 'employee', 'relations', 'motivation',
+            'training', 'development', 'evaluation', 'management'
+        ],
+        'administrative manager' => [
+            'operations', 'organization', 'scheduling', 'planning',
+            'records', 'documentation', 'communication', 'coordination',
+            'inventory', 'supplies', 'workflow', 'process',
+            'inquiries', 'policy', 'procedures', 'supervision',
+            'compliance', 'support', 'office', 'efficiency',
+            'administration', 'monitoring'
+        ],
+        'finance manager' => [
+            'budgets', 'income', 'expenses', 'payroll', 'salaries',
+            'profitability', 'records', 'accounting', 'finance',
+            'decision-making', 'reporting', 'compliance', 'auditing',
+            'expenditures', 'funds', 'assets', 'control',
+            'advising', 'forecasting', 'investments', 'safeguard',
+            'analysis', 'planning'
+        ],
+    ];
+
+    $ratingScore = 0;
+    $matchedSkills = [];
+    $matchedObjectives = [];
+
+    // Rule 1: Match position skills
+    if (array_key_exists($position, $positionSkills)) {
+        foreach ($positionSkills[$position] as $req) {
+            if ($this->textContains($text, $req)) {
+                $matchedSkills[] = ucfirst($req);
             }
         }
+        $matches = count($matchedSkills);
 
-        $position  = strtolower($applicant->position ?? '');
-        $skills    = strtolower($applicant->skills ?? '');
-        $objective = strtolower($applicant->career_objective ?? '');
-        $text      = $skills . ' ' . $objective;
-
-        // Position skills mapping
-        $positionSkills = [
-            'helper' => ['basic tools', 'cleaning', 'manual labor', 'support'],
-            'assistant technician' => ['wiring', 'maintenance', 'basic repair', 'installation'],
-            'technician' => ['diagnostics', 'air-conditioning', 'electrical', 'troubleshooting', 'hvac'],
-            'human resource manager' => ['recruitment', 'training', 'employee relations', 'hr management'],
-            'administrative manager' => ['organization', 'scheduling', 'documentation', 'office management'],
-            'finance manager' => ['accounting', 'budgeting', 'financial analysis', 'payroll', 'auditing'],
-        ];
-
-        // Position objectives mapping
-        $positionObjectives = [
-            'helper' => [
-                'assist', 'help', 'learn', 'cleanliness', 'safety',
-                'tools', 'equipment', 'support', 'manual', 'labor',
-                'response', 'downtime', 'experience', 'professionalism',
-                'teamwork', 'maintenance', 'organization', 'discipline'
-            ],
-            'assistant technician' => [
-                'support', 'help', 'repair', 'fix', 'tools',
-                'testing', 'installation', 'setup', 'wiring', 'maintenance',
-                'document', 'record', 'communication', 'coordination',
-                'training', 'learning', 'safety', 'trust', 'accuracy',
-                'technical', 'inspection'
-            ],
-            'technician' => [
-                'diagnose', 'troubleshoot', 'analyze', 'repair', 'fix',
-                'installation', 'install', 'maintenance', 'service', 'calibration',
-                'estimates', 'cost', 'quality', 'customer', 'client',
-                'satisfaction', 'training', 'guide', 'safety', 'precaution',
-                'electrical', 'hvac', 'air-conditioning', 'systems', 'technical'
-            ],
-            'human resource manager' => [
-                'recruitment', 'hiring', 'selection', 'onboarding',
-                'compliance', 'laws', 'policy', 'payroll', 'salary',
-                'culture', 'grievances', 'disputes', 'performance',
-                'records', 'documentation', 'career', 'growth',
-                'retention', 'employee', 'relations', 'motivation',
-                'training', 'development', 'evaluation', 'management'
-            ],
-            'administrative manager' => [
-                'operations', 'organization', 'scheduling', 'planning',
-                'records', 'documentation', 'communication', 'coordination',
-                'inventory', 'supplies', 'workflow', 'process',
-                'inquiries', 'policy', 'procedures', 'supervision',
-                'compliance', 'support', 'office', 'efficiency',
-                'administration', 'monitoring'
-            ],
-            'finance manager' => [
-                'budgets', 'income', 'expenses', 'payroll', 'salaries',
-                'profitability', 'records', 'accounting', 'finance',
-                'decision-making', 'reporting', 'compliance', 'auditing',
-                'expenditures', 'funds', 'assets', 'control',
-                'advising', 'forecasting', 'investments', 'safeguard',
-                'analysis', 'planning'
-            ],
-        ];
-
-        $ratingScore = 0;
-        $matchedSkills = [];
-        $matchedObjectives = [];
-
-        // Rule 1: Match position skills
-        if (array_key_exists($position, $positionSkills)) {
-            foreach ($positionSkills[$position] as $req) {
-                if ($this->textContains($text, $req)) {
-                    $matchedSkills[] = ucfirst($req);
-                }
-            }
-            $matches = count($matchedSkills);
-
-            if ($matches >= 3) {
-                $ratingScore += 2;
-            } elseif ($matches >= 1) {
-                $ratingScore += 1;
-            }
-        }
-
-        // Rule 2: Match position objectives
-        if (array_key_exists($position, $positionObjectives)) {
-            foreach ($positionObjectives[$position] as $obj) {
-                if ($this->textContains($text, $obj)) {
-                    $matchedObjectives[] = ucfirst($obj);
-                }
-            }
-            $objMatches = count($matchedObjectives);
-
-            if ($objMatches >= 5) {
-                $ratingScore += 2;
-            } elseif ($objMatches >= 2) {
-                $ratingScore += 1;
-            }
-        }
-
-        // Rule 3: Document bonus points
-        $goodMoral = $applicant->good_moral_file;
-        $coe = $applicant->coe_file;
-        $resume = $applicant->resume_file;
-
-        if ($goodMoral && $coe && $resume) {
-            $ratingScore += 3;
-        } elseif (($goodMoral && $coe) || ($goodMoral && $resume) || ($coe && $resume)) {
+        if ($matches >= 3) {
             $ratingScore += 2;
-        } elseif ($goodMoral || $coe || $resume) {
+        } elseif ($matches >= 1) {
             $ratingScore += 1;
         }
+    }
 
-        // Final rating
-        if ($ratingScore >= 5) {
-            $finalRating = 'High';
-        } elseif ($ratingScore >= 3) {
-            $finalRating = 'Average';
-        } else {
-            $finalRating = 'Low';
+    // Rule 2: Match position objectives
+    if (array_key_exists($position, $positionObjectives)) {
+        foreach ($positionObjectives[$position] as $obj) {
+            if ($this->textContains($text, $obj)) {
+                $matchedObjectives[] = ucfirst($obj);
+            }
         }
+        $objMatches = count($matchedObjectives);
 
-        // Save summary (guarded by earlier check to avoid duplicates)
-        $newSummary = ApplicantSummary::create([
-            'applicant_id'             => $applicant->applicant_id,
-            'performance_rating'       => $finalRating,
-            'total_score'              => $totalScore,
-            'capability_result'        => $capabilityResult,
-            'good_moral_file'          => $goodMoral,
-            'coe_file'                 => $coe,
-            'resume_file'              => $resume,
-            'skills'                   => $applicant->skills ?? 'Not provided',
-            'achievements'             => $applicant->achievements ?? 'Not provided',
-            'career_objective'         => $applicant->career_objective ?? 'Not provided',
-            'position'                 => $positionName,
-            'matched_skills'           => json_encode($matchedSkills),
-            'matched_career_objective' => json_encode($matchedObjectives),
-        ]);
-
-        // Update status (keeps your original behavior)
-        $oldStatus = $applicant->applicant_status;
-        $applicant->applicant_status = 'On Screening';
-        $applicant->save();
-
-        if ($oldStatus !== $applicant->applicant_status) {
-            $applicant->notify(new StatusChangedNotification($applicant->applicant_status));
+        if ($objMatches >= 5) {
+            $ratingScore += 2;
+        } elseif ($objMatches >= 2) {
+            $ratingScore += 1;
         }
+    }
 
-        return redirect()->route('applicants.summary.show', [
+    // Rule 3: Document bonus points
+    $goodMoral = $applicant->good_moral_file;
+    $coe = $applicant->coe_file;
+    $resume = $applicant->resume_file;
+
+    if ($goodMoral && $coe && $resume) {
+        $ratingScore += 3;
+    } elseif (($goodMoral && $coe) || ($goodMoral && $resume) || ($coe && $resume)) {
+        $ratingScore += 2;
+    } elseif ($goodMoral || $coe || $resume) {
+        $ratingScore += 1;
+    }
+
+    // Final rating
+    if ($ratingScore >= 5) {
+        $finalRating = 'High';
+    } elseif ($ratingScore >= 3) {
+        $finalRating = 'Average';
+    } else {
+        $finalRating = 'Low';
+    }
+
+    // Save summary (guarded by earlier check to avoid duplicates)
+    $newSummary = ApplicantSummary::create([
+        'applicant_id'             => $applicant->applicant_id,
+        'performance_rating'       => $finalRating,
+        'total_score'              => $totalScore,
+        'capability_result'        => $capabilityResult,
+        'good_moral_file'          => $goodMoral,
+        'coe_file'                 => $coe,
+        'resume_file'              => $resume,
+        'skills'                   => $applicant->skills ?? 'Not provided',
+        'achievements'             => $applicant->achievements ?? 'Not provided',
+        'career_objective'         => $applicant->career_objective ?? 'Not provided',
+        'position'                 => $positionName,
+        'matched_skills'           => json_encode($matchedSkills),
+        'matched_career_objective' => json_encode($matchedObjectives),
+    ]);
+
+    // Update status (keeps your original behavior)
+    $oldStatus = $applicant->applicant_status;
+    $applicant->applicant_status = 'On Screening';
+    $applicant->save();
+
+    if ($oldStatus !== $applicant->applicant_status) {
+        $applicant->notify(new StatusChangedNotification($applicant->applicant_status));
+    }
+
+    return redirect()->route('applicants.summary.show', [
         'applicant_summary_id' => $newSummary->applicant_summary_id,
     ])->with('success', 'Applicant summarized successfully.');
-    }   
+}
+
 
     /**
      * Search/normalize text check (same logic you provided)

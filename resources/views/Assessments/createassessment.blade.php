@@ -5,25 +5,33 @@
         <form action="{{ route('assessments.store') }}" method="POST" class="space-y-5">
             @csrf
 
-            <!-- Assessment Type -->
+            <!-- Assessment Title -->
             <div>
-                <label for="type" class="block text-sm font-medium text-gray-700 mb-1">
-                    Assessment Type <span class="text-red-500">*</span>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+                    Assessment Title <span class="text-red-500">*</span>
                 </label>
                 <select 
-                    id="type" 
-                    name="type" 
+                    id="title" 
+                    name="title" 
                     class="border border-gray-300 rounded-lg w-full p-2 focus:ring focus:ring-green-300 focus:outline-none" 
                     required
+                    onchange="updateTypeAndPosition(this)"
                 >
-                    <option value="">-- Select Type --</option>
-                    <option value="test">Applicant Assessment Test</option>
-                    <option value="evaluation">Employee Evaluation</option>
+                    <option value="">-- Select Title --</option>
+                    <option value="Applicant Assessment Test" data-type="test" data-description="This is an assessment test for applicants based on their applied position.">
+                        Applicant Assessment Test
+                    </option>
+                    <option value="Employee Evaluation" data-type="evaluation" data-description="This is an evaluation form for employees to assess their performance.">
+                        Employee Evaluation
+                    </option>
                 </select>
             </div>
 
-            <!-- Position Dropdown (only required for test) -->
-            <div>
+            <!-- Hidden input for type -->
+            <input type="hidden" id="type" name="type">
+
+            <!-- Position Dropdown (only required for Applicant Test) -->
+            <div id="positionWrapper">
                 <label for="position_name" class="block text-sm font-medium text-gray-700 mb-1">
                     Position <span class="text-red-500">*</span>
                 </label>
@@ -41,20 +49,6 @@
                     <option value="Finance Manager">Finance Manager</option>
                 </select>
                 <small class="text-gray-500">Required for Applicant Tests, optional for Evaluations</small>
-            </div>
-
-            <!-- Title -->
-            <div>
-                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
-                    Assessment Title <span class="text-red-500">*</span>
-                </label>
-                <input 
-                    type="text" 
-                    id="title" 
-                    name="title" 
-                    class="border border-gray-300 rounded-lg w-full p-2 focus:ring focus:ring-green-300 focus:outline-none" 
-                    required
-                >
             </div>
 
             <!-- Description -->
@@ -85,4 +79,45 @@
             </div>
         </form>
     </div>
+
+    <!-- JS to auto-set type, toggle position, and auto-fill description -->
+    <script>
+        function updateTypeAndPosition(select) {
+            let selected = select.options[select.selectedIndex];
+            let type = selected.getAttribute("data-type");
+            let defaultDescription = selected.getAttribute("data-description");
+
+            // set hidden input for type
+            document.getElementById("type").value = type;
+
+            // toggle position dropdown requirement
+            let positionWrapper = document.getElementById("positionWrapper");
+            let positionSelect = document.getElementById("position_name");
+
+            if (type === "test") {
+                positionWrapper.style.display = "block";
+                positionSelect.setAttribute("required", "required");
+            } else {
+                positionWrapper.style.display = "none";
+                positionSelect.removeAttribute("required");
+                positionSelect.value = "";
+            }
+
+            // auto-fill description (if textarea is empty or matches old default)
+            let descField = document.getElementById("description");
+            if (!descField.value || descField.value === "This is an assessment test for applicants based on their applied position." || descField.value === "This is an evaluation form for employees to assess their performance.") {
+                descField.value = defaultDescription || "";
+            }
+        }
+
+        // Run once on page load (in case of validation errors)
+        document.addEventListener("DOMContentLoaded", function() {
+            let titleSelect = document.getElementById("title");
+            if (titleSelect.value !== "") {
+                updateTypeAndPosition(titleSelect);
+            } else {
+                document.getElementById("positionWrapper").style.display = "none";
+            }
+        });
+    </script>
 </x-guest-layout>

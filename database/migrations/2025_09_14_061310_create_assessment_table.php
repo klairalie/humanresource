@@ -24,6 +24,7 @@ return new class extends Migration
             ]);
 
             $table->string('title', 150);
+            $table->enum('type', ['test', 'evaluation']);
             $table->text('description')->nullable();
             $table->timestamps();
         });

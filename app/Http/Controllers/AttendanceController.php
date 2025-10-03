@@ -35,7 +35,7 @@ class AttendanceController extends Controller
             $query->whereDate('date', $request->input('date'));
         }
 
-        $attendances = $query->orderBy('date', 'desc')->get();
+        $attendances = $query->orderBy('date', 'desc')->paginate(20 )->appends($request->query());
 
         $positions = Employeeprofiles::select('position')
             ->distinct()

@@ -1,6 +1,6 @@
 <x-guest-layout>
-    <div class="max-w-7xl mx-auto bg-white p-10 mt-10 rounded-lg shadow-lg border border-gray-200">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8 border-b pb-4">Daily Attendance Record</h1>
+    <div class="max-w-7xl mx-auto bg-white p-10 mt-10 rounded-lg shadow-lg border border-gray-200 text-black">
+        <h1 class="text-3xl font-bold mb-8 border-b pb-4">Daily Attendance Record</h1>
 
         <!-- Navigation Buttons -->
         <div class="flex space-x-4 mb-8">
@@ -19,10 +19,10 @@
             <!-- Search by Name -->
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Search by employee name"
-                   class="px-4 py-2 border rounded-lg w-full">
+                   class="px-4 py-2 border rounded-lg w-full text-black">
 
             <!-- Filter by Position -->
-            <select name="position" class="px-4 py-2 border rounded-lg w-full">
+            <select name="position" class="px-4 py-2 border rounded-lg w-full text-black">
                 <option value="">All Positions</option>
                 @foreach($positions as $pos)
                     <option value="{{ $pos }}" {{ request('position') == $pos ? 'selected' : '' }}>
@@ -33,7 +33,7 @@
 
             <!-- Filter by Date -->
             <input type="date" name="date" value="{{ request('date') }}"
-                   class="px-4 py-2 border rounded-lg w-full">
+                   class="px-4 py-2 border rounded-lg w-full text-black">
 
             <!-- Submit Button -->
             <button type="submit"
@@ -58,10 +58,10 @@
                 <tbody>
                     @forelse($attendances as $attendance)
                         <tr class="hover:bg-gray-50 transition">
-                            <td class="px-4 py-2 border font-semibold text-gray-800">
+                            <td class="px-4 py-2 border font-semibold">
                                 {{ $attendance->employeeprofiles->first_name }} {{ $attendance->employeeprofiles->last_name }}
                             </td>
-                            <td class="px-4 py-2 border text-gray-600">
+                            <td class="px-4 py-2 border">
                                 {{ $attendance->employeeprofiles->position }}
                             </td>
                             <td class="px-4 py-2 border">
@@ -84,11 +84,18 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-6 text-gray-500">No attendance records found.</td>
+                            <td colspan="6" class="text-center py-6">No attendance records found.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+
     </div>
+    <div class="mt-10 mb-20 mr-3">
+        {{ $attendances->links() }}
+    </div>
+
 </x-guest-layout>

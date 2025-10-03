@@ -14,6 +14,7 @@ class Assessment extends Model
     protected $fillable = [
         'position_name',
         'title',
+        'type', 
         'description',
     ];
 

@@ -14,8 +14,12 @@ class EmployeeAttendanceController extends Controller
     // Attendance page
     public function showEmpAttendance()
     {
-        $attendances = Attendance::orderBy('date', 'desc')->get();
-        return view('EmpAttendance.Attendancepage', compact('attendances'));
+      $attendances = Attendance::whereDate('date', Carbon::today())
+    ->orderBy('date', 'desc')
+    ->paginate(10);
+
+return view('EmpAttendance.Attendancepage', compact('attendances'));
+
     }
 
     // Get employee by RFID card
@@ -47,66 +51,114 @@ class EmployeeAttendanceController extends Controller
         ]);
     }
 
-    // Verify OTP and record attendance
 public function verifyOtp(Request $request)
 {
-    $employeeId = $request->input('employee_id');
-    $otpEntered = $request->input('otp');
-    $action     = $request->input('action_type');
+	$employeeId = $request->input('employee_id');
+	$otpEntered = $request->input('otp');
+	$action     = $request->input('action_type');
 
-    $cachedOtp = Cache::get("otp_{$employeeId}");
+	$cachedOtp = Cache::get("otp_{$employeeId}");
 
-    if (!$cachedOtp || $cachedOtp != $otpEntered) {
-        return back()->with('error', 'Invalid or expired OTP.');
-    }
+	if (!$cachedOtp || $cachedOtp != $otpEntered) {
+		return back()->with('error', 'Invalid or expired OTP.');
+	}
 
-    // Force timezone Asia/Manila
-    $now   = Carbon::now('Asia/Manila');
-    $today = Carbon::today('Asia/Manila');
+	// Force timezone Asia/Manila
+	$now   = Carbon::now('Asia/Manila');
+	$today = Carbon::today('Asia/Manila');
 
-    // Restrict allowed times
-    if ($action === 'time_in' && !($now->between(Carbon::parse('06:00', 'Asia/Manila'), Carbon::parse('08:00', 'Asia/Manila')))) {
-        return back()->with('error', 'Time In is only allowed between 6:00 AM and 8:00 AM.');
-    }
+	// Define allowed windows bound to "today"
+	$timeInStart   = $today->copy()->setTime(20, 0, 0);
+	$timeInEnd     = $today->copy()->setTime(21, 0, 0);
+	$timeOutStart  = $today->copy()->setTime(22, 0, 0);
+	$timeOutEnd    = $today->copy()->setTime(23, 0, 0);
 
-    if ($action === 'time_out' && !($now->between(Carbon::parse('17:00', 'Asia/Manila'), Carbon::parse('19:00', 'Asia/Manila')))) {
-        return back()->with('error', 'Time Out is only allowed between 5:00 PM and 7:00 PM.');
-    }
+	// Fetch today's attendance (if any)
+	$attendance = Attendance::where('employeeprofiles_id', $employeeId)
+		->whereDate('date', $today)
+		->first();
 
-    // Fetch today's attendance
-    $attendance = Attendance::where('employeeprofiles_id', $employeeId)
-        ->whereDate('date', $today)
-        ->first();
+	if ($action === 'time_in') {
+		// Too early
+		if ($now->lt($timeInStart)) {
+			return back()->with('error', 'Time In is only allowed starting 6:00 AM.');
+		}
 
-    if ($action === 'time_in') {
-        if (!$attendance) {
-            Attendance::create([
-                'employeeprofiles_id' => $employeeId,
-                'date'                => $today,
-                'time_in'             => $now->format('H:i:s'), // ✅ 24h format for DB
-                'status'              => 'Present',
-            ]);
-        } else {
-            return back()->with('error', 'Already timed in today.');
-        }
-    }
+		// Within time-in window: record time_in
+		if ($now->between($timeInStart, $timeInEnd)) {
+			if (!$attendance) {
+				Attendance::create([
+					'employeeprofiles_id' => $employeeId,
+					'date'                => $today,
+					'time_in'             => $now->format('H:i:s'),
+					'status'              => 'In', // interim; will become Present on successful time_out
+				]);
+			} else {
+				return back()->with('error', 'Already timed in today.');
+			}
 
-    if ($action === 'time_out') {
-        if ($attendance && !$attendance->time_out) {
-            $attendance->update([
-                'time_out' => $now->format('H:i:s'), // ✅ 24h format for DB
-                'status'   => 'Out',
-            ]);
-        } else {
-            return back()->with('error', 'No valid time-in found today or already timed out.');
-        }
-    }
+			Cache::forget("otp_{$employeeId}");
+			return back()->with('success', 'Time In recorded.');
+		}
 
-    Cache::forget("otp_{$employeeId}");
+		// After time-in window: mark Absent if no time-in yet
+		if ($now->gt($timeInEnd)) {
+			if (!$attendance) {
+				Attendance::create([
+					'employeeprofiles_id' => $employeeId,
+					'date'                => $today,
+					'time_in'             => null,
+					'time_out'            => null,
+					'status'              => 'Absent',
+				]);
 
-    return back()->with('success', 'Attendance recorded successfully.');
+				Cache::forget("otp_{$employeeId}");
+				return back()->with('error', 'You missed the time-in window. Marked Absent.');
+			}
+
+			return back()->with('error', 'Already timed in today.');
+		}
+	}
+
+	if ($action === 'time_out') {
+		// Too early
+		if ($now->lt($timeOutStart)) {
+			return back()->with('error', 'Time Out is only allowed starting 5:00 PM.');
+		}
+
+		// Within time-out window: complete and mark Present
+		if ($now->between($timeOutStart, $timeOutEnd)) {
+			if ($attendance && $attendance->time_in && !$attendance->time_out) {
+				$attendance->update([
+					'time_out' => $now->format('H:i:s'),
+					'status'   => 'Present', // Present when both time_in and time_out are set
+				]);
+
+				Cache::forget("otp_{$employeeId}");
+				return back()->with('success', 'Time Out recorded. Status set to Present.');
+			}
+
+			return back()->with('error', 'No valid time-in found today or already timed out.');
+		}
+
+		// After time-out window: if time_in exists but time_out missing, mark Absent
+		if ($now->gt($timeOutEnd)) {
+			if ($attendance && $attendance->time_in && !$attendance->time_out) {
+				$attendance->update([
+					'status' => 'Absent',
+				]);
+
+				Cache::forget("otp_{$employeeId}");
+				return back()->with('error', 'You missed the time-out window. Status set to Absent.');
+			}
+
+			return back()->with('error', 'No valid time-in found today or already timed out.');
+		}
+	}
+
+	Cache::forget("otp_{$employeeId}");
+	return back()->with('error', 'Invalid action.');
 }
-
 
 }
 

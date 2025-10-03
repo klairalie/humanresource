@@ -23,7 +23,9 @@ class ApplicantSummary extends Model
     'career_objective',
     'position',
     'matched_skills',
-    'matched_career_objective'
+    'matched_career_objective',
+    'total_score',        // ✅ add this
+    'capability_result',
 ];
 
 

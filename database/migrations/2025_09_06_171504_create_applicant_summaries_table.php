@@ -26,6 +26,8 @@ return new class extends Migration
     $table->text('matched_career_objective')->nullable();
     $table->integer('total_score')->nullable();
     $table->string('capability_result')->nullable();
+    $table->string('capability_result')->nullable();
+    $table->integer('total_score')->nullable();
     $table->timestamps();
    
 });

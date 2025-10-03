@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="min-h-screen bg-transparent p-6">
+    <div class="min-h-screen bg-transparent p-6 text-black">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <h1 class="text-2xl font-bold mb-4 md:mb-0">Employee Profiles</h1>
@@ -7,13 +7,13 @@
 
                 <!-- Add Employee -->
                 <a href="{{ route('view.payroll') }}"
-                    class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-full text-md flex items-center justify-center">
+                    class="bg-gray-400 hover:bg-gray-900 text-black px-4 py-2 rounded-full text-md flex items-center justify-center">
                     Payroll Operation
                 </a>
 
                 <!-- View Archived -->
                 <a href="{{ route('archived.profiles') }}"
-                    class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-full text-md flex items-center justify-center">
+                    class="bg-gray-400 hover:bg-gray-900 text-black px-4 py-2 rounded-full text-md flex items-center justify-center">
                     View Archived Profiles
                 </a>
             </div>
@@ -27,10 +27,10 @@
                 <form method="GET" action="" class="flex space-x-2 w-full">
                     <input type="text" name="search" value="{{ request('search') }}" 
                         placeholder="Search employee..."
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-64">
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-64 text-black">
 
                     <select name="position" onchange="this.form.submit()"
-                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400">
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-black">
                         <option value="">All Positions</option>
                         <option value="Administrative Manager"
                             {{ request('position') == 'Administrative Manager' ? 'selected' : '' }}>Administrative Manager</option>
@@ -46,7 +46,7 @@
                 </form>
             </div>
 
-           <table class="w-full border-collapse">
+           <table class="w-full border-collapse text-black">
     <thead>
         <tr class="bg-gray-200 text-sm uppercase tracking-wide">
             <th class="px-4 py-2 text-left font-semibold w-24">ID No.</th>
@@ -60,7 +60,7 @@
                 <td class="px-4 py-2">{{ $emp->employeeprofiles_id }}</td>
                 <td class="px-4 py-2">{{ $emp->last_name }}, {{ $emp->first_name }}</td>
                 <td class="px-4 py-2 text-center">
-                    <button @click="open = true" class="text-gray-800 font-medium hover:underline">
+                    <button @click="open = true" class="font-medium hover:underline text-black">
                         View Details
                     </button>
 
@@ -68,7 +68,7 @@
                                 <div x-show="open"
                                     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
                                     x-transition @click.self="open = false" x-cloak>
-                                    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
+                                    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative text-black">
 
                                         <!-- Header -->
                                         <h2 class="text-xl font-bold mb-4 border-b pb-2">
@@ -104,19 +104,19 @@
                                         <div class="mt-6 flex justify-end space-x-3">
                                             <!-- Edit Button -->
                                             <a href="{{ route('show.edit', $emp->employeeprofiles_id) }}"
-                                                class="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                                                class="bg-gray-700 hover:bg-gray-900 text-black px-4 py-2 rounded-lg font-medium transition text-sm">
                                                 Edit
                                             </a>
 
                                             <!-- Deactivate Button (triggers reason modal) -->
                                             <button @click="deactivateOpen = true"
-                                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                                                class="bg-red-600 hover:bg-red-700 text-black px-4 py-2 rounded-lg font-medium transition text-sm">
                                                 Deactivate
                                             </button>
 
                                             <!-- Close Button -->
                                             <button @click="open = false"
-                                                class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                                                class="bg-gray-500 hover:bg-gray-700 text-black px-4 py-2 rounded-lg font-medium transition text-sm">
                                                 Close
                                             </button>
                                         </div>
@@ -127,7 +127,7 @@
                                 <div x-show="deactivateOpen"
                                     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
                                     x-transition @click.self="deactivateOpen = false" x-cloak>
-                                    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative">
+                                    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative text-black">
                                         <h2 class="text-xl font-bold mb-4 border-b pb-2">
                                             Deactivate {{ $emp->last_name }}, {{ $emp->first_name }}
                                         </h2>
@@ -140,16 +140,16 @@
                                                     Reason for Deactivation
                                                 </label>
                                                 <textarea name="reason" id="reason" rows="3" required
-                                                    class="mt-1 px-3 py-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-red-500"></textarea>
+                                                    class="mt-1 px-3 py-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-red-500 text-black"></textarea>
                                             </div>
 
                                             <div class="flex justify-end space-x-3">
                                                 <button type="submit"
-                                                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                                    class="bg-red-600 hover:bg-red-700 text-black px-4 py-2 rounded-lg font-medium text-sm">
                                                     Confirm Deactivate
                                                 </button>
                                                 <button type="button" @click="deactivateOpen = false"
-                                                    class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                                    class="bg-gray-500 hover:bg-gray-700 text-black px-4 py-2 rounded-lg font-medium text-sm">
                                                     Cancel
                                                 </button>
                                             </div>
