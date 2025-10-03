@@ -9,6 +9,8 @@ use App\Notifications\SendAssessmentNotification;
 use Carbon\Carbon;
 use App\Models\AssessmentToken;
 use App\Models\Applicant;
+use App\Models\Employeeprofiles;
+use App\Notifications\SendEvaluationNotification;
 use Illuminate\Support\Str;
 class AssessmentTokenController extends Controller
 {
@@ -16,7 +18,7 @@ class AssessmentTokenController extends Controller
 {
     // 1. Find the applicant
     $applicant = Applicant::findOrFail($applicant_id);
-
+    
     // 2. Generate a unique token
     $token = Str::random(32);
 
@@ -25,7 +27,7 @@ class AssessmentTokenController extends Controller
         'applicant_id'  => $applicant->applicant_id, // make sure this is the correct PK
         'assessment_id' => $assessment_id,
         'token'         => $token,
-        'expires_at'    => Carbon::now()->addHours(3), // token valid for 3 hours
+        'expires_at'    => Carbon::now()->addHours(1), // token valid for 3 hours
         'is_used'       => false,
     ]);
 
@@ -41,6 +43,33 @@ class AssessmentTokenController extends Controller
     return back()->with('success', 'Assessment link sent to applicant.');
 }
 
+public function sendEvaluation($assessment_id, $employeeprofiles_id, $rated_employeeprofiles_id)
+    {
+        // 1. Find employees
+        $evaluator = Employeeprofiles::findOrFail($employeeprofiles_id);
+        $evaluatee = Employeeprofiles::findOrFail($rated_employeeprofiles_id);
+
+        // 2. Generate unique token
+        $token = Str::random(32);
+
+        // 3. Save token
+        $tokenRecord = AssessmentToken::create([
+            'assessment_id'     => $assessment_id,
+            'employeeprofiles_id'       => $evaluator->employeeprofiles_id,
+            'rated_employeeprofiles_id' => $evaluatee->employeeprofiles_id,
+            'token'             => $token,
+            'expires_at'        => Carbon::now()->addHours(1),
+            'is_used'           => false,
+        ]);
+
+        // 4. Send email to evaluator
+        $evaluator->notify(new SendEvaluationNotification(
+            $tokenRecord->token,
+            $evaluatee->first_name
+        ));
+
+        return back()->with('success', 'Evaluation link sent to employee.');
+    }
 
 // public function showAssessment($token)
 // {

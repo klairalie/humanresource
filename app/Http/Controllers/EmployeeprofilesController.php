@@ -5,11 +5,38 @@ use App\Models\Salaries;
 use App\Models\Employeeprofiles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Applicant;
+use Carbon\Carbon;
 
 class EmployeeprofilesController extends Controller
 {
-   public function showEmployeeprofiles()
+
+public function showEmployeeprofiles()
 {
+    // 🔹 Fetch all applicants with "Hired" status
+    $hiredApplicants = Applicant::where('applicant_status', 'Hired')->get();
+
+    foreach ($hiredApplicants as $applicant) {
+        // Check if applicant already exists in employeeprofiles
+        $exists = Employeeprofiles::where('email', $applicant->email)->first();
+
+        if (!$exists) {
+            Employeeprofiles::create([
+                'first_name'        => $applicant->first_name,
+                'last_name'         => $applicant->last_name,
+                'address'           => $applicant->address,
+                'email'             => $applicant->email,
+                'position'          => $applicant->position,
+                'date_of_birth'     => $applicant->date_of_birth,
+                'contact_number'    => $applicant->contact_number,
+                'hire_date'         => Carbon::now(), // set hire_date to now
+                'status'            => 'active', // default status for hired employees
+                'emergency_contact' => $applicant->emergency_contact,
+            ]);
+        }
+    }
+
+    // 🔹 Now show employees
     $employee = Employeeprofiles::query()
         ->whereIn('status', ['active', 'reactivated'])
         ->when(request('search'), function ($query, $search) {
@@ -25,6 +52,7 @@ class EmployeeprofilesController extends Controller
 
     return view('HR.viewemployees', ["employee" => $employee]);
 }
+
 
 
     public function EmployeeprofilesForm()
@@ -79,21 +107,24 @@ public function edit($employeeprofile_id)
 public function update(Request $request, $employeeprofiles_id)
 {
     $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
+
     $validated = $request->validate([
-        'first_name' => 'required|string|max:255',
-        'last_name' => 'required|string|max:255',
-        'address' => 'nullable|string|max:255',
-        'position' => 'nullable|string|max:255',
-        'contact_info' => 'nullable|string|max:255',
-        'hire_date' => 'nullable|date',
-        'status' => 'nullable|string|max:255',
+        'first_name'        => 'required|string|max:255',
+        'last_name'         => 'required|string|max:255',
+        'address'           => 'nullable|string|max:255',
+        'position'          => 'nullable|string|max:255',
+        'contact_info'      => 'nullable|string|max:255',
+        'hire_date'         => 'nullable|date',
+        'status'            => 'nullable|string|max:255',
         'emergency_contact' => 'nullable|string|max:255',
+        'card_Idnumber'     => 'nullable|string|max:255|unique:employeeprofiles,card_Idnumber,' . $employee->employeeprofiles_id . ',employeeprofiles_id',
     ]);
 
-    
     $employee->update($validated);
 
-    return redirect()->route('show.employeeprofiles', ['id' => $employeeprofiles_id])->with('success', 'Book updated successfully!');
+    return redirect()
+        ->route('show.employeeprofiles', ['id' => $employeeprofiles_id])
+        ->with('success', 'Profile updated successfully!');
 }
 
 public function delete($employeeprofile_id)
@@ -126,7 +157,7 @@ public function deactivate(Request $request, $employeeprofiles_id)
             'first_name' => $employee->first_name,
             'last_name' => $employee->last_name,
             'position' => $employee->position,
-            'contact_info' => $employee->contact_info,
+            'contact_info' => $employee->contact_number,
             'hire_date' => $employee->hire_date,
             'archived_at' => now(),
             'archived_by' => $archivedBy,

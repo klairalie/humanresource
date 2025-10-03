@@ -10,9 +10,38 @@ use App\Models\LeaveOvertimeRequest;
 
 class AttendanceController extends Controller
 {
-    public function showAttendance()
+    public function showAttendance(Request $request)
     {
-        return view('HR.view_attendance');
+        $query = Attendance::with('employeeprofiles');
+
+        // 🔍 Search by name
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->whereHas('employeeprofiles', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%");
+            });
+        }
+
+        // 🎯 Filter by position
+        if ($request->filled('position')) {
+            $query->whereHas('employeeprofiles', function ($q) use ($request) {
+                $q->where('position', $request->input('position'));
+            });
+        }
+
+        // 📅 Filter by date
+        if ($request->filled('date')) {
+            $query->whereDate('date', $request->input('date'));
+        }
+
+        $attendances = $query->orderBy('date', 'desc')->get();
+
+        $positions = Employeeprofiles::select('position')
+            ->distinct()
+            ->pluck('position');
+
+        return view('HR.view_attendance', compact('attendances', 'positions'));
     }
 
     public function showLeaverequest()
@@ -38,39 +67,6 @@ class AttendanceController extends Controller
     ]);
 }
 
-    public function showAttendanceform()
-{
-    $employees = Employeeprofiles::all();
-    return view('HR.attendanceform', compact('employees'));
-}
-
-   public function submitAttendance(Request $request)
-{
-    $validatedData = $request->validate([
-        'employeeprofiles_id' => 'required|integer|exists:employeeprofiles,employeeprofiles_id',
-        'date' => 'required|date',
-        'flag' => 'required|integer',
-        'status' => 'required|string|in:Present,Absent,Leave',
-    ]);
-
-    $attendance = new Attendance();
-    $attendance->employeeprofiles_id = $validatedData['employeeprofiles_id'];
-    $attendance->status = $validatedData['status'];
-    $attendance->date = $validatedData['date'];
-    $attendance->flag = $validatedData['flag'];
-  $attendance->time_in = $request->input('time_in');
-
-    
-    if ($validatedData['status'] === 'Present') {
-      $attendance->time_out = $request->filled('time_out')
-    ? Carbon::createFromFormat('H:i', $request->input('time_out'))->format('H:i:s')
-    : null;
-    }
-
-    $attendance->save();
-
-    return redirect()->back()->with('success', 'Attendance recorded successfully.');
-}
-
+ 
 
 }

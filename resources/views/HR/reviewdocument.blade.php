@@ -6,6 +6,13 @@
     <title>Applicant Details</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        header, nav, .navbar {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
     
@@ -53,9 +60,13 @@
         </div>
 
       <!-- Uploaded Files with Modal -->
-<div class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm mb-6 print:hidden" x-data="{ showModal: false, modalFile: '' }">
-    <h2 class="text-lg font-semibold text-gray-800 mb-3">Uploaded Files</h2>
+<div class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm mb-6 print:hidden" 
+     x-data="{ showModal: false, modalFile: '' }" 
+     x-cloak>
+    
     <ul class="space-y-3 text-gray-700">
+        {{-- Example buttons if you want to enable again --}}
+        {{-- 
         @if($applicant->coe_file)
             <li>
                 <button 
@@ -78,13 +89,15 @@
             </li>
         @else
             <li class="italic text-gray-500">No Good Moral uploaded.</li>
-        @endif
+        @endif 
+        --}}
     </ul>
 
     <!-- Modal -->
     <div
         x-show="showModal"
         x-transition
+        x-cloak
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
     >
         <div class="bg-white rounded-xl shadow-lg w-11/12 md:w-3/4 lg:w-2/3 max-h-[90vh] overflow-auto">
@@ -93,11 +106,11 @@
                 <button @click="showModal = false" class="text-gray-500 hover:text-gray-800 font-bold">&times;</button>
             </div>
             <div class="p-4">
-                <!-- Determine if PDF or Image -->
-                <template x-if="modalFile.endsWith('.pdf')">
+                <!-- Determine if PDF or Image --> 
+                <template x-if="modalFile.endsWith('.pdf')" x-cloak>
                     <iframe :src="modalFile" class="w-full h-[70vh]" frameborder="0"></iframe>
                 </template>
-                <template x-if="!modalFile.endsWith('.pdf')">
+                <template x-if="!modalFile.endsWith('.pdf')" x-cloak>
                     <img :src="modalFile" class="w-full h-auto rounded-lg" alt="Document Preview">
                 </template>
             </div>
@@ -134,44 +147,99 @@
         @endif
 
         <!-- Buttons Section -->
-        <div class="mt-6 flex flex-col md:flex-row justify-center items-center gap-4 print:hidden">
-            @if($applicant->applicant_status !== 'Reviewed')
-                <form action="{{ route('applicant.markReviewed', $applicant->applicant_id) }}" method="POST">
-                    @csrf
-                    <button type="submit" 
-                        class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
-                        Mark as Reviewed
-                    </button>
-                </form>
-            @else
-                <button disabled 
-                    class="px-6 py-3 bg-gray-400 text-white font-semibold rounded-lg shadow cursor-not-allowed">
-                    Already Reviewed
-                </button>
-            @endif
-
-            <a href="{{ route('show.listapplicants') }}" 
-                class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow hover:bg-gray-700 transition">
-                ← Back to Applicants
-            </a>
-
-            <!-- Print / Save as PDF Button -->
-            <button 
-                onclick="window.print()"
-                class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
-                Print / Save as PDF
+<!-- Buttons + Schedule Modal in one Alpine scope -->
+<div x-data="{ showScheduleModal: false }" class="mt-6 flex flex-col md:flex-row justify-center items-center gap-4 print:hidden">
+    
+    @if($applicant->applicant_status !== 'Reviewed' && $applicant->applicant_status !== 'Scheduled Interview')
+        <!-- Mark as Reviewed -->
+        <form action="{{ route('applicant.markReviewed', $applicant->applicant_id) }}" method="POST">
+            @csrf
+            <button type="submit" 
+                class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+                Mark as Reviewed
             </button>
-        </div>
+        </form>
+    @elseif($applicant->applicant_status === 'Reviewed')
+        <!-- PASSED Button to open modal -->
+        <button 
+            @click="showScheduleModal = true"
+            class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+            PASSED
+        </button>
+    @elseif($applicant->applicant_status === 'Scheduled Interview')
+        <button disabled 
+            class="px-6 py-3 bg-gray-400 text-white font-semibold rounded-lg shadow cursor-not-allowed">
+            Interview Scheduled
+        </button>
+    @endif
 
+    <a href="{{ route('show.listapplicants') }}" 
+        class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow hover:bg-gray-700 transition">
+        ← Back to Applicants
+    </a>
+
+    <button 
+        onclick="window.print()"
+        class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
+        Print / Save as PDF
+    </button>
+
+    <!-- Schedule Interview Modal -->
+    <div 
+        x-show="showScheduleModal"
+        x-cloak
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+        <div class="bg-white rounded-xl shadow-lg w-11/12 md:w-1/2 p-6">
+            <h2 class="text-xl font-semibold mb-4">Schedule Interview</h2>
+
+            <form action="{{ route('applicant.scheduleInterview', $applicant->applicant_id) }}" method="POST" class="space-y-4">
+                @csrf
+
+                <div>
+                    <label class="block text-sm font-medium">Interview Date</label>
+                    <input type="date" name="interview_date" required 
+                        class="w-full border rounded-lg px-3 py-2 mt-1">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium">Interview Time</label>
+                    <input type="time" name="interview_time" required 
+                        class="w-full border rounded-lg px-3 py-2 mt-1">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium">Location</label>
+                    <input type="text" name="location" required placeholder="e.g. HR Office, 3rd Floor"
+                        class="w-full border rounded-lg px-3 py-2 mt-1">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium">HR Manager</label>
+                    <input type="text" name="hr_manager" required placeholder="Enter HR Manager name"
+                        class="w-full border rounded-lg px-3 py-2 mt-1">
+                </div>
+
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" 
+                        @click="showScheduleModal = false"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Save Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 
-<style>
-    header, nav, .navbar {
-        display: none !important;
-    }
-</style>
+
+    </div>
+</div>
 
 </body>
 </html>

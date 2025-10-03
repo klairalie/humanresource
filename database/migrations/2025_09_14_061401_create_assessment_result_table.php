@@ -21,6 +21,7 @@ return new class extends Migration
         $table->integer('total_score')->default(0);
         $table->enum('performance_rating', ['High', 'Average', 'Low']);
         $table->timestamp('submitted_at')->useCurrent();
+        $table->string('assessment_result_status')->nullable();
         $table->timestamps();
         });
     }

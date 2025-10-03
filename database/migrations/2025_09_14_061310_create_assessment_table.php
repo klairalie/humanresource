@@ -19,7 +19,8 @@ return new class extends Migration
                 'Technician',
                 'Human Resource Manager',
                 'Administrative Manager',
-                'Finance Manager'
+                'Finance Manager',
+                
             ]);
 
             $table->string('title', 150);

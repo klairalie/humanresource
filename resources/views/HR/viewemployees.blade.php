@@ -46,24 +46,25 @@
                 </form>
             </div>
 
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="px-4 py-2 text-left font-semibold text-sm uppercase tracking-wide">ID No.</th>
-                        <th class="px-4 py-2 text-left font-semibold text-sm uppercase tracking-wide">Employee</th>
-                        <th class="px-4 py-2 text-right font-semibold text-sm uppercase tracking-wide">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @foreach ($employee as $emp)
-                        <tr x-data="{ open: false, deactivateOpen: false }" class="hover:bg-gray-50 transition">
-                            <td class="px-4 py-2">{{ $emp['employeeprofiles_id'] }}</td>
-                            <td class="px-4 py-2 text-md">{{ $emp->last_name }}, {{ $emp->first_name }}</td>
-                            <td class="px-4 py-2 text-right">
-                                <button @click="open = true" class="text-gray-800 font-medium hover:underline">
-                                    View Details
-                                </button>
-                          <!-- Main Modal -->
+           <table class="w-full border-collapse">
+    <thead>
+        <tr class="bg-gray-200 text-sm uppercase tracking-wide">
+            <th class="px-4 py-2 text-left font-semibold w-24">ID No.</th>
+            <th class="px-4 py-2 text-left font-semibold w-1/3">Employee</th>
+            <th class="px-4 py-2 text-center font-semibold w-40">Actions</th>
+        </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+        @foreach ($employee as $emp)
+            <tr x-data="{ open: false, deactivateOpen: false }" class="hover:bg-gray-50 transition">
+                <td class="px-4 py-2">{{ $emp->employeeprofiles_id }}</td>
+                <td class="px-4 py-2">{{ $emp->last_name }}, {{ $emp->first_name }}</td>
+                <td class="px-4 py-2 text-center">
+                    <button @click="open = true" class="text-gray-800 font-medium hover:underline">
+                        View Details
+                    </button>
+
+                                <!-- Main Modal -->
                                 <div x-show="open"
                                     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
                                     x-transition @click.self="open = false" x-cloak>
@@ -71,38 +72,33 @@
 
                                         <!-- Header -->
                                         <h2 class="text-xl font-bold mb-4 border-b pb-2">
-                                            ID No. {{ $emp['employeeprofiles_id'] }} &nbsp;&nbsp;
+                                            ID No. {{ $emp->employeeprofiles_id }} &nbsp;&nbsp;
                                             {{ $emp->last_name }}, {{ $emp->first_name }}
                                         </h2>
 
                                         <!-- Details Grid -->
                                         <dl class="grid grid-cols-3 gap-y-3 gap-x-4 leading-relaxed text-sm">
                                             <dt class="font-semibold">Address:</dt>
-                                            <dd class="col-span-2">{{ $emp['address'] }}</dd>
+                                            <dd class="col-span-2">{{ $emp->address }}</dd>
 
                                             <dt class="font-semibold">Position:</dt>
-                                            <dd class="col-span-2">{{ $emp['position'] }}</dd>
+                                            <dd class="col-span-2">{{ $emp->position }}</dd>
 
                                             <dt class="font-semibold">Contact:</dt>
-                                            <dd class="col-span-2">{{ $emp['contact_info'] }}</dd>
+                                            <dd class="col-span-2">{{ $emp->contact_number }}</dd>
 
                                             <dt class="font-semibold">Hire Date:</dt>
-                                            <dd class="col-span-2">{{ $emp['hire_date'] }}</dd>
+                                            <dd class="col-span-2">{{ $emp->hire_date }}</dd>
 
                                             <dt class="font-semibold">Status:</dt>
-                                            <dd class="col-span-2">{{ $emp['status'] }}</dd>
+                                            <dd class="col-span-2">{{ $emp->status }}</dd>
 
                                             <dt class="font-semibold">Emergency Contact:</dt>
-                                            <dd class="col-span-2">{{ $emp['emergency_contact'] }}</dd>
-                                        </dl>
+                                            <dd class="col-span-2">{{ $emp->emergency_contact }}</dd>
 
-                                        <!-- Fingerprint Section -->
-                                        <div class="mt-6">
-                                            <p class="font-semibold mb-2">Fingerprint:</p>
-                                            <img src="data:image/png;base64,{{ $emp['fingerprint_data'] }}"
-                                                alt="Fingerprint"
-                                                class="w-24 h-auto border border-gray-300 rounded-md shadow-sm">
-                                        </div>
+                                            <dt class="font-semibold">Card ID Number:</dt>
+                                            <dd class="col-span-2">{{ $emp->card_Idnumber }}</dd>
+                                        </dl>
 
                                         <!-- Footer -->
                                         <div class="mt-6 flex justify-end space-x-3">

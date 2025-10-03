@@ -6,7 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use PhpOffice\PhpWord\Settings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
-
+use App\Models\Employeeprofiles;
+use App\Observers\EmployeeProfileObserver;
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -16,6 +17,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Employeeprofiles::observe(EmployeeProfileObserver::class);
         // Configure PhpWord PDF rendering
         Settings::setPdfRendererName('TCPDF');
         Settings::setPdfRendererPath(base_path('vendor/tecnickcom/tcpdf'));

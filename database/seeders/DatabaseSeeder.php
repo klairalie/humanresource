@@ -1,10 +1,9 @@
 <?php
 
 namespace Database\Seeders;
-
 use App\Models\Employeeprofiles;
+use App\Models\Attendance;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,11 +13,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
-         $this->call([
-
+        // Seed employees first
+        $this->call([
             EmployeeprofilesSeeder::class,
         ]);
-        
+
+        // For each employee, seed multiple attendances across Jan–Sep
+        Employeeprofiles::all()->each(function ($employee) {
+            Attendance::factory()->count(200)->create([
+                'employeeprofiles_id' => $employee->employeeprofiles_id,
+            ]);
+        });
     }
 }
+
+

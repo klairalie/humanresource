@@ -28,7 +28,7 @@ class PayrollController extends Controller
 
             $totalDaysOfWork = Attendance::where('employeeprofiles_id', $employee->employeeprofiles_id)
                 ->whereBetween('date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
-                ->where('status', 'Present')
+                ->where('status', 'Out')
                 ->count();
 
             $overtimePay = 100 * Leaveovertimerequest::where('employeeprofiles_id', $employee->employeeprofiles_id)

@@ -40,11 +40,14 @@ return new class extends Migration
             $table->enum('applicant_status', [
                 'Pending',
                 'On Screening',
+                'Passed Screening',
+                'Failed Screening',
                 'Reviewed',
-                'scheduled Interview',
+                'Scheduled Interview',
                 'Hired',
                 'Rejected'
             ])->default('Pending');
+               
 
             $table->timestamps();
         });

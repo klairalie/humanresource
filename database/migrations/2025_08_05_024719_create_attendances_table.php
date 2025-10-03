@@ -17,8 +17,7 @@ return new class extends Migration
         $table->date('date');
         $table->time('time_in')->nullable();
         $table->time('time_out')->nullable();
-        $table->integer('flag');
-        $table->string('status');
+        $table->enum('status', [ 'Pending','Present', 'Absent', 'Out'])->default('Pending');
         
         
         });

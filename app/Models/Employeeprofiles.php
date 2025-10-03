@@ -4,28 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Notifications\Notifiable;
 class Employeeprofiles extends Model
 {
+     
+
     protected $table = 'employeeprofiles';
-    protected $primaryKey = 'employeeprofiles_id'; // change this to your real PK column
-    public $incrementing = true; // or false if not auto-increment
-    protected $keyType = 'int';
+    protected $primaryKey = 'employeeprofiles_id';
     protected $fillable = [
 
         'first_name',
         'last_name',
         'address',
+        'email',
         'position',
-        'contact_info',
+        'date_of_birth',
+        'contact_number',
         'hire_date',
         'status',
         'emergency_contact',
-        'fingerprint_data',
+        'card_Idnumber',
 
     ];
     /** @use HasFactory<\Database\Factories\EmployeeprofilesFactory> */
-    use HasFactory;
+    use HasFactory, Notifiable;
 
       public function attendances()
     {
@@ -60,5 +62,9 @@ class Employeeprofiles extends Model
     public function deductions()
     {
         return $this->hasMany(Deduction::class, 'employeeprofiles_id', 'employeeprofiles_id');
+    }
+    public function routeNotificationForMail($notification)
+    {
+        return $this->email;
     }
 }

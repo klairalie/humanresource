@@ -11,6 +11,7 @@ class Applicant extends Model
     use Notifiable;
     
     protected $primaryKey = 'applicant_id';
+     protected $guarded = [];
     protected $fillable = [
         'first_name',
         'last_name',
@@ -37,7 +38,7 @@ class Applicant extends Model
 
     public function summary()
 {
-    return $this->hasOne(ApplicantSummary::class, 'applicant_id', 'applicant_id');
+    return $this->hasOne(ApplicantSummary::class, 'applicant_id');
 }
 
 public function routeNotificationForMail($notification)
@@ -50,9 +51,18 @@ public function routeNotificationForMail($notification)
     return $this->hasMany(AssessmentToken::class, 'applicant_id', 'applicant_id');
 }
 
-public function results()
+public function result()
 {
-    return $this->hasMany(AssessmentResult::class, 'applicant_id', 'applicant_id');
+    return $this->hasOne(AssessmentResult::class, 'applicant_id');
 }
 
+public function interviews()
+{
+    return $this->hasOne(Interview::class, 'applicant_id', 'applicant_id');
+}
+
+public function activityLogs()
+{
+    return $this->hasMany(ActivityLog::class, 'applicant_id', 'applicant_id');
+}
 }

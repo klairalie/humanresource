@@ -2,6 +2,15 @@
     <div class="max-w-5xl mx-auto bg-white p-10 rounded-xl shadow-xl border border-gray-200 mb-20">
         <h1 class="text-3xl font-bold text-black mb-8 border-b pb-4">Edit Employee Profile</h1>
 
+        @if ($errors->any())
+    <script>
+        @foreach ($errors->all() as $error)
+            alert("{{ $error }}");
+        @endforeach
+    </script>
+@endif
+        
+
         <form action="{{ route('update.profile', $employee->employeeprofiles_id) }}" method="POST"
             class="grid grid-cols-2 gap-6" enctype="multipart/form-data">
             @csrf
@@ -63,7 +72,7 @@
             <!-- Contact Info -->
             <div>
                 <label class="block text-sm font-semibold text-black mb-2">Contact Info</label>
-                <input type="text" name="contact_info" value="{{ old('contact_info', $employee->contact_info) }}"
+                <input type="text" name="contact_info" value="{{ old('contact_info', $employee->contact_number) }}"
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 text-black">
             </div>
 
@@ -89,16 +98,21 @@
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 text-black">
             </div>
 
-            <!-- Fingerprint -->
-            <div class="col-span-2">
-                <label class="block text-sm font-semibold text-black mb-2">Fingerprint</label>
-                @if ($employee->fingerprint_data)
-                    <img src="data:image/png;base64,{{ $employee->fingerprint_data }}" alt="Fingerprint"
-                        class="w-40 h-40 border border-gray-300 rounded-lg shadow-md">
-                @else
-                    <p class="text-gray-500">No fingerprint registered</p>
-                @endif
-            </div>
+          <!-- Card ID Number -->
+<div>
+    <label class="block text-sm font-semibold text-black mb-2">Card ID Number</label>
+    <input type="text" name="card_Idnumber" id="card_Idnumber"
+        value="{{ old('card_Idnumber', $employee->card_Idnumber) }}"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 text-black">
+</div>
+
+<div>
+    <label class="block text-sm font-semibold text-black mb-2">Confirm Card ID Number</label>
+    <input type="text" id="confirm_card_Idnumber"
+        value="{{ old('card_Idnumber', $employee->card_Idnumber) }}"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 text-black">
+</div>
+
 
             <!-- Buttons -->
             <div class="flex justify-end space-x-3 mt-6 col-span-2">
@@ -113,6 +127,21 @@
             </div>
         </form>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cardInput = document.getElementById('card_Idnumber');
+        const confirmCardInput = document.getElementById('confirm_card_Idnumber');
+
+        confirmCardInput.addEventListener('input', function () {
+            if (cardInput.value !== confirmCardInput.value) {
+                confirmCardInput.setCustomValidity("Card ID Numbers do not match!");
+            } else {
+                confirmCardInput.setCustomValidity("");
+            }
+        });
+    });
+</script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

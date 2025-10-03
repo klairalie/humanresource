@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class AssessmentResult extends Model
 {
     use HasFactory;
+protected $casts = [
+    'submitted_at' => 'datetime',
+];
 
     protected $primaryKey = 'assessment_result_id';
 

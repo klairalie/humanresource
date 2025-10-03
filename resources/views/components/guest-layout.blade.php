@@ -10,10 +10,9 @@
 
     <!-- Alpine.js -->
     <script src="//unpkg.com/alpinejs" defer></script>
-    
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Prevent x-cloak flash -->
     <style>
@@ -38,23 +37,16 @@
         </a>
         <!-- Right -->
         <div class="flex items-center space-x-6">
-            <!-- Search bar -->
-            <div class="relative">
-
-            </div>
-
-           <!-- Notification Bell -->
-<a href="{{ route('queue.failures') }}" class="relative">
-    <i class="fas fa-bell text-2xl"></i>
-    @if($failedCount > 0)
-        <span
-            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-            {{ $failedCount }}
-        </span>
-    @endif
-</a>
-
-
+            <!-- Notification Bell -->
+            <a href="{{ route('queue.failures') }}" class="relative">
+                <i data-lucide="bell" class="w-6 h-6"></i>
+                @if($failedCount > 0)
+                    <span
+                        class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                        {{ $failedCount }}
+                    </span>
+                @endif
+            </a>
 
             <!-- Profile dropdown -->
             <div x-data="{ open: false }" class="relative">
@@ -69,23 +61,19 @@
 
                     <!-- HR Name -->
                     <span class="font-medium">(HR Admin)</span>
-                    <i class="fas fa-caret-down text-gray-500"></i>
+                    <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500"></i>
                 </div>
-
 
                 <!-- Dropdown Menu -->
                 <div x-show="open" x-cloak @click.away="open = false" x-transition
                     class="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    <a href="{{ route('view.questions') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                        <i class="fas fa-cog mr-2 text-gray-500"></i> Settings
-                    </a>
-                    <a href="{{ route('assessments.create') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                        <i class="fas fa-cog mr-2 text-gray-500"></i> Assessments
+                    <a href="{{ route('settings.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <i data-lucide="settings" class="w-5 h-5 inline mr-2 text-gray-500"></i> Settings
                     </a>
                     <form method="POST" action="index">
                         @csrf
                         <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                            <i class="fas fa-sign-out-alt mr-2 text-gray-500"></i> Logout
+                            <i data-lucide="log-out" class="w-5 h-5 inline mr-2 text-gray-500"></i> Logout
                         </button>
                     </form>
                 </div>
@@ -101,42 +89,48 @@
             :class="sidebarOpen ? 'w-64' : 'w-20'">
             <div class="flex-1 p-2 space-y-9 mt-10">
                 <a href="{{ route('show.dashboard') }}" class="block">
-                    <div
-                        class="flex items-center space-x-4 p-4 rounded-md cursor-pointer bg-orange-200 hover:bg-orange-300 text-black">
-                        <i class="fas fa-home text-xl"></i>
-                        <span x-show="sidebarOpen" x-transition>Dashboard</span>
-                    </div>
-                </a>
-                <a href="{{ route('show.listapplicants') }}" class="block">
-                    <div
-                        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
-                        <i class="fas fa-id-badge text-xl text-black"></i>
-                        <span x-show="sidebarOpen" x-transition>Manage Applicants</span>
-                    </div>
-                </a>
+    <div
+        class="flex items-center rounded-md cursor-pointer bg-orange-200 hover:bg-orange-300 text-black
+               transition-all duration-200"
+        :class="sidebarOpen ? 'p-4 space-x-4 justify-start' : 'py-3 px-6 justify-center'">
+        <i data-lucide="home" class="w-6 h-6 shrink-0"></i>
+        <span x-show="sidebarOpen" x-transition>Dashboard</span>
+    </div>
+</a>
 
-                <a href="{{ route('show.employeeprofiles') }}" class="block">
-                    <div
-                        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
-                        <i class="fas fa-user-tie text-xl"></i>
-                        <span x-show="sidebarOpen" x-transition>Manage Employee Profiles</span>
-                    </div>
-                </a>
-                <a href="{{ route('show.attendance') }}" class="block">
-                    <div
-                        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
-                        <i class="fas fa-user-clock text-xl"></i>
-                        <span x-show="sidebarOpen" x-transition>Manage Attendance and OT</span>
-                    </div>
-                </a>
 
-                <a href="{{ route('show.evaluateservices') }}" class="block">
-                    <div
-                        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
-                        <i class="fas fa-file-alt text-xl"></i>
-                        <span x-show="sidebarOpen" x-transition>Evaluate Employee Services</span>
-                    </div>
-                </a>
+<a href="{{ route('show.listapplicants') }}" class="block">
+    <div
+        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+        <i data-lucide="id-card" class="w-6 h-6 shrink-0"></i>
+        <span x-show="sidebarOpen" x-transition>Manage Applicants</span>
+    </div>
+</a>
+
+<a href="{{ route('show.employeeprofiles') }}" class="block">
+    <div
+        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+        <i data-lucide="user" class="w-6 h-6 shrink-0"></i>
+        <span x-show="sidebarOpen" x-transition>Manage Employee Profiles</span>
+    </div>
+</a>
+
+<a href="{{ route('show.attendance') }}" class="block">
+    <div
+        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+        <i data-lucide="clock" class="w-6 h-6 shrink-0"></i>
+        <span x-show="sidebarOpen" x-transition>Manage Attendance and OT</span>
+    </div>
+</a>
+
+<a href="{{ route('show.evaluateservices') }}" class="block">
+    <div
+        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+        <i data-lucide="file-text" class="w-6 h-6 shrink-0"></i>
+        <span x-show="sidebarOpen" x-transition>Evaluate Employee Services</span>
+    </div>
+</a>
+
             </div>
         </div>
 
@@ -144,11 +138,14 @@
         <div class="absolute right-0 top-16 h-screen overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out p-5 text-black"
             :class="sidebarOpen ? 'ml-64' : 'ml-20'"
             :style="sidebarOpen ? 'width: calc(100% - 16rem);' : 'width: calc(100% - 5rem);'">
-            <main class="min-h-screen bg-transparent text-black">
+            <main class="min-h-screen bg-transparent text-white">
                 {{ $slot }}
             </main>
         </div>
     </div>
-</body>
 
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
 </html>

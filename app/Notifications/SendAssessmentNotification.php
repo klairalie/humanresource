@@ -36,6 +36,6 @@ class SendAssessmentNotification extends Notification
             ->line('You have been shortlisted for the position of ' . $this->position . '.')
             ->line('Please take the assessment test by clicking the button below:')
             ->action('Start Assessment', $url)
-            ->line('This link will expire in 3 hours.');
+            ->line('This link will expire in 1 hour.');
     }
 }

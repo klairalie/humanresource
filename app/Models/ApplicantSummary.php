@@ -33,4 +33,6 @@ class ApplicantSummary extends Model
     {
         return $this->belongsTo(Applicant::class, 'applicant_id', 'applicant_id');
     }
+
+    
 }

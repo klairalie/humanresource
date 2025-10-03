@@ -23,7 +23,7 @@ return new class extends Migration
             $table->date('hire_date')->nullable();
             $table->string('status');
             $table->string('emergency_contact')->nullable();
-            $table->longText('fingerprint_data')->nullable();
+            $table->string('card_Idnumber')->nullable();
             $table->timestamps();
         });
     }

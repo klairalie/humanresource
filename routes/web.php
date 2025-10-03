@@ -14,20 +14,26 @@ use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentTokenController;
 use App\Http\Controllers\AssessmentResultController;
 use App\Http\Controllers\AssessmentQuestionController;
-use App\Models\Assessment;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\InterviewController;
+use App\Http\Controllers\EmployeeAttendanceController;
+use App\Http\Controllers\ActivityLogController;
 Route::get('/', function () {
     return view('index');
 });
 
+Route::get('/recent-activities', [ActivityLogController::class, 'index'])->name('recent-activities.index');
+
 Route::controller(DashboardController::class)->group(function () {
     Route::get('/HR', 'dashboard')->name('show.dashboard');
     Route::get('/editprofile', 'showEditProfile')->name('show.editprofile');
+    Route::get('/settings', 'showSettings')->name('settings.index');
+    Route::get('/attendance/export', 'exportAttendance')->name('attendance.export');
+    Route::get('/dashboard/activities', 'recentActivities')->name('dashboard.activities');
 });
 
 Route::controller(AttendanceController::class)->group(function () {
-    Route::get('attendance', 'showAttendance')->name('show.attendance');
+    Route::get('HR/view_attendance', 'showAttendance')->name('show.attendance');
     Route::get('/list_overtime', 'showOvertime')->name('show.overtime');
     Route::get('/manage_leave', 'showLeaverequest')->name('show.leaverequest');
     Route::get('/attendanceform', 'showAttendanceform')->name('show.attendanceform');
@@ -86,10 +92,20 @@ Route::controller(ApplicantController::class)->group(function () {
     Route::get('/applicants/{applicant_id}', 'show')->name('applicants.show');
     Route::post('/applicants/validate', 'validateField')->name('validate.applicant');
     Route::post('/applicants/{applicant_id}/summarize', 'summarize')->name('applicants.summarize');
-    Route::get('/summary/{applicant_summary_id}', 'showSummary')->name('applicants.summary.show');
+  Route::get('/applicants/summary/{applicant_summary_id}', 'showSummary')->name('applicants.summary.show');
     Route::get('/applicants/{applicant_id}/review', 'review')->name('review.document');
     Route::post('/applicants/{applicant_id}/reviewed', 'markReviewed')->name('applicant.markReviewed');
     Route::get('/summary/{applicant_id}/resume/view', 'viewResume')->name('applicant.resume.view');
+    Route::post('/applicants/{applicant_id}/mark-screening', 'markScreening')
+    ->name('applicant.markScreening');
+    Route::post('/applicants/{id}/pass','markPassed')->name('applicants.pass');
+    Route::post('/applicants/{id}/fail', 'markFailed')->name('applicants.fail');
+     Route::post('/applicants/{applicant_id}/schedule-interview', 'markScheduledInterview')
+        ->name('applicant.scheduleInterview');
+    Route::delete('/applicants/{id}/delete', 'deleteApplicant')->name('applicants.delete');
+    Route::put('/applicants/{applicant}/status/{status}', 'updateStatus')->name('applicants.updateStatus');
+    
+
 });
 
 Route::get('/resumeupload', [ResumeController::class, 'showResumeForm'])->name('resume.form');
@@ -99,7 +115,11 @@ Route::get('/resumeupload/{resume_format_id}/details', [ResumeController::class,
 Route::get('/resumeupload/download', [ResumeController::class, 'download'])->name('resume.download');
 
 
-Route::get('/queue-failures', [QueueMonitorController::class, 'index'])->name('queue.failures');
+Route::get('/queue/failures', [QueueMonitorController::class, 'index'])->name('queue.failures');
+Route::post('/queue/retry/{id}', [QueueMonitorController::class, 'retryJob'])->name('queue.retry');
+Route::post('/queue/retry-all', [QueueMonitorController::class, 'retryAll'])->name('queue.retryAll');
+Route::delete('/queue/delete/{id}', [QueueMonitorController::class, 'deleteJob'])->name('queue.delete');
+Route::delete('/queue/clear-all', [QueueMonitorController::class, 'clearAll'])->name('queue.clearAll');
 
 // Assessments (CRUD for admin/HR)
 // Route::prefix('assessmentque')->group(function () {
@@ -154,3 +174,23 @@ Route::controller(AssessmentController::class)->group(function () {
     Route::get('/assessment/result/{token}', 'showResult')->name('assessment.result');
 
 });
+
+Route::put('/interviews/{applicant}/{status}', [InterviewController::class, 'updateStatus'])
+    ->name('interviews.updateStatus');
+
+Route::put('/applicants/{applicant}/{status}', [InterviewController::class, 'finalDecision'])
+    ->name('applicants.finalDecision');
+
+
+
+
+Route::get('/assessmentresult', [AssessmentResultController::class, 'showAssessmentResults'])
+    ->name('assessment.results');
+
+Route::get('/assessment-results/{applicant_id}', [AssessmentResultController::class, 'showResult'])->name('assessment.result.view');
+
+
+ Route::get('/EmpAttendance/Attendancepage', [EmployeeAttendanceController::class, 'showEmpAttendance'])
+        ->name('employee.attendance');
+Route::get('/api/get-employee/{cardNumber}', [EmployeeAttendanceController::class, 'getEmployeeByCard']);
+Route::post('/attendance/verify-otp', [EmployeeAttendanceController::class, 'verifyOtp'])->name('attendance.verifyOtp');

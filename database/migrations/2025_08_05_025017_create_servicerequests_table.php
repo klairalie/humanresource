@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('location')->nullable();
             $table->foreignId('assigned_technician_id')->constrained('employeeprofiles', 'employeeprofiles_id')->onDelete('cascade');
             $table->string('status')->nullable();
+            $table->timestamps();
+
             
         });
     }

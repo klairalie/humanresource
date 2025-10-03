@@ -1,12 +1,17 @@
 <x-guest-layout>
     <div class="p-6">
-        <h1 class="text-2xl font-bold mb-6 text-gray-800">Assessment Questions</h1>
+        <!-- Page Title -->
+        <div class="flex items-center gap-2 mb-6">
+            <i data-lucide="file-question" class="w-6 h-6 text-green-600"></i>
+            <h1 class="text-2xl font-bold text-gray-800">Assessment Questions</h1>
+        </div>
 
         {{-- Action Buttons --}}
         <div class="flex items-center gap-3 mb-6">
             <a href="{{ route('Questions.create') }}"
-               class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow">
-                + Add Question
+               class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow transition">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                Add Question
             </a>
 
             <form action="{{ route('Questions.destroyAll') }}" method="POST"
@@ -14,24 +19,29 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit"
-                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow">
-                    Delete All Questions
+                    class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow transition">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    Delete All
                 </button>
             </form>
         </div>
 
         {{-- Success Alert --}}
         @if (session('success'))
-            <div class="bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded-lg mb-6">
-                {{ session('success') }}
+            <div class="flex items-center gap-2 bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded-lg mb-6">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                <span>{{ session('success') }}</span>
             </div>
         @endif
 
         {{-- Filter Bar --}}
-        <div class="mb-6 flex gap-3">
-            <label for="positionFilter" class="font-medium text-gray-700">Filter by Position:</label>
+        <div class="mb-6 flex items-center gap-3">
+            <label for="positionFilter" class="flex items-center gap-2 font-medium text-gray-700">
+                <i data-lucide="filter" class="w-5 h-5 text-gray-500"></i>
+                Filter by Position:
+            </label>
             <select id="positionFilter"
-                class="border border-gray-300 rounded-lg px-3 py-2 focus:ring focus:ring-blue-200">
+                class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-300">
                 <option value="all">All Positions</option>
                 @foreach ($positions as $pos)
                     <option value="pos-{{ Str::slug($pos) }}">{{ $pos }}</option>
@@ -42,7 +52,10 @@
         {{-- Position Tables --}}
         @foreach ($positions as $pos)
             <div class="position-table mb-10" id="pos-{{ Str::slug($pos) }}">
-                <h2 class="text-xl font-semibold mb-3 text-gray-800">Position: {{ $pos }}</h2>
+                <div class="flex items-center gap-2 mb-3">
+                    <i data-lucide="briefcase" class="w-5 h-5 text-gray-600"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Position: {{ $pos }}</h2>
+                </div>
 
                 <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                     <table class="w-full border-collapse">
@@ -58,14 +71,15 @@
                             @forelse($allQuestions[$pos] as $q)
                                 <tr class="border-b hover:bg-gray-50 transition">
                                     <td class="px-6 py-4 capitalize">{{ $q->level }}</td>
-                                    <td class="px-6 py-4">{{ $q->question }}</td>
+                                    <td class="px-6 py-4 text-left">{{ $q->question }}</td>
                                     <td class="px-6 py-4">{{ $q->correct_answer }}</td>
                                     <td class="px-6 py-4 text-center">
                                         <button type="button"
-                                            class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md shadow edit-btn"
+                                            class="flex items-center gap-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md shadow edit-btn transition"
                                             data-id="{{ $q->assessment_question_id }}"
                                             data-question="{{ $q->question }}"
                                             data-answer="{{ $q->correct_answer }}">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
                                             Edit
                                         </button>
                                     </td>
@@ -81,8 +95,8 @@
                     </table>
                 </div>
 
-                {{-- Pagination per position --}}
-                <div class="mt-10">
+                {{-- Pagination --}}
+                <div class="mt-6">
                     {{ $allQuestions[$pos]->links() }}
                 </div>
             </div>
@@ -91,8 +105,11 @@
 
     {{-- Edit Modal --}}
     <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Edit Question</h2>
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="pencil" class="w-6 h-6 text-blue-600"></i>
+                <h2 class="text-xl font-bold text-gray-800">Edit Question</h2>
+            </div>
 
             {{-- The action will be set dynamically in JS --}}
             <form id="editForm" method="POST">
@@ -102,24 +119,26 @@
                 <div class="mb-4">
                     <label for="editQuestion" class="block text-sm font-medium text-gray-700">Question</label>
                     <textarea id="editQuestion" name="question" rows="3"
-                        class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200"
+                        class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-300"
                         required></textarea>
                 </div>
 
                 <div class="mb-4">
                     <label for="editAnswer" class="block text-sm font-medium text-gray-700">Correct Answer</label>
                     <input type="text" id="editAnswer" name="correct_answer"
-                        class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200"
+                        class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-300"
                         required>
                 </div>
 
                 <div class="flex justify-end gap-3">
                     <button type="button" id="closeModal"
-                        class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg">
+                        class="flex items-center gap-2 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition">
+                        <i data-lucide="x" class="w-4 h-4"></i>
                         Cancel
                     </button>
                     <button type="submit"
-                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition">
+                        <i data-lucide="save" class="w-4 h-4"></i>
                         Save Changes
                     </button>
                 </div>
@@ -127,39 +146,41 @@
         </div>
     </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const editButtons = document.querySelectorAll(".edit-btn");
-        const editModal = document.getElementById("editModal");
-        const closeModal = document.getElementById("closeModal");
-        const editForm = document.getElementById("editForm");
-        const questionInput = document.getElementById("editQuestion");
-        const answerInput = document.getElementById("editAnswer");
+    {{-- Lucide Icons --}}
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        lucide.createIcons();
 
-        editButtons.forEach(button => {
-            button.addEventListener("click", function () {
-                const id = this.dataset.id;
-                const question = this.dataset.question;
-                const answer = this.dataset.answer;
+        document.addEventListener("DOMContentLoaded", function () {
+            const editButtons = document.querySelectorAll(".edit-btn");
+            const editModal = document.getElementById("editModal");
+            const closeModal = document.getElementById("closeModal");
+            const editForm = document.getElementById("editForm");
+            const questionInput = document.getElementById("editQuestion");
+            const answerInput = document.getElementById("editAnswer");
 
-                questionInput.value = question;
-                answerInput.value = answer;
+            editButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const id = this.dataset.id;
+                    const question = this.dataset.question;
+                    const answer = this.dataset.answer;
 
-                // Generate correct route dynamically
-                editForm.action = "{{ route('Questions.update', ['assessmentQuestion' => '__ID__']) }}"
-                    .replace('__ID__', id);
+                    questionInput.value = question;
+                    answerInput.value = answer;
 
-                editModal.classList.remove("hidden");
-                editModal.classList.add("flex");
+                    editForm.action = "{{ route('Questions.update', ['assessmentQuestion' => '__ID__']) }}"
+                        .replace('__ID__', id);
+
+                    editModal.classList.remove("hidden");
+                    editModal.classList.add("flex");
+                    lucide.createIcons();
+                });
+            });
+
+            closeModal.addEventListener("click", function () {
+                editModal.classList.add("hidden");
+                editModal.classList.remove("flex");
             });
         });
-
-        closeModal.addEventListener("click", function () {
-            editModal.classList.add("hidden");
-            editModal.classList.remove("flex");
-        });
-    });
-</script>
-
-
+    </script>
 </x-guest-layout>
