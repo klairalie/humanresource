@@ -11,29 +11,29 @@ use App\Models\AssessmentQuestion;
 
 class AssessmentController extends Controller
 {
-   public function create()
-{
-    return view('Assessments.createassessment');
-}
+    public function create()
+    {
+        return view('Assessments.createassessment');
+    }
 
-public function store(Request $request)
-{
-    $request->validate([
-        'title'         => 'required|string|max:255',
-        'type'          => 'required|in:test,evaluation',
-        'position_name' => 'required_if:type,test|nullable|in:Helper,Assistant Technician,Technician,Human Resource Manager,Administrative Manager,Finance Manager',
-        'description'   => 'nullable|string',
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'position_name' => 'required|in:Helper,Assistant Technician,Technician,Human Resource Manager,Administrative Manager,Finance Manager',
+            'title'         => 'required|string',
+            'description'   => 'nullable|string',
+            'type'          => 'required|in:test,evaluation',
+        ]);
 
-    Assessment::create([
-        'title'         => $request->title,
-        'type'          => $request->type,
-        'position_name' => $request->position_name,
-        'description'   => $request->description,
-    ]);
+        Assessment::create([
+            'position_name' => $request->position_name,
+            'title'         => $request->title,
+            'description'   => $request->description,
+            'type'          => $request->type,
+        ]);
 
-    return redirect()->back()->with('success', 'Assessment added successfully!');
-}
+        return redirect()->back()->with('success', 'Assessment added successfully!');
+    }
 
     public function showQuestionnaire($token)
     {

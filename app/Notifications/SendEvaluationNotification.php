@@ -1,4 +1,5 @@
 <?php
+// app/Notifications/SendEvaluationNotification.php
 
 namespace App\Notifications;
 
@@ -12,12 +13,12 @@ class SendEvaluationNotification extends Notification
     use Queueable;
 
     protected $token;
-    protected $evaluateeName;
+    protected $position;
 
-    public function __construct($token, $evaluateeName)
+    public function __construct($token, $position)
     {
         $this->token = $token;
-        $this->evaluateeName = $evaluateeName;
+        $this->position = $position;
     }
 
     public function via($notifiable)
@@ -25,13 +26,18 @@ class SendEvaluationNotification extends Notification
         return ['mail'];
     }
 
-    public function toMail($notifiable)
-    {
-        return (new MailMessage)
-            ->subject('Employee Evaluation Request')
-            ->greeting('Hello ' . $notifiable->fullname)
-            ->line('You have been requested to evaluate ' . $this->evaluateeName . '.')
-            ->action('Start Evaluation', url('/evaluation/' . $this->token))
-            ->line('This evaluation link will expire in 3 hours.');
-    }
+   public function toMail($notifiable)
+{
+    $url = route('evaluation.questionnaire', $this->token);
+
+    return (new MailMessage)
+        ->subject('Monthly Evaluation for ' . $this->position)
+        ->greeting('Hello ' . $notifiable->first_name . ',')
+        ->line('It’s time for your monthly evaluation.')
+        ->line('Click the button below to begin:')
+        ->action('Start Evaluation', $url)
+        ->line('This link will expire in 24 hours.');
 }
+
+}
+

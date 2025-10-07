@@ -14,7 +14,7 @@
         <div class="bg-blue-700 text-white p-6 flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-700 font-bold text-lg shadow">
-                    LOGO
+                    3RS
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold">Assessment Questionnaire</h1>

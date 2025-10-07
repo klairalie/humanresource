@@ -1,14 +1,30 @@
-<x-guest-layout>
-    <div class="p-6">
-        <h1 class="text-xl font-bold mb-4">Add Evaluation Questions</h1>
+{{-- CREATE EVALUATION QUESTIONS --}}
 
-        <form action="{{ route('Evaluations.store') }}" method="POST" class="space-y-6" enctype="multipart/form-data">
+<x-guest-layout>
+    <div class="max-w-3xl mx-auto p-8 bg-white shadow rounded-xl mb-20">
+        <!-- Header -->
+        <div class="flex items-center gap-2 mb-8">
+            <i data-lucide="file-question" class="w-6 h-6 text-green-600"></i>
+            <h1 class="text-2xl font-bold text-black">
+                Add Evaluation Questions
+                <span class="text-sm text-black">
+                    (Work Performance & Skills / Teamwork & Collaboration / Professional Behavior / Safety & Responsibility — 10 each)
+                </span>
+            </h1>
+        </div>
+        
+        <form action="{{ route('evaluation.store') }}" method="POST" class="space-y-6" enctype="multipart/form-data">
             @csrf
 
-            <!-- Position Dropdown -->
-            <label class="block">
-                <span>Position</span>
-                <select name="position" class="w-full border rounded p-2" required>
+            <!-- Position -->
+            <div>
+                <label class="flex items-center gap-2 font-semibold text-black">
+                    <i data-lucide="briefcase" class="w-5 h-5 text-black"></i>
+                    Position
+                </label>
+                <select name="position"
+                        class="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-green-400 text-black"
+                        required>
                     <option value="">-- Select Position --</option>
                     <option value="Helper">Helper</option>
                     <option value="Assistant Technician">Assistant Technician</option>
@@ -17,131 +33,131 @@
                     <option value="Administrative Manager">Administrative Manager</option>
                     <option value="Finance Manager">Finance Manager</option>
                 </select>
-            </label>
+            </div>
 
-            <!-- Evaluation Dropdown -->
-            <label class="block mt-4">
-                <span>Select Evaluation</span>
-                <select name="evaluation_id" class="w-full border rounded p-2" required>
-                    <option value="">-- Select Evaluation --</option>
-                    @foreach($evaluations as $evaluation)
-                        <option value="{{ $evaluation->evaluation_id }}">
-                            {{ $evaluation->position_name }} - {{ $evaluation->title }}
-                        </option>
+            <!-- Assessment -->
+            <div>
+                <label class="flex items-center gap-2 font-semibold text-black">
+                    <i data-lucide="clipboard-list" class="w-5 h-5 text-black"></i>
+                    Select Employee Evaluation
+                </label>
+                <select name="assessment_id"
+                        class="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-green-400 text-black"
+                        required>
+                    <option value="">-- Select Employee Evaluation --</option>
+                    @foreach($assessments as $assessment)
+                        @if($assessment->type === 'evaluation')
+                            <option value="{{ $assessment->assessment_id }}">
+                                {{ $assessment->position_name }} - {{ $assessment->title }}
+                            </option>
+                        @endif
                     @endforeach
                 </select>
-            </label>
+            </div>
 
-            <!-- Upload -->
-            <label class="block mt-4">
-                <span>Upload Evaluation Questionnaire (Image / DOCX)</span>
-                <input type="file" id="evaluationFile" class="w-full border rounded p-2" accept=".jpg,.jpeg,.png,.doc,.docx">
-                <small class="text-gray-600">Supported: JPG, PNG, DOC, DOCX</small>
-            </label>
+            <!-- Upload DOC/DOCX -->
+            <div>
+                <label class="flex items-center gap-2 font-semibold text-black">
+                    <i data-lucide="upload" class="w-5 h-5 text-black"></i>
+                    Upload Evaluation File (DOC / DOCX)
+                </label>
+                <div class="mt-2 flex items-center gap-3 p-3 border-2 border-dashed rounded-lg hover:border-green-500 cursor-pointer">
+                    <i data-lucide="file-up" class="w-6 h-6 text-green-600"></i>
+                    <input type="file" id="questionFile" name="questionFile"
+                           class="flex-1 text-sm text-black" accept=".doc,.docx" required>
+                </div>
+                <small class="text-black">
+                    Supported: DOC, DOCX — file must contain tables under:
+                    Work Performance & Skills, Teamwork & Collaboration, Professional Behavior, Safety & Responsibility.
+                    Each will be normalized to 10 items.
+                </small>
+            </div>
 
-            <!-- Auto-Filled Questions Container -->
-            <div id="evaluationContainer" class="space-y-6 mt-4"></div>
+            <!-- Auto-Filled Questions -->
+            <div id="questionsContainer" class="space-y-6 mt-6"></div>
 
-            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded mb-15">Save Evaluation</button>
+            <!-- Buttons -->
+            <div class="flex justify-between items-center">
+                <a href="{{ route('evaluation.view') }}"
+                   class="flex items-center gap-2 px-5 py-2 bg-gray-300 hover:bg-gray-400 text-black rounded-lg shadow-md transition">
+                    ← Back
+                </a>
+                <button type="submit"
+                        class="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-md transition">
+                    <i data-lucide="save" class="w-5 h-5"></i>
+                    Save Evaluation
+                </button>
+            </div>
         </form>
     </div>
 
-    {{-- Libraries --}}
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    {{-- Lucide Icons --}}
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>lucide.createIcons();</script>
+
+    {{-- Mammoth for DOC/DOCX --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 
+    {{-- Script to handle DOCX upload & extract --}}
     <script>
-        const fileInput = document.getElementById('evaluationFile');
-        const container = document.getElementById('evaluationContainer');
+        const categoryOrder = [
+            'Work Performance & Skills',
+            'Teamwork & Collaboration',
+            'Professional Behavior',
+            'Safety & Responsibility'
+        ];
 
-        function processText(rawText) {
-            const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
-            const questions = [];
-            let current = {};
+        document.getElementById('questionFile').addEventListener('change', handleFileUpload);
 
-            lines.forEach(line => {
-                if (/^\d+\./.test(line)) {
-                    if (current.question) questions.push(current);
-                    current = { question: line.replace(/^\d+\.\s*/, ""), options: {}, correct: "" };
-                } else if (/^A\./.test(line)) {
-                    current.options.A = line.replace(/^A\.\s*/, "");
-                } else if (/^B\./.test(line)) {
-                    current.options.B = line.replace(/^B\.\s*/, "");
-                } else if (/^C\./.test(line)) {
-                    current.options.C = line.replace(/^C\.\s*/, "");
-                } else if (/^D\./.test(line)) {
-                    current.options.D = line.replace(/^D\.\s*/, "");
-                } else if (/Correct Answer:/i.test(line)) {
-                    const match = line.match(/Correct Answer:\s*([A-D])/i);
-                    current.correct = match ? match[1].toUpperCase() : "";
-                }
-            });
-
-            if (current.question) questions.push(current);
-
-            renderQuestions(questions);
-        }
-
-        function renderQuestions(questions) {
-            container.innerHTML = "";
-
-            questions.forEach((q, i) => {
-                const block = document.createElement("div");
-                block.classList.add("p-4", "border", "rounded", "bg-gray-50", "mb-4");
-
-                block.innerHTML = `
-                    <label class="block mb-2 font-semibold">Q${i+1}</label>
-                    <textarea class="border rounded p-2 w-full" name="questions[${i}][question]">${q.question}</textarea>
-
-                    <label class="block mt-2">Option A
-                        <input type="text" class="border rounded p-1 w-full" name="questions[${i}][option_a]" value="${q.options.A || ""}">
-                    </label>
-                    <label class="block">Option B
-                        <input type="text" class="border rounded p-1 w-full" name="questions[${i}][option_b]" value="${q.options.B || ""}">
-                    </label>
-                    <label class="block">Option C
-                        <input type="text" class="border rounded p-1 w-full" name="questions[${i}][option_c]" value="${q.options.C || ""}">
-                    </label>
-                    <label class="block">Option D
-                        <input type="text" class="border rounded p-1 w-full" name="questions[${i}][option_d]" value="${q.options.D || ""}">
-                    </label>
-
-                    <label class="block mt-2">Correct Answer
-                        <input type="text" class="border rounded p-1 w-full bg-green-100" name="questions[${i}][correct_answer]" value="${q.correct}">
-                    </label>
-                `;
-
-                container.appendChild(block);
-            });
-        }
-
-        fileInput.addEventListener('change', function (e) {
-            const file = e.target.files[0];
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
             if (!file) return;
 
-            const ext = file.name.split('.').pop().toLowerCase();
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                mammoth.extractRawText({arrayBuffer: event.target.result})
+                    .then(displayQuestions)
+                    .catch(err => console.error("Mammoth error:", err));
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
-            if (['doc', 'docx'].includes(ext)) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    mammoth.extractRawText({ arrayBuffer: event.target.result })
-                        .then(result => processText(result.value))
-                        .catch(err => {
-                            console.error("Mammoth error:", err);
-                            alert("Could not read Word file.");
-                        });
-                };
-                reader.readAsArrayBuffer(file);
-            } else if (['jpg','jpeg','png'].includes(ext)) {
-                const reader = new FileReader();
-                reader.onload = function () {
-                    Tesseract.recognize(reader.result, 'eng')
-                        .then(({ data: { text } }) => processText(text));
-                };
-                reader.readAsDataURL(file);
-            } else {
-                alert("Unsupported file type. Use image (JPG/PNG) or DOCX/DOC.");
-            }
-        });
+        function displayQuestions(result) {
+            const text = result.value;
+            const lines = text.split("\n").map(l => l.trim()).filter(l => l !== "");
+            const questionsContainer = document.getElementById("questionsContainer");
+            questionsContainer.innerHTML = "";
+
+            let currentCategory = null;
+            let counters = {};
+            let counter = 0; // global counter for correct question indexing
+
+            lines.forEach(line => {
+                if (categoryOrder.includes(line)) {
+                    currentCategory = line;
+                    counters[currentCategory] = 0;
+
+                    const categoryHeader = document.createElement("h2");
+                    categoryHeader.textContent = currentCategory;
+                    categoryHeader.className = "text-lg font-bold text-green-700 mt-6";
+                    questionsContainer.appendChild(categoryHeader);
+                } else if (currentCategory && counters[currentCategory] < 10) {
+                    counters[currentCategory]++;
+
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "flex items-start gap-2 mt-2";
+
+                    wrapper.innerHTML = `
+                        <span class="font-semibold text-black">${counters[currentCategory]}.</span>
+                        <input type="text" name="questions[${counter}][question]"
+                               value="${line}" class="flex-1 border p-2 rounded text-black" required>
+                        <input type="hidden" name="questions[${counter}][category]" value="${currentCategory}">
+                    `;
+
+                    questionsContainer.appendChild(wrapper);
+                    counter++;
+                }
+            });
+        }
     </script>
 </x-guest-layout>

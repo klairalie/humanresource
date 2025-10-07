@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\EmployeeAttendanceController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\EvaluationQuestionController;
+
 Route::get('/', function () {
     return view('index');
 });
@@ -30,6 +32,9 @@ Route::controller(DashboardController::class)->group(function () {
     Route::get('/settings', 'showSettings')->name('settings.index');
     Route::get('/attendance/export', 'exportAttendance')->name('attendance.export');
     Route::get('/dashboard/activities', 'recentActivities')->name('dashboard.activities');
+   Route::get('/export-services', 'exportServices')->name('services.export');
+
+    
 });
 
 Route::controller(AttendanceController::class)->group(function () {
@@ -92,20 +97,18 @@ Route::controller(ApplicantController::class)->group(function () {
     Route::get('/applicants/{applicant_id}', 'show')->name('applicants.show');
     Route::post('/applicants/validate', 'validateField')->name('validate.applicant');
     Route::post('/applicants/{applicant_id}/summarize', 'summarize')->name('applicants.summarize');
-  Route::get('/applicants/summary/{applicant_summary_id}', 'showSummary')->name('applicants.summary.show');
+    Route::get('/applicants/summary/{applicant_summary_id}', 'showSummary')->name('applicants.summary.show');
     Route::get('/applicants/{applicant_id}/review', 'review')->name('review.document');
     Route::post('/applicants/{applicant_id}/reviewed', 'markReviewed')->name('applicant.markReviewed');
     Route::get('/summary/{applicant_id}/resume/view', 'viewResume')->name('applicant.resume.view');
     Route::post('/applicants/{applicant_id}/mark-screening', 'markScreening')
-    ->name('applicant.markScreening');
-    Route::post('/applicants/{id}/pass','markPassed')->name('applicants.pass');
+        ->name('applicant.markScreening');
+    Route::post('/applicants/{id}/pass', 'markPassed')->name('applicants.pass');
     Route::post('/applicants/{id}/fail', 'markFailed')->name('applicants.fail');
-     Route::post('/applicants/{applicant_id}/schedule-interview', 'markScheduledInterview')
+    Route::post('/applicants/{applicant_id}/schedule-interview', 'markScheduledInterview')
         ->name('applicant.scheduleInterview');
     Route::delete('/applicants/{id}/delete', 'deleteApplicant')->name('applicants.delete');
     Route::put('/applicants/{applicant}/status/{status}', 'updateStatus')->name('applicants.updateStatus');
-    
-
 });
 
 Route::get('/resumeupload', [ResumeController::class, 'showResumeForm'])->name('resume.form');
@@ -147,7 +150,6 @@ Route::post('/assessment/submit/{token}', [AssessmentResultController::class, 's
 Route::controller(AssessmentTokenController::class)->group(function () {
 
     Route::post('/assessment/{applicant_id}/{assessment_id}', 'sendAssessment')->name('send.assessment');
-    Route::get('/assessment/results/{applicant_id}', 'show')->name('assessment.results.show');
 });
 
 
@@ -172,7 +174,6 @@ Route::controller(AssessmentController::class)->group(function () {
     Route::get('/assessment/questionnaire/{token}', 'showQuestionnaire')->name('assessment.questionnaire');
     Route::post('/Assessment/assessmentquestionnaire/{token}', 'storeQuestion')->name('question.store');
     Route::get('/assessment/result/{token}', 'showResult')->name('assessment.result');
-
 });
 
 Route::put('/interviews/{applicant}/{status}', [InterviewController::class, 'updateStatus'])
@@ -190,7 +191,44 @@ Route::get('/assessmentresult', [AssessmentResultController::class, 'showAssessm
 Route::get('/assessment-results/{applicant_id}', [AssessmentResultController::class, 'showResult'])->name('assessment.result.view');
 
 
- Route::get('/EmpAttendance/Attendancepage', [EmployeeAttendanceController::class, 'showEmpAttendance'])
-        ->name('employee.attendance');
+Route::get('/EmpAttendance/Attendancepage', [EmployeeAttendanceController::class, 'showEmpAttendance'])
+    ->name('employee.attendance');
 Route::get('/api/get-employee/{cardNumber}', [EmployeeAttendanceController::class, 'getEmployeeByCard']);
 Route::post('/attendance/verify-otp', [EmployeeAttendanceController::class, 'verifyOtp'])->name('attendance.verifyOtp');
+
+
+
+Route::controller(EvaluationQuestionController::class)->group(function () {
+
+    // List all evaluation questions
+    Route::get('/evaluation/questions', 'showEvaluation')->name('evaluation.view');
+
+    // Show form to create a new question
+    Route::get('/evaluation/questions/create', 'create')->name('evaluation.create');
+
+    // Store a new evaluation question
+    Route::post('/evaluation/questions', 'store')->name('evaluation.store');
+
+    // Bulk delete & edit
+    Route::delete('/evaluation/deleteAll', 'deleteAll')->name('evaluation.bulkDelete');
+    Route::put('/evaluation/{id}', 'update')->name('evaluation.update');
+
+    // Show HR send page
+    Route::get('/evaluation/send', 'sendEvalView')->name('evaluation.send.view');
+
+    // Process send form
+    Route::post('/evaluation/send', 'sendEvaluation')->name('evaluation.send');
+
+    // Token-based access to questionnaire
+    Route::get('/evaluation/questionnaire/{token}', 'showEvaluationQuestionnaire')->name('evaluation.questionnaire');
+
+   Route::post('/evaluation/submitEvaluation/{token}', [EvaluationQuestionController::class, 'submitEvaluation'])
+    ->name('evaluation.submit');
+
+    Route::get('/evaluate/expired', 'showExpired')->name('evaluate.expired');
+    Route::get('/evaluate/used', 'showUsed')->name('evaluate.used');
+    Route::get('/evaluate/thankyou', 'showThankYou')->name('evaluate.thankyou');
+    Route::get('/evaluate/alreadydone', 'showAlreadyDone')->name('evaluate.alreadydone');
+
+
+});

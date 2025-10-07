@@ -1,46 +1,71 @@
 <x-guest-layout>
-    <div class="max-w-4xl mx-auto mt-10 bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+    <div class="max-w-7xl mx-auto mt-10 px-6">
         <!-- Header -->
-        <div class="flex items-center gap-2 mb-6 border-b pb-3">
-            <i data-lucide="settings" class="w-6 h-6 text-green-600"></i>
-            <h1 class="text-2xl font-bold text-gray-800">System Settings</h1>
+        <div class="flex items-center gap-3 mb-10 border-b pb-4">
+            <i data-lucide="settings" class="w-8 h-8 text-green-600"></i>
+            <h1 class="text-3xl font-bold text-gray-800">System Settings</h1>
         </div>
 
-        <!-- Grid Links -->
-        <div class="grid gap-4 sm:grid-cols-2">
+        <!-- Grid Cards -->
+        <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
             <!-- Manage Assessment Questions -->
             <a href="{{ route('view.questions') }}"
-               class="flex items-center p-4 bg-gradient-to-r from-blue-100 to-blue-50 rounded-lg shadow hover:shadow-md transition">
-                <i data-lucide="help-circle" class="w-6 h-6 text-blue-600 mr-3"></i>
-                <span class="font-medium text-gray-700">Manage Assessment Questions</span>
+               class="block p-6 bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+                <div class="flex items-center mb-3">
+                    <i data-lucide="help-circle" class="w-7 h-7 text-blue-600 mr-2"></i>
+                    <h2 class="font-semibold text-gray-800">Manage Assessment Questions</h2>
+                </div>
+                <p class="text-sm text-gray-500">Create, edit, and organize assessment questions.</p>
+            </a>
+
+            <!-- Manage Evaluation Questions -->
+            <a href="{{ route('evaluation.view') }}"
+               class="block p-6 bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+                <div class="flex items-center mb-3">
+                    <i data-lucide="help-circle" class="w-7 h-7 text-blue-600 mr-2"></i>
+                    <h2 class="font-semibold text-gray-800">Manage Evaluation Questions</h2>
+                </div>
+                <p class="text-sm text-gray-500">Add and maintain evaluation question sets.</p>
             </a>
 
             <!-- Manage Assessments -->
             <a href="{{ route('assessments.create') }}"
-               class="flex items-center p-4 bg-gradient-to-r from-green-100 to-green-50 rounded-lg shadow hover:shadow-md transition">
-                <i data-lucide="list-checks" class="w-6 h-6 text-green-600 mr-3"></i>
-                <span class="font-medium text-gray-700">Manage Assessments</span>
+               class="block p-6 bg-gradient-to-br from-green-50 to-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+                <div class="flex items-center mb-3">
+                    <i data-lucide="list-checks" class="w-7 h-7 text-green-600 mr-2"></i>
+                    <h2 class="font-semibold text-gray-800">Manage Assessments</h2>
+                </div>
+                <p class="text-sm text-gray-500">Build and assign assessments to employees.</p>
             </a>
 
             <!-- View Assessment Results -->
             <a href="{{ route('assessment.results') }}"
-               class="flex items-center p-4 bg-gradient-to-r from-purple-100 to-purple-50 rounded-lg shadow hover:shadow-md transition">
-                <i data-lucide="bar-chart-3" class="w-6 h-6 text-purple-600 mr-3"></i>
-                <span class="font-medium text-gray-700">View Assessment Results</span>
+               class="block p-6 bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+                <div class="flex items-center mb-3">
+                    <i data-lucide="bar-chart-3" class="w-7 h-7 text-purple-600 mr-2"></i>
+                    <h2 class="font-semibold text-gray-800">View Assessment Results</h2>
+                </div>
+                <p class="text-sm text-gray-500">Analyze and review assessment scores.</p>
             </a>
 
             <!-- Employee Attendance -->
             <a href="{{ route('employee.attendance') }}"
-               class="flex items-center p-4 bg-gradient-to-r from-orange-100 to-orange-50 rounded-lg shadow hover:shadow-md transition">
-                <i data-lucide="user-check" class="w-6 h-6 text-orange-600 mr-3"></i>
-                <span class="font-medium text-gray-700">Employee Attendance</span>
+               class="block p-6 bg-gradient-to-br from-orange-50 to-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+                <div class="flex items-center mb-3">
+                    <i data-lucide="user-check" class="w-7 h-7 text-orange-600 mr-2"></i>
+                    <h2 class="font-semibold text-gray-800">Employee Attendance</h2>
+                </div>
+                <p class="text-sm text-gray-500">Track employee presence and schedules.</p>
             </a>
 
             <!-- Edit Profile Info -->
             <a href="{{ route('show.editprofile') }}"
-               class="flex items-center p-4 bg-gradient-to-r from-pink-100 to-pink-50 rounded-lg shadow hover:shadow-md transition">
-                <i data-lucide="user-cog" class="w-6 h-6 text-pink-600 mr-3"></i>
-                <span class="font-medium text-gray-700">Edit Profile Info</span>
+               class="block p-6 bg-gradient-to-br from-pink-50 to-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+                <div class="flex items-center mb-3">
+                    <i data-lucide="user-cog" class="w-7 h-7 text-pink-600 mr-2"></i>
+                    <h2 class="font-semibold text-gray-800">Edit Profile Info</h2>
+                </div>
+                <p class="text-sm text-gray-500">Update your profile and account information.</p>
             </a>
         </div>
     </div>

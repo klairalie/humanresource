@@ -29,7 +29,7 @@ public function assessmentView()
 
     public function create()
     {
-            $assessments = Assessment::all(); 
+            $assessments = Assessment::where('title', 'Applicant Assessment Test')->get(); 
         return view('AssessmentQuestions.createquestions', compact('assessments'));
     }
 

@@ -67,4 +67,15 @@ class Employeeprofiles extends Model
     {
         return $this->email;
     }
+    
+    public function evaluatee()
+{
+    return $this->belongsTo(Employeeprofiles::class, 'evaluatee_id', 'employeeprofiles_id');
+}
+
+public function evaluator()
+{
+    return $this->belongsTo(Employeeprofiles::class, 'evaluator_id', 'employeeprofiles_id');
+}
+
 }
