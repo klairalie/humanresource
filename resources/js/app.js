@@ -1,4 +1,5 @@
 import './bootstrap';
+import { createIcons, ClipboardList, Wrench, Sparkles, Hammer } from 'lucide';
 
  // Simple interactive elements
         document.addEventListener('DOMContentLoaded', function() {
@@ -127,3 +128,13 @@ async function getFingerprintImageFromScanner() {
         let deductions = parseFloat(this.value) || 0;
         document.getElementById('net_pay').value = (basic + overtimePay) - deductions;
     });
+
+    
+createIcons({
+    icons: {
+        ClipboardList,
+        Wrench,
+        Sparkles,
+        Hammer,
+    }
+});

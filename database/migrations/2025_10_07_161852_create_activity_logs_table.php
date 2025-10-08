@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('activity_logs', function (Blueprint $table) {
-            $table->id();
+            $table->id('activity_log_id');
             $table->string('action_type'); // e.g., "New Employee Added", "Document uploaded", "System updated"
-           $table->foreignId('applicant_id')
+           $table->foreignId('employeeprofiles_id')
       ->nullable()
-      ->constrained('applicants', 'applicant_id')
+      ->constrained('employeeprofiles', 'employeeprofiles_id')
       ->onDelete('cascade');
 
             $table->text('description')->nullable(); // optional details

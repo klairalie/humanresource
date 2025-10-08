@@ -208,8 +208,7 @@ public function dashboard(Request $request)
     }
     unset($emp);
 
-    $recentActions = ActivityLog::with('applicant')
-        ->whereDate('created_at', Carbon::today())
+     $recentActions = ActivityLog::with('employeeprofiles')
         ->orderBy('created_at', 'desc')
         ->take(3)
         ->get();
@@ -296,5 +295,6 @@ public function dashboard(Request $request)
     {
         return view('HR.settingsconfig');
     }
+
 
 }

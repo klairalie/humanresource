@@ -19,7 +19,7 @@ use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\EmployeeAttendanceController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\EvaluationQuestionController;
-
+use App\Http\Controllers\ServiceController;
 Route::get('/', function () {
     return view('index');
 });
@@ -67,6 +67,10 @@ Route::controller(EvaluateservicesController::class)->group(function () {
 
     Route::get('/evaluateservices', 'showEvaluateServices')->name('show.evaluateservices');
     Route::get('/quoation', 'showQuotationForm')->name('show.quotationform');
+
+Route::post('/service/update-status/{id}', 'updateStatus')
+    ->name('service.update-status');
+
 });
 
 Route::controller(ArchivedprofilesController::class)->group(function () {
@@ -230,5 +234,6 @@ Route::controller(EvaluationQuestionController::class)->group(function () {
     Route::get('/evaluate/thankyou', 'showThankYou')->name('evaluate.thankyou');
     Route::get('/evaluate/alreadydone', 'showAlreadyDone')->name('evaluate.alreadydone');
 
+Route::get('/service/details/{id}', [ServiceController::class, 'showDetails']);
 
 });

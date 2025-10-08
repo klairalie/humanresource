@@ -15,6 +15,7 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
+        "lucide": "^0.545.0",
         "tailwind-scrollbar-hide": "^4.0.0"
     }
 }

@@ -7,9 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Services extends Model
 {
-    protected $fillable = [
+   protected $table = 'services';
+    protected $primaryKey = 'services_id';
 
+    protected $fillable = [
         'service_type',
+        'status',
+        'created_at',
+        'updated_at'
     ];
     /** @use HasFactory<\Database\Factories\ServicesFactory> */
     use HasFactory;

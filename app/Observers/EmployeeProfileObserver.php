@@ -12,25 +12,43 @@ class EmployeeProfileObserver
     {
         ActivityLog::create([
             'action_type' => 'New Employee Added',
-            'applicant_id' => Auth::id(),
+            'employeeprofiles_id' => Auth::id(),
             'description' => "Added new employee: {$employee->first_name} {$employee->last_name}"
         ]);
     }
 
     public function updated(Employeeprofiles $employee)
     {
-        ActivityLog::create([
-            'action_type' => 'Employee Updated',
-            'applicant_id' => Auth::id(),
-            'description' => "Updated employee: {$employee->first_name} {$employee->last_name}"
-        ]);
+        // Check if the 'is_active' status changed
+        if ($employee->isDirty('reactivated')) {
+            if ($employee->is_active) {
+                ActivityLog::create([
+                    'action_type' => 'Employee Reactivated',
+                    'employeeprofiles_id' => Auth::id(),
+                    'description' => "Reactivated employee: {$employee->first_name} {$employee->last_name}"
+                ]);
+            } else {
+                ActivityLog::create([
+                    'action_type' => 'Employee Deactivated',
+                    'employeeprofiles_id' => Auth::id(),
+                    'description' => "Deactivated employee: {$employee->first_name} {$employee->last_name}"
+                ]);
+            }
+        } else {
+            // Regular update log
+            ActivityLog::create([
+                'action_type' => 'Employee Updated',
+                'employeeprofiles_id' => Auth::id(),
+                'description' => "Updated employee: {$employee->first_name} {$employee->last_name}"
+            ]);
+        }
     }
 
     public function deleted(Employeeprofiles $employee)
     {
         ActivityLog::create([
             'action_type' => 'Employee Deleted',
-            'applicant_id' => Auth::id(),
+            'employeeprofiles_id' => Auth::id(),
             'description' => "Deleted employee: {$employee->first_name} {$employee->last_name}"
         ]);
     }

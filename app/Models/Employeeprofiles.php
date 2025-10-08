@@ -78,4 +78,8 @@ public function evaluator()
     return $this->belongsTo(Employeeprofiles::class, 'evaluator_id', 'employeeprofiles_id');
 }
 
+public function activitylogs(){
+
+    return $this->hasMany(ActivityLog::class, 'employeeprofiles_id');
+}
 }
