@@ -82,4 +82,10 @@ public function activitylogs(){
 
     return $this->hasMany(ActivityLog::class, 'employeeprofiles_id');
 }
+
+public function salary()
+{
+    return $this->hasOne(Salaries::class, 'position', 'position');
+}
+
 }

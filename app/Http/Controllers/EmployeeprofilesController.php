@@ -29,15 +29,15 @@ public function showEmployeeprofiles()
                 'position'          => $applicant->position,
                 'date_of_birth'     => $applicant->date_of_birth,
                 'contact_number'    => $applicant->contact_number,
-                'hire_date'         => Carbon::now(), // set hire_date to now
-                'status'            => 'active', // default status for hired employees
+                'hire_date'         => Carbon::now(),
+                'status'            => 'active',
                 'emergency_contact' => $applicant->emergency_contact,
             ]);
         }
     }
 
-    // 🔹 Now show employees
-    $employee = Employeeprofiles::query()
+    // 🔹 Show employees and include their salary (via relationship)
+    $employee = Employeeprofiles::with('salary')
         ->whereIn('status', ['active', 'reactivated'])
         ->when(request('search'), function ($query, $search) {
             $query->where(function ($q) use ($search) {
@@ -104,43 +104,37 @@ public function edit($employeeprofile_id)
 }
 
 
-public function update(Request $request, $employeeprofiles_id)
-{
-    $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
+  public function update(Request $request, $employeeprofiles_id)
+    {
+        $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
 
-    $validated = $request->validate([
-        'first_name'        => 'required|string|max:255',
-        'last_name'         => 'required|string|max:255',
-        'address'           => 'nullable|string|max:255',
-        'position'          => 'nullable|string|max:255',
-        'contact_info'      => 'nullable|string|max:255',
-        'hire_date'         => 'nullable|date',
-        'status'            => 'nullable|string|max:255',
-        'emergency_contact' => 'nullable|string|max:255',
-        'card_Idnumber'     => 'nullable|string|max:255|unique:employeeprofiles,card_Idnumber,' . $employee->employeeprofiles_id . ',employeeprofiles_id',
-    ]);
+        $validated = $request->validate([
+            'first_name'        => 'required|string|max:255',
+            'last_name'         => 'required|string|max:255',
+            'address'           => 'nullable|string|max:255',
+            'position'          => 'nullable|string|max:255',
+            'contact_number'    => 'nullable|string|max:255',
+            'hire_date'         => 'nullable|date',
+            'status'            => 'nullable|string|max:255',
+            'emergency_contact' => 'nullable|string|max:255',
+            'card_Idnumber'     => 'nullable|string|max:255|unique:employeeprofiles,card_Idnumber,' . $employee->employeeprofiles_id . ',employeeprofiles_id',
+        ]);
 
-    $employee->update($validated);
+        $employee->update($validated);
 
-    return redirect()
-        ->route('show.employeeprofiles', ['id' => $employeeprofiles_id])
-        ->with('success', 'Profile updated successfully!');
-}
+        return redirect()
+            ->route('show.employeeprofiles')
+            ->with('success', 'Employee profile updated successfully.');
+    }
 
-public function delete($employeeprofile_id)
-{
-    $employee = Employeeprofiles::findOrFail($employeeprofile_id);
-    $employee->delete();
-    return redirect()->route('show.employeeprofiles')->with('success', 'Employee profile deleted successfully!');
-
-}
+   
 
 
 public function deactivate(Request $request, $employeeprofiles_id)
 {
     $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
 
-    // validate reason input
+    // Validate reason input
     $validated = $request->validate([
         'reason' => 'required|string|max:255',
     ]);
@@ -149,29 +143,30 @@ public function deactivate(Request $request, $employeeprofiles_id)
     $archivedBy = $hrManager ? $hrManager->first_name . ' ' . $hrManager->last_name : 'System';
 
     DB::transaction(function () use ($employee, $validated, $archivedBy) {
-        // Step 1: archive employee
+        // Step 1️⃣: Archive employee data
         DB::table('archiveprofiles')->insert([
             'employeeprofiles_id' => $employee->employeeprofiles_id,
-            'status' => 'deactivated',
-            'reason' => $validated['reason'],
-            'first_name' => $employee->first_name,
-            'last_name' => $employee->last_name,
-            'position' => $employee->position,
-            'contact_info' => $employee->contact_number,
-            'hire_date' => $employee->hire_date,
-            'archived_at' => now(),
-            'archived_by' => $archivedBy,
-            'emergency_contact' => $employee->emergency_contact,
-            'fingerprint_data' => $employee->fingerprint_data,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'status'              => 'deactivated',
+            'reason'              => $validated['reason'],
+            'first_name'          => $employee->first_name,
+            'last_name'           => $employee->last_name,
+            'position'            => $employee->position,
+            'contact_info'        => $employee->contact_number,
+            'hire_date'           => $employee->hire_date,
+            'archived_at'         => now(),
+            'archived_by'         => $archivedBy,
+            'emergency_contact'   => $employee->emergency_contact,
+            'fingerprint_data'    => $employee->fingerprint_data,
+            'card_Idnumber'       => $employee->card_Idnumber,
+            'created_at'          => now(),
+            'updated_at'          => now(),
         ]);
 
-        // Step 2: update employee status (not delete)
-        $employee->update(['status' => 'deactivated']);
+        // Step 2️⃣: Delete from main employees table
+        $employee->delete();
     });
 
-    return redirect()->back()->with('success', 'Employee has been deactivated and archived.');
+    return redirect()->back()->with('success', 'Employee has been deactivated, archived, and removed.');
 }
 
 // public function empCount(){

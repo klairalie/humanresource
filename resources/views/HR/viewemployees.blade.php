@@ -21,11 +21,11 @@
 
         <!-- Employee Table -->
         <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
-            
+
             <!-- Search & Filter inside table container -->
             <div class="p-4 border-b flex items-center space-x-4">
                 <form method="GET" action="" class="flex space-x-2 w-full">
-                    <input type="text" name="search" value="{{ request('search') }}" 
+                    <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search employee..."
                         class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-64 text-black">
 
@@ -33,36 +33,40 @@
                         class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-black">
                         <option value="">All Positions</option>
                         <option value="Administrative Manager"
-                            {{ request('position') == 'Administrative Manager' ? 'selected' : '' }}>Administrative Manager</option>
+                            {{ request('position') == 'Administrative Manager' ? 'selected' : '' }}>Administrative
+                            Manager</option>
                         <option value="Human Resource Manager"
-                            {{ request('position') == 'Human Resource Manager' ? 'selected' : '' }}>Human Resource Manager</option>
+                            {{ request('position') == 'Human Resource Manager' ? 'selected' : '' }}>Human Resource
+                            Manager</option>
                         <option value="Finance Manager"
                             {{ request('position') == 'Finance Manager' ? 'selected' : '' }}>Finance Manager</option>
-                        <option value="Technician" {{ request('position') == 'Technician' ? 'selected' : '' }}>Technician</option>
+                        <option value="Technician" {{ request('position') == 'Technician' ? 'selected' : '' }}>
+                            Technician</option>
                         <option value="Helper" {{ request('position') == 'Helper' ? 'selected' : '' }}>Helper</option>
                         <option value="Assistant Technician"
-                            {{ request('position') == 'Assistant Technician' ? 'selected' : '' }}>Assistant Technician</option>
+                            {{ request('position') == 'Assistant Technician' ? 'selected' : '' }}>Assistant Technician
+                        </option>
                     </select>
                 </form>
             </div>
 
-           <table class="w-full border-collapse text-black">
-    <thead>
-        <tr class="bg-gray-200 text-sm uppercase tracking-wide">
-            <th class="px-4 py-2 text-left font-semibold w-24">ID No.</th>
-            <th class="px-4 py-2 text-left font-semibold w-1/3">Employee</th>
-            <th class="px-4 py-2 text-center font-semibold w-40">Actions</th>
-        </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-        @foreach ($employee as $emp)
-            <tr x-data="{ open: false, deactivateOpen: false }" class="hover:bg-gray-50 transition">
-                <td class="px-4 py-2">{{ $emp->employeeprofiles_id }}</td>
-                <td class="px-4 py-2">{{ $emp->last_name }}, {{ $emp->first_name }}</td>
-                <td class="px-4 py-2 text-center">
-                    <button @click="open = true" class="font-medium hover:underline text-black">
-                        View Details
-                    </button>
+            <table class="w-full border-collapse text-black">
+                <thead>
+                    <tr class="bg-gray-200 text-sm uppercase tracking-wide">
+                        <th class="px-4 py-2 text-left font-semibold w-24">ID No.</th>
+                        <th class="px-4 py-2 text-left font-semibold w-1/3">Employee</th>
+                        <th class="px-4 py-2 text-center font-semibold w-40">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @foreach ($employee as $emp)
+                        <tr x-data="{ open: false, deactivateOpen: false }" class="hover:bg-gray-50 transition">
+                            <td class="px-4 py-2">{{ $emp->employeeprofiles_id }}</td>
+                            <td class="px-4 py-2">{{ $emp->last_name }}, {{ $emp->first_name }}</td>
+                            <td class="px-4 py-2 text-center">
+                                <button @click="open = true" class="font-medium hover:underline text-black">
+                                    View Details
+                                </button>
 
                                 <!-- Main Modal -->
                                 <div x-show="open"
@@ -86,6 +90,13 @@
 
                                             <dt class="font-semibold">Contact:</dt>
                                             <dd class="col-span-2">{{ $emp->contact_number }}</dd>
+
+                                          <dt class="font-semibold">Basic Salary:</dt>
+<dd class="col-span-2">
+    ₱{{ $emp->salary ? number_format($emp->salary->basic_salary, 2) : 'N/A' }}
+</dd>
+
+
 
                                             <dt class="font-semibold">Hire Date:</dt>
                                             <dd class="col-span-2">{{ $emp->hire_date }}</dd>

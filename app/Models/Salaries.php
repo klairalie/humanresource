@@ -22,4 +22,10 @@ class Salaries extends Model
     {
         return $this->hasMany(Employeeprofiles::class, 'salaries_id', 'salaries_id');
     }
+
+    public function employees()
+{
+    return $this->hasMany(Employeeprofiles::class, 'position', 'position');
+}
+
 }

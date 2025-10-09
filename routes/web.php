@@ -20,6 +20,8 @@ use App\Http\Controllers\EmployeeAttendanceController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\EvaluationQuestionController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\BookingController;
+
 Route::get('/', function () {
     return view('index');
 });
@@ -235,5 +237,11 @@ Route::controller(EvaluationQuestionController::class)->group(function () {
     Route::get('/evaluate/alreadydone', 'showAlreadyDone')->name('evaluate.alreadydone');
 
 Route::get('/service/details/{id}', [ServiceController::class, 'showDetails']);
+
+});
+
+Route::controller(BookingController::class)->group(function(){
+
+    Route::get('/Booking', 'index')->name('show.bookingindex');
 
 });

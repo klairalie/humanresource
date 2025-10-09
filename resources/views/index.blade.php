@@ -33,7 +33,7 @@
           </a>
 
           <!-- Book Service -->
-          <a href="#bookservice" 
+          <a href="{{ route('show.bookingindex') }}" 
              class="flex items-center justify-center px-5 py-3 bg-emerald-600 text-white font-semibold rounded-full shadow-md hover:bg-emerald-700 transition w-full sm:w-auto">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104-.896-2-2-2s-2 .896-2 2 .896 2 2 2 2-.896 2-2zM19 11c0-1.104-.896-2-2-2s-2 .896-2 2 .896 2 2 2 2-.896 2-2zM12 17c-1.104 0-2 .896-2 2h8c0-1.104-.896-2-2-2H12z" />
