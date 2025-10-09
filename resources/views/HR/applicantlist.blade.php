@@ -236,99 +236,88 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="mt-6 flex flex-col md:flex-row md:items-center md:justify-end space-y-2 md:space-y-0 md:space-x-3">
-                    <form :action="`/assessment/${applicant.id}/${selectedAssessment}`" method="POST" class="flex items-center space-x-2">
-                        @csrf
-                        <label>
-                            <span>Select Assessment</span>
-                            <select x-model="selectedAssessment" class="border rounded p-1 ml-2 w-sm text-black" required>
-                                <option value="">-- Select Assessment --</option>
-                                @foreach ($assessments as $assessment)
-                                    <option value="{{ $assessment->assessment_id }}">{{ $assessment->position_name }} - {{ $assessment->title }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                        <button type="submit" class="px-3 py-1 bg-green-600 text-black rounded hover:bg-green-700 ml-2 mt-5">Send </button>
-                    </form>
-
-                       <form :action="`/applicants/${applicant.id}/finalDecision/Rejected`" method="POST" onsubmit="return confirm('Reject this applicant?')">
-    @csrf
-    @method('PUT')
-    <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 mt-5">
-        Rejected
-    </button>
-</form>
-
-
-                    <button @click="closeModal" class="px-3 py-1 bg-gray-600 text-black rounded hover:bg-gray-700 mt-5">Close</button>
-                </div>
-            </div>
+                <div class="mt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+    <!-- 🆕 Wider Updated Form Section -->
+    <form :action="`/assessment/${applicant.id}/${selectedAssessment}`"
+          method="POST"
+          class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+        @csrf
+        <div class="flex flex-col flex-grow w-full md:w-3/4">
+            <label class="font-medium mb-1">Select Assessment</label>
+            <select x-model="selectedAssessment"
+                    class="border rounded-lg p-2 w-full text-black focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                    :disabled="availableAssessments.length === 0"
+                    required>
+                <option value="">-- Select Assessment --</option>
+                <template x-for="ass in availableAssessments" :key="ass.id">
+                    <option :value="ass.id" x-text="ass.position + ' - ' + ass.title"></option>
+                </template>
+            </select>
+            <p x-show="availableAssessments.length === 0" class="text-red-600 text-sm mt-2">
+                ⚠️ No assessment available for this applicant’s position.
+            </p>
         </div>
-    </div>
+
+        <div class="flex items-center gap-3 md:w-1/4 justify-end">
+            <template x-if="availableAssessments.length > 0">
+                <button type="submit"
+                        class="px-5 py-2 bg-green-600 text-black rounded-lg hover:bg-green-700 transition">
+                    Send
+                </button>
+            </template>
+
+            <template x-if="availableAssessments.length === 0">
+                <button type="button"
+                        disabled
+                        class="px-5 py-2 bg-gray-400 text-gray-700 rounded-lg cursor-not-allowed">
+                    Send Disabled
+                </button>
+            </template>
+        </div>
+    </form>
+
+    <button @click="closeModal"
+            class="px-5 py-2 bg-gray-600 text-black rounded-lg hover:bg-gray-700 transition">
+        Close
+    </button>
+</div>
+
 
     <!-- Alpine.js -->
     <script>
-        // assessments list to be used for auto-detect
-        window._assessments = {!! $assessments
-            ->map(function($a){
-                return [
-                    'id' => $a->assessment_id,
-                    'position' => $a->position_name ?? '',
-                    'title' => $a->title ?? ''
-                ];
-            })->toJson() !!};
+        window._assessments = {!! $assessments->map(fn($a) => [
+            'id' => $a->assessment_id,
+            'position' => $a->position_name ?? '',
+            'title' => $a->title ?? ''
+        ])->toJson() !!};
 
         function applicantModal() {
             return {
                 show: false,
                 applicant: {},
                 selectedAssessment: '',
+                availableAssessments: [],
 
                 openModal(data) {
                     this.applicant = data;
                     this.show = true;
                     this.selectedAssessment = '';
+                    this.availableAssessments = [];
 
                     try {
                         const list = window._assessments || [];
-                        const pos = (data.position || '').toString().toLowerCase().trim();
+                        const pos = (data.position || '').toLowerCase().trim();
 
-                        let found = null;
+                        // Filter assessments for position
+                        this.availableAssessments = list.filter(a =>
+                            (a.position || '').toLowerCase().includes(pos)
+                        );
 
-                        if (pos) {
-                            // 1) exact match
-                            found = list.find(a => (a.position || '').toLowerCase().trim() === pos);
-
-                            // 2) includes
-                            if (!found) {
-                                found = list.find(a =>
-                                    (a.position || '').toLowerCase().includes(pos) ||
-                                    (a.title || '').toLowerCase().includes(pos)
-                                );
-                            }
-
-                            // 3) word-by-word
-                            if (!found) {
-                                const words = pos.split(/\s+/).filter(Boolean);
-                                found = list.find(a =>
-                                    words.some(w =>
-                                        (a.position || '').toLowerCase().includes(w) ||
-                                        (a.title || '').toLowerCase().includes(w)
-                                    )
-                                );
-                            }
-                        }
-
-                        // 4) fallback
-                        if (!found && list.length) {
-                            found = list.find(a => (a.position || '').length) || list[0];
-                        }
-
-                        if (found) {
-                            this.selectedAssessment = found.id;
+                        if (this.availableAssessments.length > 0) {
+                            this.selectedAssessment = this.availableAssessments[0].id;
                         }
                     } catch (e) {
-                        console.error('Auto-detect assessment failed:', e);
+                        console.error('Error detecting assessment:', e);
                     }
 
                     document.documentElement.classList.add('overflow-hidden');
@@ -338,6 +327,7 @@
                     this.show = false;
                     this.applicant = {};
                     this.selectedAssessment = '';
+                    this.availableAssessments = [];
                     document.documentElement.classList.remove('overflow-hidden');
                 }
             }

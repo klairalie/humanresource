@@ -61,4 +61,8 @@ public function interviews()
     return $this->hasOne(Interview::class, 'applicant_id', 'applicant_id');
 }
 
+public function activitylogs(){
+
+    return $this->hasMany(ActivityLog::class, 'applicant_id');
+}
 }

@@ -18,13 +18,20 @@
                         <td class="px-4 py-2 border">{{ $log->created_at->format('F d, Y') }}</td>
                         <td class="px-4 py-2 border">{{ $log->created_at->format('h:i A') }}</td>
                         <td class="px-4 py-2 border">
-                            {{ $log->user?->first_name ?? 'System' }}
-                            {{ $log->user?->last_name ?? '' }}
+                            @if($log->employeeprofiles)
+                                {{ $log->employeeprofiles->first_name }} {{ $log->employeeprofiles->last_name }}
+                            @elseif($log->applicant)
+                                {{ $log->applicant->first_name }} {{ $log->applicant->last_name }}
+                            @else
+                                System
+                            @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-4 py-3 text-center text-gray-500">No activities yet</td>
+                        <td colspan="4" class="px-4 py-3 text-center text-gray-500">
+                            No activities yet
+                        </td>
                     </tr>
                 @endforelse
             </tbody>

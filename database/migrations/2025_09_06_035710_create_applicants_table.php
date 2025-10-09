@@ -45,7 +45,8 @@ return new class extends Migration
                 'Reviewed',
                 'Scheduled Interview',
                 'Hired',
-                'Rejected'
+                'Rejected',
+                'Failed to take assessment',
             ])->default('Pending');
                
 
