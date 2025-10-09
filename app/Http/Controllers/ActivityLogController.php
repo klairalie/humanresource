@@ -12,7 +12,7 @@ class ActivityLogController extends Controller
         // Get all activity logs — includes both Employees and Applicants
         $logs = ActivityLog::with(['employeeprofiles', 'applicant'])
             ->orderBy('created_at', 'desc')
-            ->paginate(20); // use pagination for table display
+            ->paginate(10); // use pagination for table display
 
         return view('recent-activities.index', compact('logs'));
     }
