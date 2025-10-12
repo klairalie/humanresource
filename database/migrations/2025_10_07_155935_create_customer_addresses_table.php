@@ -14,7 +14,7 @@ return new class extends Migration
                   ->constrained('customers', 'customer_id')
                   ->cascadeOnDelete()
                   ->cascadeOnUpdate();
-
+            
             $table->string('label')->nullable(); // Home, Office, etc.
             $table->string('street_address')->nullable();
             $table->string('barangay')->nullable();
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('province')->nullable();
             $table->string('zip_code', 10)->nullable();
             $table->boolean('is_default')->default(false);
-
+            $table->string('status')->default('active');
             $table->timestamps();
 
             $table->index(['customer_id', 'is_default']);

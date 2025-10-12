@@ -2,31 +2,44 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Invoices extends Model
 {
+    protected $primaryKey = 'invoices_id';
     protected $fillable = [
-
-        'services_id',
+        'billing_id',
+        'ar_id',
+        'invoice_number',
+        'invoice_date',
+        'due_date',
         'amount',
-        'tax',
-        'discount',
-        'total',
-        'status',
-        'date'
+        'status'
     ];
-    /** @use HasFactory<\Database\Factories\InvoicesFactory> */
-    use HasFactory;
 
-    public function expenses() {
+    protected $table = 'invoices';
+    
+    protected $dates = [
+        'invoice_date',
+        'due_date',
+        'created_at',
+        'updated_at'
+    ];
 
-        return $this->hasMany(Expenses::class);
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'status' => 'string',
+        'invoice_date' => 'date',
+        'due_date' => 'date'
+    ];
+
+    public function billing()
+    {
+        return $this->belongsTo(Billing::class, 'billing_id');
     }
 
-    public function service() {
-
-        return $this->belongsTo(Services::class);
+    public function accountsReceivable()
+    {
+        return $this->belongsTo(AccountsReceivable::class, 'ar_id');
     }
 }

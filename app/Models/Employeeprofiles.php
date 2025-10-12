@@ -28,7 +28,7 @@ class Employeeprofiles extends Model
     ];
     /** @use HasFactory<\Database\Factories\EmployeeprofilesFactory> */
     use HasFactory, Notifiable;
-
+   
       public function attendances()
     {
         return $this->hasMany(Attendance::class, 'employeeprofiles_id', 'employeeprofiles_id');

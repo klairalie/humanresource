@@ -1,110 +1,84 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Salaries;
+
 use App\Models\Employeeprofiles;
+use App\Models\Applicant;
+use App\Models\SalaryRate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\Applicant;
 use Carbon\Carbon;
 
 class EmployeeprofilesController extends Controller
 {
+    // Show all employee profiles
+    public function showEmployeeprofiles()
+    {
+        // Auto-create employee profiles for hired applicants (same logic you had)
+        $hiredApplicants = Applicant::where('applicant_status', 'Hired')->get();
 
-public function showEmployeeprofiles()
-{
-    // 🔹 Fetch all applicants with "Hired" status
-    $hiredApplicants = Applicant::where('applicant_status', 'Hired')->get();
+        foreach ($hiredApplicants as $applicant) {
+            $exists = Employeeprofiles::where('email', $applicant->email)->first();
 
-    foreach ($hiredApplicants as $applicant) {
-        // Check if applicant already exists in employeeprofiles
-        $exists = Employeeprofiles::where('email', $applicant->email)->first();
-
-        if (!$exists) {
-            Employeeprofiles::create([
-                'first_name'        => $applicant->first_name,
-                'last_name'         => $applicant->last_name,
-                'address'           => $applicant->address,
-                'email'             => $applicant->email,
-                'position'          => $applicant->position,
-                'date_of_birth'     => $applicant->date_of_birth,
-                'contact_number'    => $applicant->contact_number,
-                'hire_date'         => Carbon::now(),
-                'status'            => 'active',
-                'emergency_contact' => $applicant->emergency_contact,
-            ]);
+            if (!$exists) {
+                Employeeprofiles::create([
+                    'first_name'        => $applicant->first_name,
+                    'last_name'         => $applicant->last_name,
+                    'address'           => $applicant->address,
+                    'email'             => $applicant->email,
+                    'position'          => $applicant->position,
+                    'date_of_birth'     => $applicant->date_of_birth,
+                    'contact_number'    => $applicant->contact_number,
+                    'hire_date'         => Carbon::now(),
+                    'status'            => 'active',
+                    'emergency_contact' => $applicant->emergency_contact,
+                ]);
+            }
         }
+
+        // Fetch all active employees with their salary info
+        $employee = Employeeprofiles::with('salary')
+            ->whereIn('status', ['active', 'reactivated'])
+            ->when(request('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%");
+                });
+            })
+            ->when(request('position'), function ($query, $position) {
+                $query->where('position', $position);
+            })
+            ->paginate(10);
+
+        return view('HR.viewemployees', ["employee" => $employee]);
     }
 
-    // 🔹 Show employees and include their salary (via relationship)
-    $employee = Employeeprofiles::with('salary')
-        ->whereIn('status', ['active', 'reactivated'])
-        ->when(request('search'), function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%");
-            });
-        })
-        ->when(request('position'), function ($query, $position) {
-            $query->where('position', $position);
-        })
-        ->paginate(10);
-
-    return view('HR.viewemployees', ["employee" => $employee]);
-}
-
-
-
+    // 🔹 Add Employee Form
     public function EmployeeprofilesForm()
     {
-           $salaries = Salaries::select('position', 'basic_salary')
+        $salaries = SalaryRate::where('status', 'active')
+            ->select('position', 'salary_rate')
             ->orderBy('position')
             ->get();
 
         return view('HR.employeeprofiles', ['salaries' => $salaries]);
     }
 
-    public function submitEmployeeprofiles(Request $request)
+    // 🔹 Edit Employee Form
+    public function edit($employeeprofiles_id)
     {
-        $validated = $request->validate([
-            'first_name'         => 'required|string|max:255',
-            'last_name'          => 'required|string|max:255',
-            'address'            => 'required|string|max:255',
-            'position'           => 'required|string|max:255',
-            'basic_salary'     => 'required|numeric',
-            'contact_info'       => 'required|string|max:255',
-            'hire_date'          => 'required|date',
-            'status'             => 'required|string|max:255',
-            'emergency_contact'  => 'required|string|max:255',
-            'fingerprint'        => 'nullable|image|mimes:png,jpg,jpeg|max:2048'
-        ]);
+        $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
 
-        $base64Fingerprint = null;
-        if ($request->hasFile('fingerprint')) {
-            $imageData = file_get_contents($request->file('fingerprint')->getRealPath());
-            $base64Fingerprint = base64_encode($imageData);
-        }
+        $salaries = SalaryRate::where('status', 'active')
+            ->select('position', 'salary_rate')
+            ->orderBy('position')
+            ->get();
 
-        $validated['fingerprint_data'] = $base64Fingerprint;
-
-        Employeeprofiles::create($validated);
-
-        return redirect()->route('show.employeeprofiles')->with('success', 'Employee profile submitted successfully!');
+        return view('HR.updateprofile', compact('employee', 'salaries'));
     }
 
-public function edit($employeeprofile_id)
-{
-    $employee = Employeeprofiles::findOrFail($employeeprofile_id); 
-    $salaries = DB::table('salaries')->get(); // Fetch all positions and basic salaries
-
-    return view('HR.updateprofile', [
-        'employee' => $employee,
-        'salaries' => $salaries
-    ]);
-}
-
-
-  public function update(Request $request, $employeeprofiles_id)
+    // 🔹 Update Employee Profile
+    public function update(Request $request, $employeeprofiles_id)
     {
         $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
 
@@ -127,54 +101,39 @@ public function edit($employeeprofile_id)
             ->with('success', 'Employee profile updated successfully.');
     }
 
-   
-
-
-public function deactivate(Request $request, $employeeprofiles_id)
-{
-    $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
-
-    // Validate reason input
-    $validated = $request->validate([
-        'reason' => 'required|string|max:255',
-    ]);
-
-    $hrManager = Employeeprofiles::where('position', 'Human Resource Manager')->first();
-    $archivedBy = $hrManager ? $hrManager->first_name . ' ' . $hrManager->last_name : 'System';
-
-    DB::transaction(function () use ($employee, $validated, $archivedBy) {
-        // Step 1️⃣: Archive employee data
-        DB::table('archiveprofiles')->insert([
-            'employeeprofiles_id' => $employee->employeeprofiles_id,
-            'status'              => 'deactivated',
-            'reason'              => $validated['reason'],
-            'first_name'          => $employee->first_name,
-            'last_name'           => $employee->last_name,
-            'position'            => $employee->position,
-            'contact_info'        => $employee->contact_number,
-            'hire_date'           => $employee->hire_date,
-            'archived_at'         => now(),
-            'archived_by'         => $archivedBy,
-            'emergency_contact'   => $employee->emergency_contact,
-            'fingerprint_data'    => $employee->fingerprint_data,
-            'card_Idnumber'       => $employee->card_Idnumber,
-            'created_at'          => now(),
-            'updated_at'          => now(),
+      // 🔹 Store New Employee Profile
+    public function submitEmployeeprofiles(Request $request)
+    {
+        $validated = $request->validate([
+            'first_name'        => 'required|string|max:255',
+            'last_name'         => 'required|string|max:255',
+            'address'           => 'required|string|max:255',
+            'email'             => 'required|email|unique:employeeprofiles,email',
+            'position'          => 'required|string|max:255',
+            'date_of_birth'     => 'required|date',
+            'contact_number'    => 'required|string|max:255',
+            'hire_date'         => 'nullable|date',
+            'status'            => 'required|string|max:255',
+            'emergency_contact' => 'nullable|string|max:255',
+            'card_Idnumber'     => 'nullable|string|max:255|unique:employeeprofiles,card_Idnumber',
         ]);
 
-        // Step 2️⃣: Delete from main employees table
-        $employee->delete();
-    });
+        Employeeprofiles::create([
+            'first_name'        => $validated['first_name'],
+            'last_name'         => $validated['last_name'],
+            'address'           => $validated['address'],
+            'email'             => $validated['email'],
+            'position'          => $validated['position'],
+            'date_of_birth'     => $validated['date_of_birth'],
+            'contact_number'    => $validated['contact_number'],
+            'hire_date'         => $validated['hire_date'] ?? null,
+            'status'            => $validated['status'],
+            'emergency_contact' => $validated['emergency_contact'] ?? null,
+            'card_Idnumber'     => $validated['card_Idnumber'] ?? null,
+        ]);
 
-    return redirect()->back()->with('success', 'Employee has been deactivated, archived, and removed.');
-}
-
-// public function empCount(){
-
-//     $count = Employeeprofiles::whereIn('status', ['active', 'reactivated'])->count();
-//     return $count;
-// }
-
-
-
+        return redirect()
+            ->route('show.employeeprofiles')
+            ->with('success', 'New employee profile added successfully.');
+    }
 }

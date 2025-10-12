@@ -70,7 +70,7 @@
                     <a href="{{ route('settings.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                         <i data-lucide="settings" class="w-5 h-5 inline mr-2 text-gray-500"></i> Settings
                     </a>
-                    <form method="POST" action="index">
+                    <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                             <i data-lucide="log-out" class="w-5 h-5 inline mr-2 text-gray-500"></i> Logout
@@ -132,6 +132,13 @@
 </a>
 
             </div>
+            <a href="http://Finance.test" class="block">
+    <div
+        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
+        <i data-lucide="file-text" class="w-6 h-6 shrink-0"></i>
+        <span x-show="sidebarOpen" x-transition>Evaluate Employee Services</span>
+    </div>
+</a>
         </div>
 
         <!-- Main Content -->

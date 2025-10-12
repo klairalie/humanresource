@@ -26,7 +26,6 @@ class ServiceRequestItemFactory extends Factory
             'services_id'            => $serviceId,
             'aircon_type_id'         => $airconTypeId,
             'service_type'           => $this->faker->randomElement(['Cleaning', 'Repair', 'Installation']),
-            'unit_type'              => $this->faker->randomElement(['Window Type', 'Split Type', 'Cassette Type']),
             'quantity'               => $this->faker->numberBetween(1, 3),
             'unit_price'             => $this->faker->randomFloat(2, 800, 3500),
             'discount'               => $this->faker->randomFloat(2, 0, 300),
@@ -38,7 +37,6 @@ class ServiceRequestItemFactory extends Factory
             'end_time'               => $this->faker->time(),
             'assigned_technician_id' => $technicianId,
             'status'                 => $this->faker->randomElement(['Pending', 'In Progress', 'Completed', 'Rescheduled']),
-            'bill_separately'        => $this->faker->boolean(),
             'billed'                 => $this->faker->boolean(),
             'service_notes'          => $this->faker->sentence(),
         ];

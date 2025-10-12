@@ -7,22 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Administrativeaccount extends Model
 {
-    protected $fillable = [
+    use HasFactory;
+    
+    protected $table = 'administrativeaccounts';
+    protected $primaryKey = 'admin_id';
 
-        'admin_id',
+    protected $fillable = [
+        'employeeprofiles_id',
         'username',
         'password',
-        'first_name',
-        'last_name',
-        'contact_info',
-
+        'admin_position'
     ];
 
-    /** @use HasFactory<\Database\Factories\AdministrativeaccountFactory> */
-    use HasFactory;
-
-    public function billing() {
-
-        return $this->hasMany(Billing::class);
+    public function employee()
+    {
+        return $this->belongsTo(EmployeeProfiles::class, 'employeeprofiles_id', 'employeeprofiles_id');
     }
 }

@@ -31,10 +31,12 @@ class Payroll extends Model
     use HasFactory;
 
      protected $casts = [
-        'deductions' => 'decimal:2',
+        'pay_period_start' => 'date',
+        'pay_period_end' => 'date',
         'basic_salary' => 'decimal:2',
         'overtime_pay' => 'decimal:2',
-    
+        'deductions' => 'decimal:2',
+        'net_pay' => 'decimal:2',
     ];
 
 

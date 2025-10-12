@@ -2,29 +2,50 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Billing extends Model
 {
+    protected $table = 'billings';
+    protected $primaryKey = 'billing_id';
     protected $fillable = [
-        'quotation_id',
-        'user_id',
-        'amount',
-        'status',
-        'date',
+        'service_request_id',
+        'customer_id',
+        'billing_date',
+        'due_date',
+        'total_amount',
+        'discount',
+        'tax',
+        'status'
     ];
-    /** @use HasFactory<\Database\Factories\BillingFactory> */
-    use HasFactory;
 
-    public function quotation() {
+    protected $dates = [
+        'billing_date',
+        'due_date',
+        'created_at',
+        'updated_at'
+    ];
 
-        return $this->belongsTo(Quotation::class);
+    protected $casts = [
+        'total_amount' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'net_amount' => 'decimal:2',
+        'status' => 'string'
+    ];
+
+    public function serviceRequest()
+    {
+        return $this->belongsTo(ServiceRequest::class, 'service_request_id');
     }
 
-    public function user(){
-
-        return $this->belongsTo(Administrativeaccount::class, 'user_id', 'id');
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id');
     }
 
+    public function invoice()
+    {
+        return $this->hasOne(Invoices::class, 'billing_id');
+    }
 }

@@ -12,13 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('administrativeaccounts', function (Blueprint $table) {
-            $table->id('admin_id');
-            $table->string('username');
-            $table->string('password');
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->string('contact_info');
-
+                 $table->id('admin_id');
+                $table->foreignId('employeeprofiles_id')->constrained('employeeprofiles', 'employeeprofiles_id')->onDelete('cascade');
+                $table->string('admin_position');
+                $table->string('username');
+                $table->string('password');
+                $table->timestamps();
         });
     }
 

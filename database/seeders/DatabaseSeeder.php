@@ -72,6 +72,10 @@ class DatabaseSeeder extends Seeder
         $this->command->info('👷 Seeding technician assignments...');
         TechnicianAssignment::factory()->count(20)->create();
 
+        // 💳 Billing and test data (custom structured seeder)
+        $this->command->info('💳 Seeding billing test data...');
+        $this->call(BillingTestDataSeeder::class);
+
         // ✅ Final message
         $this->command->info('✅ All seeders completed successfully.');
     }

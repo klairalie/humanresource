@@ -39,24 +39,25 @@
             <!-- Position -->
             <div>
                 <label class="block text-sm font-semibold text-black mb-2">Position</label>
-                <select name="position" id="position"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
-                    <option value="">-- Select Position --</option>
-                    @foreach ($salaries as $salary)
-                        <option value="{{ $salary->position }}"
-                                {{ $employee->position == $salary->position ? 'selected' : '' }}
-                                data-salary="{{ $salary->basic_salary }}">
-                            {{ $salary->position }}
-                        </option>
-                    @endforeach
-                </select>
+               <select name="position" id="position"
+    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
+    <option value="">-- Select Position --</option>
+    @foreach ($salaries as $salary)
+        <option value="{{ $salary->position }}"
+            {{ old('position', $employee->position ?? '') == $salary->position ? 'selected' : '' }}
+            data-salary="{{ $salary->salary_rate }}">
+            {{ $salary->position }}
+        </option>
+    @endforeach
+</select>
+
             </div>
 
             <!-- Basic Salary (auto-fetched via relationship) -->
             <div>
                 <label class="block text-sm font-semibold text-black mb-2">Basic Salary</label>
-                <input type="text" id="basic_salary"
-                       value="{{ $employee->salary?->basic_salary ?? '' }}"
+                <input type="text" id="salary_rate"
+                       value="{{ $employee->salary_rates?->salary_rate ?? '' }}"
                        readonly
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 focus:ring-amber-500 text-black">
             </div>
@@ -65,7 +66,7 @@
             <script>
                 document.getElementById('position').addEventListener('change', function() {
                     const salary = this.options[this.selectedIndex].dataset.salary;
-                    document.getElementById('basic_salary').value = salary || '';
+                    document.getElementById('salary_rate').value = salary || '';
                 });
             </script>
 
@@ -114,7 +115,7 @@
             </div>
 
             <!-- Buttons -->
-            <div class="flex justify-end space-x-3 mt-6 col-span-2">
+            <div class="flex justify-end space-x-3 mt-6 col-span-2 mb-5">
                 <a href="{{ route('show.employeeprofiles') }}"
                    class="px-6 py-2 bg-gray-300 text-black rounded-lg hover:bg-gray-400 transition font-semibold">
                     Cancel

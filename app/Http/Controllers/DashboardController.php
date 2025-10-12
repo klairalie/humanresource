@@ -226,5 +226,8 @@ class DashboardController extends Controller
         return view('HR.settingsconfig');
     }
 
+public function logout(){
 
+    return redirect()->away('http://login.test');
+}
 }

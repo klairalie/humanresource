@@ -91,10 +91,10 @@
                                             <dt class="font-semibold">Contact:</dt>
                                             <dd class="col-span-2">{{ $emp->contact_number }}</dd>
 
-                                          <dt class="font-semibold">Basic Salary:</dt>
-<dd class="col-span-2">
-    ₱{{ $emp->salary ? number_format($emp->salary->basic_salary, 2) : 'N/A' }}
-</dd>
+                                            <dt class="font-semibold">Salary Rate:</dt>
+                                            <dd class="col-span-2">
+                                                ₱{{ $emp->salary_rates ? number_format($emp->salary_rates->salary_rate, 2) : 'N/A' }}
+                                            </dd>
 
 
 

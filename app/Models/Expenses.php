@@ -2,29 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Expenses extends Model
 {
+    protected $primaryKey = 'expense_id';
     protected $fillable = [
-        'invoices_id',
         'employeeprofiles_id',
-        'amount',
+        'supplier_id',
+        'category',
         'description',
-        'date'
+        'amount',
+        'expense_date',
     ];
 
-    /** @use HasFactory<\Database\Factories\ExpensesFactory> */
-    use HasFactory;
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'expense_date' => 'date',
+    ];
 
-    public function invoices() {
-
-        return $this->belongsTo(Invoices::class);
+    public function employeeProfile(): BelongsTo
+    {
+        return $this->belongsTo(EmployeeProfiles::class, 'employeeprofiles_id');
     }
 
-    public function employeeprofiles() {
-
-        return $this->belongsTo(Employeeprofiles::class);
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }
