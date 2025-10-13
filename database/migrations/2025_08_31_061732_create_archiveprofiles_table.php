@@ -19,10 +19,10 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->string('position');
-            $table->string('contact_info');
+            $table->string('contact_number');
             $table->date('hire_date');
             $table->string('emergency_contact');
-            $table->longText('fingerprint_data')->nullable();
+            $table->longText('card_Idnumber')->nullable();
             $table->date('archived_at')->useCurrent();
             $table->string('archived_by');
             $table->date('reactivated_at')->useCurrent();

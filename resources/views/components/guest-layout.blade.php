@@ -52,15 +52,18 @@
             <div x-data="{ open: false }" class="relative">
                 <div @click="open = !open" class="flex items-center space-x-2 cursor-pointer select-none">
                     <!-- Profile Picture with Active Dot -->
-                    <div class="relative">
-                        <img src="{{ url('/luufymylove.jpg') }}" class="rounded-full border w-12 h-10" />
-                        <!-- Active Green Dot -->
-                        <span
-                            class="absolute bottom-0 right-0 block w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-                    </div>
+                    <div class="relative w-12 h-10 flex items-center justify-center rounded-full bg-orange-400 border text-white font-bold text-sm">
+    HR
+    <!-- Active Green Dot -->
+    <span
+        class="absolute bottom-0 right-0 block w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+</div>
 
-                    <!-- HR Name -->
-                    <span class="font-medium">(HR Admin)</span>
+
+                    <span class="font-medium">
+                        {{ session('user_email') ?? 'user@example.com' }} 
+                        
+                    </span>
                     <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500"></i>
                 </div>
 
@@ -71,11 +74,11 @@
                         <i data-lucide="settings" class="w-5 h-5 inline mr-2 text-gray-500"></i> Settings
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                            <i data-lucide="log-out" class="w-5 h-5 inline mr-2 text-gray-500"></i> Logout
-                        </button>
-                    </form>
+    @csrf
+    <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+        <i data-lucide="log-out" class="w-5 h-5 inline mr-2 text-gray-500"></i> Logout
+    </button>
+</form>
                 </div>
             </div>
         </div>

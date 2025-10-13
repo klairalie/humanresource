@@ -136,4 +136,43 @@ class EmployeeprofilesController extends Controller
             ->route('show.employeeprofiles')
             ->with('success', 'New employee profile added successfully.');
     }
+
+    public function deactivate(Request $request, $employeeprofiles_id)
+{
+    $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
+
+    // Validate reason input
+    $validated = $request->validate([
+        'reason' => 'required|string|max:255',
+    ]);
+
+    $hrManager = Employeeprofiles::where('position', 'Human Resource Manager')->first();
+    $archivedBy = $hrManager ? $hrManager->first_name . ' ' . $hrManager->last_name : 'System';
+
+    DB::transaction(function () use ($employee, $validated, $archivedBy) {
+        // Step 1️⃣: Archive employee data
+        DB::table('archiveprofiles')->insert([
+            'employeeprofiles_id' => $employee->employeeprofiles_id,
+            'status'              => 'deactivated',
+            'reason'              => $validated['reason'],
+            'first_name'          => $employee->first_name,
+            'last_name'           => $employee->last_name,
+            'position'            => $employee->position,
+            'contact_number'        => $employee->contact_number,
+            'hire_date'           => $employee->hire_date,
+            'archived_at'         => now(),
+            'archived_by'         => $archivedBy,
+            'emergency_contact'   => $employee->emergency_contact,
+            'card_Idnumber'       => $employee->card_Idnumber,
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
+
+        // Step 2️⃣: Delete from main employees table
+        $employee->delete();
+    });
+
+    return redirect()->back()->with('success', 'Employee has been deactivated, archived, and removed.');
+}
+
 }

@@ -14,6 +14,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AttendanceExport;
 use App\Exports\ServicesExport;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -213,10 +214,6 @@ class DashboardController extends Controller
     }
 
 
-     public function showEditProfile()
-    {
-        return view('HR.editprofile');
-    }
 
     /**
      * Settings page
@@ -226,8 +223,16 @@ class DashboardController extends Controller
         return view('HR.settingsconfig');
     }
 
-public function logout(){
+    public function logout(Request $request)
+    {
+        // Log out the user
+        Auth::logout();
 
-    return redirect()->away('http://login.test');
-}
+        // Invalidate session
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // Redirect to external login page
+        return redirect()->away('http://login.test');
+    }
 }

@@ -21,30 +21,30 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\EvaluationQuestionController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\BillingController;
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\FinanceController;
-use App\Http\Controllers\AuthTokenController;
+use App\Http\Controllers\AuthTransferController;
+use App\Http\Middleware\CheckAuth;
+use App\Http\Controllers\ProfileController;
+
+Route::get('/auth/verify', [AuthTransferController::class, 'verify'])->name('auth.verify');
+
+// Route::get('/', function () {
+//     return view('index');
+// });
 
 
-
-// Route::middleware('auth', ['check_position:Human Resource Manager'])->group(function () {
-
-
-
-Route::get('/recent-activities', [ActivityLogController::class, 'index'])->name('recent-activities.index');
-
-Route::controller(DashboardController::class)->group(function () {
-    Route::get('/HR', 'dashboard')->name('show.dashboard');
-    Route::get('/editprofile', 'showEditProfile')->name('show.editprofile');
+Route::middleware(['web', CheckAuth::class])->group(function () {
+    Route::controller(DashboardController::class)->group(function () {
+        Route::get('/HR', 'dashboard')->name('show.dashboard');
+ Route::post('/logout','logout')->name('logout');
     Route::get('/settings', 'showSettings')->name('settings.index');
     Route::get('/attendance/export', 'exportAttendance')->name('attendance.export');
     Route::get('/dashboard/activities', 'recentActivities')->name('dashboard.activities');
-    Route::get('/export-services', 'exportServices')->name('services.export');
-    Route::post('/logout', 'logout')->name('logout');
-});
+   Route::get('/export-services', 'exportServices')->name('services.export');
 
+    });
+
+
+Route::get('/recent-activities', [ActivityLogController::class, 'index'])->name('recent-activities.index');
 Route::controller(AttendanceController::class)->group(function () {
     Route::get('HR/view_attendance', 'showAttendance')->name('show.attendance');
     Route::get('/list_overtime', 'showOvertime')->name('show.overtime');
@@ -63,6 +63,7 @@ Route::controller(EmployeeprofilesController::class)->group(function () {
 });
 
 Route::controller(PayrollController::class)->group(function () {
+
     Route::get('/payrollform', 'showPayrollform')->name('show.payrollform');
     Route::post('/payrollform', 'createPayroll')->name('create.payroll');
     Route::get('/view_payroll', 'viewpayroll')->name('view.payroll');
@@ -74,8 +75,10 @@ Route::controller(EvaluateservicesController::class)->group(function () {
 
     Route::get('/evaluateservices', 'showEvaluateServices')->name('show.evaluateservices');
     Route::get('/quoation', 'showQuotationForm')->name('show.quotationform');
-    Route::post('/service/update-status/{id}', 'updateStatus')
-        ->name('service.update-status');
+
+Route::post('/service/update-status/{id}', 'updateStatus')
+    ->name('service.update-status');
+
 });
 
 Route::controller(ArchivedprofilesController::class)->group(function () {
@@ -133,6 +136,16 @@ Route::post('/queue/retry-all', [QueueMonitorController::class, 'retryAll'])->na
 Route::delete('/queue/delete/{id}', [QueueMonitorController::class, 'deleteJob'])->name('queue.delete');
 Route::delete('/queue/clear-all', [QueueMonitorController::class, 'clearAll'])->name('queue.clearAll');
 
+// Assessments (CRUD for admin/HR)
+// Route::prefix('assessmentque')->group(function () {
+//     Route::get('/', [AssessmentController::class, 'index'])->name('assessments.index');
+//     Route::get('/create', [AssessmentController::class, 'create'])->name('assessments.create');
+//     Route::post('/', [AssessmentController::class, 'store'])->name('assessments.store');
+//     Route::get('/{assessment_id}', [AssessmentController::class, 'show'])->name('assessments.show');
+//     Route::get('/{assessment_id}/edit', [AssessmentController::class, 'edit'])->name('assessments.edit');
+//     Route::put('/{assessment_id}', [AssessmentController::class, 'update'])->name('assessments.update');
+//     Route::delete('/{assessment_id}', [AssessmentController::class, 'destroy'])->name('assessments.destroy');
+// });
 
 // Tokens (Send assessment links to applicants)
 Route::post('/applicants/{applicant_id}/send-assessment', [AssessmentTokenController::class, 'send'])
@@ -198,6 +211,7 @@ Route::post('/attendance/verify-otp', [EmployeeAttendanceController::class, 'ver
 
 
 Route::controller(EvaluationQuestionController::class)->group(function () {
+
     // List all evaluation questions
     Route::get('/evaluation/questions', 'showEvaluation')->name('evaluation.view');
 
@@ -219,21 +233,36 @@ Route::controller(EvaluationQuestionController::class)->group(function () {
 
     // Token-based access to questionnaire
     Route::get('/evaluation/questionnaire/{token}', 'showEvaluationQuestionnaire')->name('evaluation.questionnaire');
-    Route::post('/evaluation/submitEvaluation/{token}', [EvaluationQuestionController::class, 'submitEvaluation'])->name('evaluation.submit');
+
+   Route::post('/evaluation/submitEvaluation/{token}', [EvaluationQuestionController::class, 'submitEvaluation'])
+    ->name('evaluation.submit');
+
     Route::get('/evaluate/expired', 'showExpired')->name('evaluate.expired');
     Route::get('/evaluate/used', 'showUsed')->name('evaluate.used');
     Route::get('/evaluate/thankyou', 'showThankYou')->name('evaluate.thankyou');
     Route::get('/evaluate/alreadydone', 'showAlreadyDone')->name('evaluate.alreadydone');
 
-    Route::get('/service/details/{id}', [ServiceController::class, 'showDetails']);
+Route::get('/service/details/{id}', [ServiceController::class, 'showDetails']);
+
 });
 
-Route::controller(BookingController::class)->group(function () {
+Route::controller(BookingController::class)->group(function(){
+
     Route::get('/Booking', 'index')->name('show.bookingindex');
+
 });
 
-// });
+  Route::get('/editprofile', [ProfileController::class, 'showEditProfile'])->name('show.editprofile');
+Route::put('/editprofile', [ProfileController::class, 'update'])->name('profile.update');
 
-Route::get('/login', function () {
-    return redirect()->away('http://login.test/login'); // your shared login project URL
-})->name('login');
+
+
+});
+
+
+
+// Route::get('/login', function () {
+//     return redirect()->away('http://login.test/login'); // your shared login project URL
+// })->name('login');
+
+
