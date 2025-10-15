@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
     {
         // 🧑‍💼 Seed base employees first
         $this->call([
+            
             EmployeeprofilesSeeder::class,
         ]);
 

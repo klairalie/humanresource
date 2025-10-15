@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Archiveprofile extends Model
 {
 
-    protected $table = 'archiveprofile';
+    protected $table = 'archiveprofiles';
     protected $primaryKey = 'archiveprofile_id';
 
     protected $fillable = [
@@ -19,10 +19,13 @@ class Archiveprofile extends Model
         'first_name',
         'last_name',
         'address',
+        'email',
+        'date_of_birth',
         'position',
-        'contact_info',
+        'contact_number',
+        'emergency_contact',
         'hire_date',
-        'fingerprint_data',
+        'card_Idnumber',
         'archived_at',
         'archived_by',
         'reactivated_at',

@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Employeeprofiles;
+use App\Models\Archiveprofile;
 class ArchivedprofilesController extends Controller
 {
     // login form
@@ -47,34 +48,32 @@ class ArchivedprofilesController extends Controller
  
    }
 
-   public function reactivate($archiveprofile_id)
+  public function reactivate($id, Request $request)
 {
-    $archive = DB::table('archiveprofiles')->where('archiveprofile_id', $archiveprofile_id)->first();
+    $archive = Archiveprofile::findOrFail($id);
+    $reactivatedBy = $request->input('reactivated_by'); // gikan pud sa form nimo
 
-    if (!$archive) {
-        return redirect()->back()->with('error', 'Archived profile not found.');
-    }
+    $employee = Employeeprofiles::create([
+        'first_name'        => $archive->first_name,
+        'last_name'         => $archive->last_name,
+        'address'           => $archive->address,
+        'email'             => $archive->email,
+        'date_of_birth'     => $archive->date_of_birth,
+        'position'          => $archive->position,
+        'contact_number'    => $archive->contact_number,
+        'hire_date'         => $archive->hire_date,
+        'status'            => 'active',
+        'emergency_contact' => $archive->emergency_contact,
+        'card_Idnumber'     => $archive->card_Idnumber,
+    ]);
 
-    $employee = Employeeprofiles::findOrFail($archive->employeeprofiles_id);
+    $archive->update([
+        'status'         => 'reactivated',
+        'reactivated_at' => now(),
+        'reactivated_by' => $reactivatedBy,  // ✅ mao pud ni imo gusto
+    ]);
 
-    // Find HR Manager
-    $hrManager = Employeeprofiles::where('position', 'Human Resource Manager')->first();
-    $reactivatedBy = $hrManager ? $hrManager->first_name . ' ' . $hrManager->last_name : 'System';
-
-    // Update archive profile with reactivation info
-    DB::table('archiveprofiles')
-        ->where('archiveprofile_id', $archiveprofile_id)
-        ->update([
-            'status' => 'reactivated',
-            'reactivated_at' => now(),
-            'reactivated_by' => $reactivatedBy,
-            'updated_at' => now(),
-        ]);
-
-    // Update employee status
-    $employee->update(['status' => 'reactivated']);
-
-    return redirect()->back()->with('success', 'Employee account has been reactivated.');
+    return redirect()->back()->with('success', 'Employee reactivated successfully!');
 }
 
 }

@@ -31,6 +31,8 @@ class EmployeeprofilesFactory extends Factory
         'emergency_contact' => fake()->phoneNumber(11),
         'card_Idnumber' => fake()->uuid(),
     ];
+
+    
 }
     
 }

@@ -57,7 +57,8 @@ return new class extends Migration {
 
             // Notes
             $table->text('service_notes')->nullable();
-
+              $table->date('requested_service_date')->nullable();
+            $table->time('requested_service_time')->nullable();
             $table->timestamps();
 
             // Helpful indexes

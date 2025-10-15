@@ -8,6 +8,8 @@ use App\Models\SalaryRate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Archiveprofile;
+use Illuminate\Support\Facades\Auth;
 
 class EmployeeprofilesController extends Controller
 {
@@ -137,42 +139,35 @@ class EmployeeprofilesController extends Controller
             ->with('success', 'New employee profile added successfully.');
     }
 
-    public function deactivate(Request $request, $employeeprofiles_id)
-{
-    $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
 
-    // Validate reason input
-    $validated = $request->validate([
-        'reason' => 'required|string|max:255',
+
+public function deactivate($id, Request $request)
+{
+    $employee = Employeeprofiles::findOrFail($id);
+   $archivedBy = $request->input('archived_by', 'System'); // gikan sa form or logic nimo
+
+    Archiveprofile::create([
+        'employeeprofiles_id' => $employee->employeeprofiles_id,
+        'status'              => 'deactivated',
+        'reason'              => $request->input('reason'),
+        'email'               => $employee->email,
+        'address'             => $employee->address,
+        'date_of_birth'       => $employee->date_of_birth,
+        'first_name'          => $employee->first_name,
+        'last_name'           => $employee->last_name,
+        'position'            => $employee->position,
+        'contact_number'      => $employee->contact_number,
+        'hire_date'           => $employee->hire_date,
+        'emergency_contact'   => $employee->emergency_contact,
+        'card_Idnumber'       => $employee->card_Idnumber,
+        'archived_at'         => now(),
+        'archived_by'         => $archivedBy,   // ✅ mao ni imo gusto
     ]);
 
-    $hrManager = Employeeprofiles::where('position', 'Human Resource Manager')->first();
-    $archivedBy = $hrManager ? $hrManager->first_name . ' ' . $hrManager->last_name : 'System';
+    $employee->delete();
 
-    DB::transaction(function () use ($employee, $validated, $archivedBy) {
-        // Step 1️⃣: Archive employee data
-        DB::table('archiveprofiles')->insert([
-            'employeeprofiles_id' => $employee->employeeprofiles_id,
-            'status'              => 'deactivated',
-            'reason'              => $validated['reason'],
-            'first_name'          => $employee->first_name,
-            'last_name'           => $employee->last_name,
-            'position'            => $employee->position,
-            'contact_number'        => $employee->contact_number,
-            'hire_date'           => $employee->hire_date,
-            'archived_at'         => now(),
-            'archived_by'         => $archivedBy,
-            'emergency_contact'   => $employee->emergency_contact,
-            'card_Idnumber'       => $employee->card_Idnumber,
-            'created_at'          => now(),
-            'updated_at'          => now(),
-        ]);
-
-        // Step 2️⃣: Delete from main employees table
-        $employee->delete();
-    });
-
-    return redirect()->back()->with('success', 'Employee has been deactivated, archived, and removed.');
+    return redirect()->back()->with('success', 'Employee archived and deleted successfully!');
 }
 
+  
 }

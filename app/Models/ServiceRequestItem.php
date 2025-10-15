@@ -32,6 +32,8 @@ class ServiceRequestItem extends Model
         'bill_separately',
         'billed',
         'service_notes',
+        'requested_service_date',
+        'requested_service_time',
     ];
 
     /**

@@ -11,10 +11,10 @@
                     placeholder="Search by Date, Service Type, or Technician..." 
                     class="w-80 px-3 py-2 border border-gray-400 rounded-lg shadow-sm focus:ring-2 focus:ring-gray-600 focus:outline-none text-black placeholder-gray-500"
                 >
-                <a href="{{ route('show.quotationform') }}" 
+                {{-- <a href="{{ route('show.quotationform') }}" 
                    class="px-5 py-2 bg-gray-900 text-white font-medium rounded-lg shadow hover:bg-gray-700 transition">
                     + New Quotation
-                </a>
+                </a> --}}
             </div>
         </div>
 
