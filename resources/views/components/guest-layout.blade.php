@@ -26,63 +26,80 @@
 
 <body class="text-black h-full overflow-hidden" x-data="{ sidebarOpen: false }">
 
-    <!-- Navbar -->
-    <nav
-        class="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-orange-200 via-white to-gray-300 backdrop-blur-md px-6 py-3 flex justify-between items-center">
-        <!-- Left -->
-        <a href="{{ route('show.dashboard') }}">
+   <!-- Navbar -->
+<nav
+    class="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-orange-200 via-white to-gray-300 backdrop-blur-md px-6 py-3 flex justify-between items-center">
+
+    <!-- Left: Logo -->
+    <a href="{{ route('show.dashboard') }}">
         <div>
             <img src="{{ url('/3Rs_logo.png') }}" alt="company logo" class="h-10 w-auto">
         </div>
+    </a>
+
+    <!-- Right: Notification + Profile -->
+    <div class="flex items-center space-x-6">
+
+        <!-- Notification Bell -->
+        <a href="{{ route('queue.failures') }}" class="relative">
+            <i data-lucide="bell" class="w-6 h-6"></i>
+            @if($failedCount > 0)
+                <span
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                    {{ $failedCount }}
+                </span>
+            @endif
         </a>
-        <!-- Right -->
-        <div class="flex items-center space-x-6">
-            <!-- Notification Bell -->
-            <a href="{{ route('queue.failures') }}" class="relative">
-                <i data-lucide="bell" class="w-6 h-6"></i>
-                @if($failedCount > 0)
-                    <span
-                        class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                        {{ $failedCount }}
-                    </span>
-                @endif
-            </a>
+        
+        
+        <!-- Profile Dropdown -->
+        <div x-data="{ open: false }" class="relative">
+            <div @click="open = !open" class="flex items-center space-x-2 cursor-pointer select-none">
 
-            <!-- Profile dropdown -->
-            <div x-data="{ open: false }" class="relative">
-                <div @click="open = !open" class="flex items-center space-x-2 cursor-pointer select-none">
-                    <!-- Profile Picture with Active Dot -->
-                    <div class="relative w-12 h-10 flex items-center justify-center rounded-full bg-orange-400 border text-white font-bold text-sm">
-    HR
-    <!-- Active Green Dot -->
-    <span
-        class="absolute bottom-0 right-0 block w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-</div>
-
-
-                    <span class="font-medium">
-                        {{ session('user_email') ?? 'user@example.com' }} 
-                        
-                    </span>
-                    <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500"></i>
+                <!-- Profile Picture with Active Dot -->
+                <div class="relative w-12 h-10 flex items-center justify-center rounded-full bg-orange-400 border text-white font-bold text-sm">
+                    {{ strtoupper(substr(session('user_email') ?? 'U', 0, 1)) }}
+                    <span class="absolute bottom-0 right-0 block w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                 </div>
+                @if(session('acting_as'))
+    <div class="text-sm text-gray-600">
+        Acting as {{ session('acting_as') }}
+    </div>
+@endif
 
-                <!-- Dropdown Menu -->
-                <div x-show="open" x-cloak @click.away="open = false" x-transition
-                    class="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    <a href="{{ route('settings.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                        <i data-lucide="settings" class="w-5 h-5 inline mr-2 text-gray-500"></i> Settings
-                    </a>
-                    <form method="POST" action="{{ route('logout') }}">
-    @csrf
-    <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-        <i data-lucide="log-out" class="w-5 h-5 inline mr-2 text-gray-500"></i> Logout
-    </button>
-</form>
-                </div>
+
+               @if(session('acting_as'))
+    <div class="text-sm text-gray-600">
+        Acting as {{ session('acting_as') }}
+    </div>
+@endif
+<span class="font-medium">
+    {{ session('user_email') ?? 'user@example.com' }} 
+</span>
+
+                <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500"></i>
+            </div>
+
+            <!-- Dropdown Menu -->
+            <div x-show="open" x-cloak @click.away="open = false" x-transition
+                class="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                
+                <a href="{{ route('settings.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                    <i data-lucide="settings" class="w-5 h-5 inline mr-2 text-gray-500"></i> Settings
+                </a>
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                        <i data-lucide="log-out" class="w-5 h-5 inline mr-2 text-gray-500"></i> Logout
+                    </button>
+                </form>
+
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
+
 
     <div class="h-full w-full flex pt-15 bg-[url('/logo_3RS.jpg')] bg-cover bg-center">
 
@@ -135,13 +152,7 @@
 </a>
 
             </div>
-            <a href="http://Finance.test" class="block">
-    <div
-        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-orange-200 text-black">
-        <i data-lucide="file-text" class="w-6 h-6 shrink-0"></i>
-        <span x-show="sidebarOpen" x-transition>Evaluate Employee Services</span>
-    </div>
-</a>
+      
         </div>
 
         <!-- Main Content -->

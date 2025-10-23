@@ -1,3 +1,5 @@
+
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -9,7 +11,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customer_addresses', function (Blueprint $table) {
-            $table->id('address_id');
+            $table->id('address_id'); // BIGINT UNSIGNED PRIMARY KEY
+
             $table->foreignId('customer_id')
                   ->constrained('customers', 'customer_id')
                   ->cascadeOnDelete()

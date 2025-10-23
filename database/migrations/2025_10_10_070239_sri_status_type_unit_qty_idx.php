@@ -21,11 +21,7 @@ return new class extends Migration {
             $table->index('item_id', 'ta_item_id_idx'); // Assuming item_id is service_request_item_id
         });
 
-        // Indexes for service_requests
-        Schema::table('service_requests', function (Blueprint $table) {
-            $table->index(['start_date', 'end_date', 'service_date'], 'sr_dates_idx');
-        });
-
+   
         // New service_stats table (precomputed stats)
         Schema::create('service_stats', function (Blueprint $table) {
             $table->id();  // stats_id

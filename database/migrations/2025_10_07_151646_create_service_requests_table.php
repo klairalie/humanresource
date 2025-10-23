@@ -6,55 +6,57 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('service_requests', function (Blueprint $table) {
-            $table->id('service_request_id');
+        // Prerequisites: Ensure 'customers' and 'customer_addresses' tables exist (migrations run first).
+        // 'customer_addresses.address_id' must be the primary key (it is, per the provided migration).
+        // If error persists, check for existing data violations or run: php artisan migrate:fresh
 
-            // Customer
+        Schema::create('service_requests', function (Blueprint $table) {
+            $table->engine = 'InnoDB'; // Ensure engine matches other tables
+
+            $table->id('service_request_id');
+            $table->string('service_request_number')->nullable()->unique();
+
+            // Customer reference
             $table->foreignId('customer_id')
                   ->constrained('customers', 'customer_id')
                   ->cascadeOnDelete()
                   ->cascadeOnUpdate();
 
-            // // Optional address used for this request (preference)
-            // $table->foreignId('address_id')->nullable()
-            //       ->constrained('customer_addresses', 'address_id')
-            //       ->nullOnDelete()
-            //       ->cascadeOnUpdate();
+            // Optional address reference
+            $table->unsignedBigInteger('address_id')->nullable(); // Explicitly define column type to match customer_addresses.address_id
+            $table->index('address_id'); // Ensure index for foreign key (Laravel adds this, but explicit for safety)
 
-            // Booking schedule (order-level defaults)
-            $table->date('service_date'); // general booking date
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
-            $table->time('start_time')->nullable();
-            $table->time('end_time')->nullable();
+            // Manually add foreign key for better error handling (equivalent to constrained() with nullOnDelete and cascadeOnUpdate)
+            $table->foreign('address_id')
+                  ->references('address_id')
+                  ->on('customer_addresses')
+                  ->onDelete('set null') // Sets to NULL if referenced row deleted
+                  ->onUpdate('cascade'); // Cascades updates
+
+            // Order totals
+            $table->decimal('order_total', 12, 2)->nullable();
+            $table->decimal('overall_discount', 12, 2)->default(0);
+            $table->decimal('overall_tax_amount', 12, 2)->default(0);
 
             // Payment & status
             $table->string('type_of_payment')->nullable();
             $table->enum('order_status', ['Pending', 'Ongoing', 'Completed', 'Cancelled'])->default('Pending');
-            $table->enum('payment_status', ['Unpaid','Partially Paid','Paid','Cancelled'])->default('Unpaid');
+            $table->enum('payment_status', ['Unpaid', 'Partially Paid', 'Paid', 'Cancelled'])->default('Unpaid');
             $table->date('accomplishment_date')->nullable();
 
             // Extra info
             $table->text('remarks')->nullable();
 
-            // External (HR/Finance) references - allow null and null on delete
-            /*$table->foreignId('billing_id')->nullable()
-                  ->constrained('billings', 'billings_id')
-                  ->nullOnDelete()
-                  ->cascadeOnUpdate();
-
-            $table->foreignId('quotation_id')->nullable()
-                  ->constrained('quotations', 'quotation_id')
-                  ->nullOnDelete()
-                  ->cascadeOnUpdate();*/
-
-            // friendly ref number
-            $table->string('service_request_number')->nullable()->unique();
+            // PDF storage fields
+            $table->string('pdf_name')->nullable();            
+            $table->string('pdf_mime')->default('application/pdf');
+            $table->binary('pdf_file')->nullable();            
+            $table->timestamp('pdf_generated_at')->nullable();
 
             $table->timestamps();
 
-            // useful indexes
-            $table->index(['customer_id', 'service_date', 'order_status']);
+            // Useful indexes
+            $table->index(['customer_id', 'order_status']);
         });
     }
 

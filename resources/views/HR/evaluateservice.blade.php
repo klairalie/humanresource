@@ -11,10 +11,6 @@
                     placeholder="Search by Date, Service Type, or Technician..." 
                     class="w-80 px-3 py-2 border border-gray-400 rounded-lg shadow-sm focus:ring-2 focus:ring-gray-600 focus:outline-none text-black placeholder-gray-500"
                 >
-                {{-- <a href="{{ route('show.quotationform') }}" 
-                   class="px-5 py-2 bg-gray-900 text-white font-medium rounded-lg shadow hover:bg-gray-700 transition">
-                    + New Quotation
-                </a> --}}
             </div>
         </div>
 
@@ -67,29 +63,44 @@
                                             {{ $item->status ?? 'Pending' }}
                                         </span>
                                     </td>
+
+                                    <!-- ================= ACTION COLUMN ================= -->
                                     <td class="px-5 py-3 text-center">
-                                        <div class="action-buttons flex justify-center items-center gap-2">
-                                            @if($item->status === 'Completed')
-                                                <button 
-                                                    class="view-summary-btn px-4 py-1.5 bg-gray-900 text-white rounded-md text-xs font-medium hover:bg-gray-700 transition"
-                                                    data-id="{{ $item->item_id }}">
-                                                    View Details
-                                                </button>
+                                        @if($item->status === 'Completed')
+                                            <button 
+                                                class="view-summary-btn inline-flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
+                                                data-id="{{ $item->item_id }}">
+                                                <i data-lucide="file-text" class="w-4 h-4 text-gray-200"></i>
+                                                View Details
+                                            </button>
+                                        @else
+                                            <div class="flex justify-center items-center">
+                                                <div class="relative group">
+                                                    <button 
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition">
+                                                        <i data-lucide="settings" class="w-4 h-4"></i>
+                                                        Actions
+                                                        <i data-lucide="chevron-down" class="w-3 h-3 ml-1"></i>
+                                                    </button>
 
-                                            @elseif($item->status === 'Rescheduled')
-                                                <button class="status-btn px-3 py-1.5 bg-gray-900 text-white rounded-md text-xs font-medium hover:bg-gray-700 transition" data-status="Completed">✓ Complete</button>
-                                                <button class="status-btn px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition" data-status="In Progress">▶ In Progress</button>
-
-                                            @elseif($item->status === 'In Progress')
-                                                <button class="status-btn px-3 py-1.5 bg-gray-900 text-white rounded-md text-xs font-medium hover:bg-gray-700 transition" data-status="Completed">✓ Complete</button>
-                                                <button class="status-btn px-3 py-1.5 bg-gray-200 text-black rounded-md text-xs font-medium hover:bg-gray-300 transition border border-gray-400" data-status="Rescheduled">⟳ Reschedule</button>
-
-                                            @else
-                                                <button class="status-btn px-3 py-1.5 bg-gray-900 text-white rounded-md text-xs font-medium hover:bg-gray-700 transition" data-status="Completed">✓ Complete</button>
-                                                <button class="status-btn px-3 py-1.5 bg-gray-200 text-black rounded-md text-xs font-medium hover:bg-gray-300 transition border border-gray-400" data-status="Rescheduled">⟳ Reschedule</button>
-                                                <button class="status-btn px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition" data-status="In Progress">▶ In Progress</button>
-                                            @endif
-                                        </div>
+                                                    <!-- Dropdown Menu -->
+                                                    <div class="hidden group-hover:block absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-20 text-left animate-fade-in">
+                                                        <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="Completed">
+                                                            <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+                                                            Mark Completed
+                                                        </button>
+                                                        <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="In Progress">
+                                                            <i data-lucide="play-circle" class="w-4 h-4 text-blue-600"></i>
+                                                            In Progress
+                                                        </button>
+                                                        <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="Rescheduled">
+                                                            <i data-lucide="refresh-cw" class="w-4 h-4 text-yellow-600"></i>
+                                                            Reschedule
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
@@ -101,6 +112,11 @@
                             @endforelse
                         </tbody>
                     </table>
+
+                    <!-- PAGINATION -->
+                    <div class="p-4 bg-gray-50 border-t border-gray-200 mt-10">
+                        {{ $section['items']->links('pagination::tailwind') }}
+                    </div>
                 </div>
             </div>
         @endforeach
@@ -110,13 +126,8 @@
     <div id="summaryModal" 
          class="hidden fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 relative transform scale-95 transition-all duration-300 ease-in-out" id="modalBox">
-            <!-- Close Button -->
-            <button id="closeModal" 
-                    class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition">
-                ✕
-            </button>
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition">✕</button>
 
-            <!-- Modal Header -->
             <div class="mb-6 border-b pb-3">
                 <h2 class="text-2xl font-semibold text-gray-800 flex items-center gap-2">
                     <i data-lucide="clipboard-list" class="w-6 h-6 text-gray-700"></i>
@@ -124,20 +135,31 @@
                 </h2>
             </div>
 
-            <!-- Modal Content -->
             <div id="summaryContent" class="space-y-3 text-gray-800 text-sm">
                 <p class="text-gray-500">Loading details...</p>
             </div>
 
-            <!-- Modal Footer -->
             <div class="mt-8 flex justify-end">
-                <button id="closeFooter" 
-                        class="px-5 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition">
+                <button id="closeFooter" class="px-5 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition">
                     Close
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- ================= ANIMATION STYLE ================= -->
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.15s ease-in-out;
+        }
+        .group:hover .group-hover\:block {
+            display: block !important;
+        }
+    </style>
 
     <!-- ================= SCRIPT ================= -->
     <script>
@@ -161,8 +183,8 @@
 
             // View Details handler
             document.addEventListener('click', async (e) => {
-                if (e.target.classList.contains('view-summary-btn')) {
-                    const id = e.target.dataset.id;
+                if (e.target.closest('.view-summary-btn')) {
+                    const id = e.target.closest('.view-summary-btn').dataset.id;
                     try {
                         const response = await fetch(`/service/details/${id}`);
                         const result = await response.json();
@@ -189,14 +211,13 @@
                     }
                 }
 
-                // ================= INSTANT STATUS UPDATE =================
-                if (e.target.classList.contains('status-btn')) {
-                    const btn = e.target;
+                // STATUS UPDATE
+                if (e.target.closest('.status-btn')) {
+                    const btn = e.target.closest('.status-btn');
                     const newStatus = btn.dataset.status;
                     const row = btn.closest('tr');
                     const id = row.dataset.id;
                     const badge = row.querySelector('.status-badge');
-                    const actionDiv = row.querySelector('.action-buttons');
 
                     try {
                         const res = await fetch(`/service/update-status/${id}`, {
@@ -221,30 +242,16 @@
                                     : 'bg-gray-200 text-gray-800'
                             }`;
 
-                            // Update buttons dynamically
-                            if (newStatus === 'Completed') {
-                                actionDiv.innerHTML = `
-                                    <button class="view-summary-btn px-4 py-1.5 bg-gray-900 text-white rounded-md text-xs font-medium hover:bg-gray-700 transition" data-id="${id}">
-                                        View Details
-                                    </button>
-                                `;
-                            } else if (newStatus === 'In Progress') {
-                                actionDiv.innerHTML = `
-                                    <button class="status-btn px-3 py-1.5 bg-gray-900 text-white rounded-md text-xs font-medium hover:bg-gray-700 transition" data-status="Completed">✓ Complete</button>
-                                    <button class="status-btn px-3 py-1.5 bg-gray-200 text-black rounded-md text-xs font-medium hover:bg-gray-300 transition border border-gray-400" data-status="Rescheduled">⟳ Reschedule</button>
-                                `;
-                            } else if (newStatus === 'Rescheduled') {
-                                actionDiv.innerHTML = `
-                                    <button class="status-btn px-3 py-1.5 bg-gray-900 text-white rounded-md text-xs font-medium hover:bg-gray-700 transition" data-status="Completed">✓ Complete</button>
-                                    <button class="status-btn px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition" data-status="In Progress">▶ In Progress</button>
-                                `;
-                            } else {
-                                actionDiv.innerHTML = `
-                                    <button class="status-btn px-3 py-1.5 bg-gray-900 text-white rounded-md text-xs font-medium hover:bg-gray-700 transition" data-status="Completed">✓ Complete</button>
-                                    <button class="status-btn px-3 py-1.5 bg-gray-200 text-black rounded-md text-xs font-medium hover:bg-gray-300 transition border border-gray-400" data-status="Rescheduled">⟳ Reschedule</button>
-                                    <button class="status-btn px-3 py-1.5 bg-gray-600 text-white rounded-md text-xs font-medium hover:bg-gray-500 transition" data-status="In Progress">▶ In Progress</button>
-                                `;
-                            }
+                            // Replace dropdown with View Details button
+                            const actionCell = row.querySelector('td:last-child');
+                            actionCell.innerHTML = `
+                                <button 
+                                    class="view-summary-btn inline-flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
+                                    data-id="${id}">
+                                    <i data-lucide="file-text" class="w-4 h-4 text-gray-200"></i>
+                                    View Details
+                                </button>
+                            `;
                         } else {
                             alert('Failed to update status.');
                         }

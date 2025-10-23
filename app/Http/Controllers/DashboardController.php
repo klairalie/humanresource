@@ -15,11 +15,15 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AttendanceExport;
 use App\Exports\ServicesExport;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\AdminActivityLogger;
+use Illuminate\Support\Facades\Session;
 
 class DashboardController extends Controller
 {
     public function dashboard(Request $request)
     {
+        // or Auth::user()->email
+
         $employeeCount = Employeeprofiles::count();
         $newEmployees  = Employeeprofiles::orderBy('created_at', 'desc')->take(5)->get();
 
@@ -30,7 +34,7 @@ class DashboardController extends Controller
         $attendanceCount = Attendance::whereDate('date', $selectedDate)
             ->where(function ($q) {
                 $q->whereBetween('time_in', ['06:00:00', '17:00:00'])
-                  ->orWhereBetween('time_out', ['17:00:00', '18:00:00']);
+                    ->orWhereBetween('time_out', ['17:00:00', '18:00:00']);
             })
             ->distinct('employeeprofiles_id')
             ->count('employeeprofiles_id');
@@ -80,7 +84,8 @@ class DashboardController extends Controller
             ->with('employeeprofiles')
             ->get();
 
-        $labels = $attendanceSummary->map(fn($r) =>
+        $labels = $attendanceSummary->map(
+            fn($r) =>
             $r->employeeprofiles
                 ? "{$r->employeeprofiles->first_name} {$r->employeeprofiles->last_name}"
                 : 'ID:' . $r->employeeprofiles_id
@@ -164,11 +169,84 @@ class DashboardController extends Controller
             ->take(3)
             ->get();
 
+         // 🔹 Attempt to get session normally
+    $userEmail = session('user_email');
+    $userPosition = session('user_position');
+
+    // 🔹 Restore session from central DB if missing
+    if (!$userEmail || !$userPosition) {
+        $centralSessions = DB::connection('capstone_central')
+            ->table('central_sessions')
+            ->latest('last_activity')
+            ->get();
+
+        foreach ($centralSessions as $cs) {
+            $payload = json_decode($cs->payload, true);
+
+            if (!empty($payload['user_email']) && !empty($payload['user_position'])) {
+                // Only restore HR users here
+                $posNormalized = strtolower(trim($payload['user_position']));
+                if (in_array($posNormalized, ['human resource manager', 'administrative manager'])) {
+                    $userEmail = $payload['user_email'];
+                    $userPosition = $payload['user_position'];
+
+                    // Restore local session
+                    session([
+                        'user_email' => $userEmail,
+                        'user_position' => $userPosition,
+                    ]);
+                    break;
+                }
+            }
+        }
+    }
+
+    // 🔹 Allowed positions for HR dashboard
+    $allowedPositions = ['human resource manager', 'administrative manager'];
+
+    if (!$userEmail || !in_array(strtolower(trim($userPosition)), $allowedPositions)) {
+        // Log unauthorized attempt
+        DB::table('cross_project_activity_logs')->insert([
+            'email' => $userEmail ?? 'Unknown',
+            'position' => $userPosition ?? 'Unknown',
+            'activity' => "Unauthorized attempt to access HR Dashboard",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        abort(403, 'Unauthorized access');
+    }
+
+    // 🔹 Log authorized HR dashboard visit
+    DB::table('cross_project_activity_logs')->insert([
+        'email' => $userEmail,
+        'position' => $userPosition,
+        'activity' => "Visited HR Dashboard",
+        'ip_address' => $request->ip(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+
         return view('HR.dashboard', compact(
-            'employeeCount', 'attendanceCount', 'formattedDate', 'attendances',
-            'failedCount', 'forecastData', 'recentActions',
-            'labels', 'totals', 'employeeRecommendations', 'analysisMonths',
-            'serviceSummary', 'serviceLabels', 'serviceAverages'
+            'employeeCount',
+            'attendanceCount',
+            'formattedDate',
+            'attendances',
+            'failedCount',
+            'forecastData',
+            'recentActions',
+            'labels',
+            'totals',
+            'employeeRecommendations',
+            'analysisMonths',
+            'serviceSummary',
+            'serviceLabels',
+            'serviceAverages',
+            'userEmail', 
+    'userPosition', 
+    'allowedPositions',
         ));
     }
 
@@ -201,20 +279,28 @@ class DashboardController extends Controller
     }
 
 
-     /** ⬇ Export attendance */
-    public function exportAttendance()
-    {
-        return Excel::download(new AttendanceExport, 'attendance.xlsx');
-    }
 
-    /** ⬇ Export services */
-    public function exportServices()
-    {
-        return Excel::download(new ServicesExport, 'services_summary.xlsx');
-    }
+  public function exportAttendance()
+{
+    AdminActivityLogger::log(
+        targetEmail: null,
+        module: 'HR Attendance',
+        action: 'Exported attendance data'
+    );
 
+    return Excel::download(new AttendanceExport, 'attendance.xlsx');
+}
 
+public function exportServices()
+{
+    AdminActivityLogger::log(
+        targetEmail: null,
+        module: 'HR Services',
+        action: 'Exported services summary'
+    );
 
+    return Excel::download(new ServicesExport, 'services_summary.xlsx');
+}
     /**
      * Settings page
      */

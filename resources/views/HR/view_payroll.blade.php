@@ -56,35 +56,52 @@
         <div class="mt-6">{{ $payroll->links() }}</div>
     </div>
 
-    <!-- ✅ View Details Modal -->
-    <div id="payrollModal" class="fixed inset-0 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl shadow-lg w-11/12 md:w-3/4 lg:w-2/3 p-6 max-h-[80vh] overflow-y-auto">
-            <h2 class="text-xl font-bold mb-4 text-black">Payroll Records</h2>
-            <table class="w-full border border-gray-300">
-                <thead class="bg-gray-200 text-black font-semibold">
-                    <tr>
-                        <th class="px-4 py-2">Payroll ID</th>
-                        <th class="px-4 py-2">Pay Period</th>
-                        <th class="px-4 py-2">Total Days of Work</th>
-                        <th class="px-4 py-2">Start</th>
-                        <th class="px-4 py-2">End</th>
-                        <th class="px-4 py-2">Basic Salary</th>
-                        <th class="px-4 py-2">Overtime</th>
-                        <th class="px-4 py-2">Deductions</th>
-                        <th class="px-4 py-2">Bonuses</th>
-                        <th class="px-4 py-2">Status</th>
+    <!-- ✅ View Details Modal (Redesigned) -->
+<div id="payrollModal"
+    class="fixed inset-0 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+    <div
+        class="bg-white rounded-2xl shadow-2xl w-11/12 md:w-3/4 lg:w-2/3 p-8 max-h-[85vh] overflow-y-auto transition-all transform scale-100">
+        
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6 border-b border-gray-300 pb-3">
+            <h2 class="text-2xl font-bold text-gray-800">📋 Employee Payroll Details</h2>
+            <button onclick="closeDetailsModal()"
+                class="text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
+        </div>
+
+        <!-- Payroll Info Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-400 text-white text-sm uppercase tracking-wide">
+                        <th class="px-5 py-3 text-left rounded-tl-lg">Payroll ID</th>
+                        <th class="px-5 py-3 text-left">Pay Period</th>
+                        <th class="px-5 py-3 text-left">Days Worked</th>
+                        <th class="px-5 py-3 text-left">Start</th>
+                        <th class="px-5 py-3 text-left">End</th>
+                        <th class="px-5 py-3 text-left">Basic Salary</th>
+                        <th class="px-5 py-3 text-left">Overtime</th>
+                        <th class="px-5 py-3 text-left">Deductions</th>
+                        <th class="px-5 py-3 text-left">Bonuses</th>
+                        <th class="px-5 py-3 text-left rounded-tr-lg">Status</th>
                     </tr>
                 </thead>
-                <tbody id="payrollRecordsBody" class="text-black"></tbody>
+                <tbody id="payrollRecordsBody" class="divide-y divide-gray-200 text-gray-700 text-sm">
+                    <!-- Dynamic rows inserted here -->
+                </tbody>
             </table>
-            <div class="mt-4 text-right">
-                <button onclick="closeDetailsModal()"
-                    class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600">
-                    Close
-                </button>
-            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-6 flex justify-end">
+            <button onclick="closeDetailsModal()"
+                class="px-6 py-2.5 bg-amber-500 text-white font-semibold rounded-lg shadow hover:bg-amber-600 transition">
+                Close
+            </button>
         </div>
     </div>
+</div>
+
 
 
     <div id="updatePayrollModal"

@@ -3,10 +3,7 @@
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Archived Employee Profiles</h1>
-            <a href="{{ route('archived.logout') }}" 
-               class="px-4 py-2 bg-red-500 text-white rounded-md shadow hover:bg-red-600 transition text-center">
-                Logout
-            </a>
+            
         </div>
 
         <!-- Table Wrapper -->
@@ -29,7 +26,7 @@
                     <tbody class="divide-y divide-gray-200">
                         @foreach($archives as $arc)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->archiveprofile_id }}</td>
+                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->archiveprofiles_id }}</td>
                                 <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->last_name }}, {{ $arc->first_name }}</td>
                                 <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->position }}</td>
                                 <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->contact_number }}</td>
@@ -39,7 +36,7 @@
                                 <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->archived_by }}</td>
                                 <td class="px-4 sm:px-6 py-3 text-center">
                                     @if($arc->status === 'deactivated')
-                                      <form action="{{ route('archived.reactivate', $arc->archiveprofile_id) }}" method="POST">
+                                      <form action="{{ route('archived.reactivate', $arc->archiveprofiles_id) }}" method="POST">
     @csrf
     @method('PUT')
     <button type="submit"

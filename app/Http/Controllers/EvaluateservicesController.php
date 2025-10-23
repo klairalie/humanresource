@@ -7,22 +7,32 @@ use Illuminate\Http\Request;
 
 class EvaluateservicesController extends Controller
 {
-    public function showEvaluateServices()
-    {
-        $items = ServiceRequestItem::with(['service', 'technician'])
-            ->orderBy('start_date', 'desc')
-            ->get();
+ public function showEvaluateServices()
+{
+    // Cleaning Services (10 per page)
+    $cleaningItems = ServiceRequestItem::with(['service', 'technician'])
+        ->where('service_type', 'Cleaning')
+        ->orderBy('start_date', 'desc')
+        ->paginate(10, ['*'], 'cleaning_page');
 
-        $cleaningItems = $items->where('service_type', 'Cleaning');
-        $repairItems = $items->where('service_type', 'Repair');
-        $installmentItems = $items->where('service_type', 'Installment');
+    // Repair Services (10 per page)
+    $repairItems = ServiceRequestItem::with(['service', 'technician'])
+        ->where('service_type', 'Repair')
+        ->orderBy('start_date', 'desc')
+        ->paginate(10, ['*'], 'repair_page');
 
-        return view('HR.evaluateservice', compact(
-            'cleaningItems',
-            'repairItems',
-            'installmentItems'
-        ));
-    }
+    // Installation Services (10 per page)
+    $installmentItems = ServiceRequestItem::with(['service', 'technician'])
+        ->where('service_type', 'Installment')
+        ->orderBy('start_date', 'desc')
+        ->paginate(10, ['*'], 'installment_page');
+
+    return view('HR.evaluateservice', compact(
+        'cleaningItems',
+        'repairItems',
+        'installmentItems'
+    ));
+}
 
     // ✅ AJAX update status
     public function updateStatus(Request $request, $id)

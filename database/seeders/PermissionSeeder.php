@@ -10,11 +10,14 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            ['permission_key' => 'view_HR_dashboard', 'description' => 'Access the HR Dashboard'],
-            ['permission_key' => 'employeeprofiles_view', 'description' => 'View Employee Profiles'],
-            ['permission_key' => 'evaluateservices_view', 'description' => 'Evaluate Services'],
-            ['permission_key' => 'booking_view', 'description' => 'View and Manage Bookings'],
-            ['permission_key' => 'view_finance_dashboard', 'description' => 'Access Finance Dashboard'],
+            ['permission_key' => 'hrDashboard', 'description' => 'Access the HR Dashboard'],
+            ['permission_key' => 'recentActivities', 'description' => 'View HR Recent Activities'],
+            ['permission_key' => 'employeeProfile', 'description' => 'View Employee Profiles'],
+            ['permission_key' => 'attendanceRecord', 'description' => 'View Attendance Records'],
+            ['permission_key' => 'evaluationResults', 'description' => 'View Evaluation Results of Each Employee'],
+            ['permission_key' => 'applicationTestResult', 'description' => 'View Applicants Test Results'],
+            ['permission_key' => 'archivedProfiles', 'description' => 'View Archived Profiles'],
+            ['permission_key' => 'serviceReports', 'description' => 'View Services Summary Reports'],
         ];
 
         foreach ($permissions as $perm) {

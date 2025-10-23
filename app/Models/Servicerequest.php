@@ -22,7 +22,8 @@ class ServiceRequest extends Model
     // mass assignment
     protected $fillable = [
         'customer_id','address_id','service_date','start_date','end_date','start_time','end_time',
-        'type_of_payment','order_status','payment_status','accomplishment_date','remarks','service_request_number'
+        'type_of_payment','order_status','payment_status','accomplishment_date','remarks',
+        'billing_id','quotation_id','service_request_number','order_total','overall_discount','overall_tax_amount'
     ];
 
     // relationships...

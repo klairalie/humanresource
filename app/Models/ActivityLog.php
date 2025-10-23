@@ -9,7 +9,7 @@ class ActivityLog extends Model
 {
     use HasFactory;
 
-    protected $table = 'activity_logs';
+    protected $table = 'act_logs';
 
     protected $fillable = [
         'action_type',

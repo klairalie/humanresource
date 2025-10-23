@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cache', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->mediumText('value');
-            $table->integer('expiration');
+        Schema::connection('capstone_central')->create('central_sessions', function (Blueprint $table) {
+            $table->string('id', 255)->primary();
+            $table->longText('payload');
+            $table->integer('last_activity');
         });
     }
 
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cache');
+        Schema::connection('capstone_central')->dropIfExists('central_sessions');
     }
 };

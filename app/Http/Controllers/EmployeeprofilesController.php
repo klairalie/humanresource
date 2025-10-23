@@ -7,8 +7,10 @@ use App\Models\Applicant;
 use App\Models\SalaryRate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\Archiveprofile;
+use App\Models\Login;
 use Illuminate\Support\Facades\Auth;
 
 class EmployeeprofilesController extends Controller
@@ -140,34 +142,41 @@ class EmployeeprofilesController extends Controller
     }
 
 
-
-public function deactivate($id, Request $request)
+public function deactivate(Request $request, $employeeprofiles_id)
 {
-    $employee = Employeeprofiles::findOrFail($id);
-   $archivedBy = $request->input('archived_by', 'System'); // gikan sa form or logic nimo
-
-    Archiveprofile::create([
-        'employeeprofiles_id' => $employee->employeeprofiles_id,
-        'status'              => 'deactivated',
-        'reason'              => $request->input('reason'),
-        'email'               => $employee->email,
-        'address'             => $employee->address,
-        'date_of_birth'       => $employee->date_of_birth,
-        'first_name'          => $employee->first_name,
-        'last_name'           => $employee->last_name,
-        'position'            => $employee->position,
-        'contact_number'      => $employee->contact_number,
-        'hire_date'           => $employee->hire_date,
-        'emergency_contact'   => $employee->emergency_contact,
-        'card_Idnumber'       => $employee->card_Idnumber,
-        'archived_at'         => now(),
-        'archived_by'         => $archivedBy,   // ✅ mao ni imo gusto
+    $request->validate([
+        'reason' => 'required|string|max:1000',
     ]);
 
+    $archived_by = session('user_email');
+    $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
+    // dd($employee->first_name);
+
+
+    // // Store employee info into archiveprofiles
+    Archiveprofile::create([
+        'original_employee_id' => $employee->employeeprofiles_id,
+        'first_name' => $employee->first_name,
+        'last_name' => $employee->last_name,
+        'address' => $employee->address,
+        'email' => $employee->email,
+        'position' => $employee->position,
+        'date_of_birth' => $employee->date_of_birth,
+        'contact_number' => $employee->contact_number,
+        'hire_date' => $employee->hire_date,
+        'status' => 'deactivated', // ✅ Always set to "Deactivated"
+        'emergency_contact' => $employee->emergency_contact,
+        'card_Idnumber' => $employee->card_Idnumber,
+        'reason' => $request->reason,
+        'archived_by' => $archived_by,
+        'archived_at' => Carbon::now(),
+        
+    ]);
+
+    // Delete from active employeeprofiles
     $employee->delete();
 
-    return redirect()->back()->with('success', 'Employee archived and deleted successfully!');
+    return redirect()->back()->with('success', 'Employee successfully deactivated and moved to archives.');
 }
 
-  
 }

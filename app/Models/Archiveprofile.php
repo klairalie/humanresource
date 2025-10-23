@@ -5,38 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Archiveprofile extends Model
+class ArchiveProfile extends Model
 {
+    use HasFactory;
 
     protected $table = 'archiveprofiles';
-    protected $primaryKey = 'archiveprofile_id';
+    protected $primaryKey = 'archiveprofiles_id';
 
     protected $fillable = [
-
-        'employeeprofiles_id',
-        'status',
-        'reason',
+     
         'first_name',
         'last_name',
         'address',
         'email',
-        'date_of_birth',
         'position',
+        'date_of_birth',
         'contact_number',
-        'emergency_contact',
         'hire_date',
+        'status',
+        'emergency_contact',
         'card_Idnumber',
-        'archived_at',
+        'reason',
         'archived_by',
-        'reactivated_at',
-        'reactivated_by',
-       
+        'archived_at',
     ];
-    /** @use HasFactory<\Database\Factories\ArchiveprofileFactory> */
-    use HasFactory;
-
-    public function employeeprofiles()
-    {
-        return $this->belongsTo(Employeeprofiles::class, 'employeeprofiles_id', 'employeeprofiles_id');
-    }
 }

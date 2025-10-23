@@ -7,7 +7,11 @@ use PhpOffice\PhpWord\Settings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use App\Models\Employeeprofiles;
+use Illuminate\Support\Facades\Session;
+use App\Session\HybridSessionHandler;
 use App\Observers\EmployeeProfileObserver;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Auth;
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -26,7 +30,12 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             $failedCount = DB::table('failed_jobs')->count();
             $view->with('failedCount', $failedCount);
+
         });
+       Blade::if('authposition', function (...$positions) {
+    $userPosition = session('user_position');
+    return Auth::check() && in_array($userPosition, $positions);
+});
     }
 }
 

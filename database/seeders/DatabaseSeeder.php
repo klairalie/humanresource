@@ -49,33 +49,6 @@ class DatabaseSeeder extends Seeder
         $this->command->info('🏠 Seeding customer addresses...');
         CustomerAddress::factory()->count(25)->create();
 
-        // ❄️ Aircon types
-        $this->command->info('❄️ Seeding aircon types...');
-        AirconType::factory()->count(5)->create();
-
-        // 🧾 Services
-        $this->command->info('🧾 Seeding services...');
-        Services::factory()->count(10)->create();
-
-        // 🧰 Aircon service prices (depends on services + aircon types)
-        $this->command->info('🧰 Seeding aircon service prices...');
-        AirconServicePrice::factory()->count(10)->create();
-
-        // 📅 Service requests
-        $this->command->info('📅 Seeding service requests...');
-        ServiceRequest::factory()->count(30)->create();
-
-        // 🧩 Service request items (need service requests, aircon types, and services)
-        $this->command->info('🧩 Seeding service request items...');
-        ServiceRequestItem::factory()->count(50)->create();
-
-        // 👷 Technician assignments (depends on employeeprofiles + service request items)
-        $this->command->info('👷 Seeding technician assignments...');
-        TechnicianAssignment::factory()->count(20)->create();
-
-        // 💳 Billing and test data (custom structured seeder)
-        $this->command->info('💳 Seeding billing test data...');
-        $this->call(BillingTestDataSeeder::class);
 
         // ✅ Final message
         $this->command->info('✅ All seeders completed successfully.');

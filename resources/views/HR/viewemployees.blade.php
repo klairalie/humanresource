@@ -146,6 +146,7 @@
                                         <form method="POST"
                                             action="{{ route('employee.deactivate', $emp->employeeprofiles_id) }}">
                                             @csrf
+            
                                             <div class="mb-4">
                                                 <label for="reason" class="block text-sm font-medium">
                                                     Reason for Deactivation

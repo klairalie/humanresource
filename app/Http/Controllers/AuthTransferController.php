@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Session;
 use App\Models\PositionPermission;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class AuthTransferController extends Controller
 {
@@ -60,4 +61,72 @@ class AuthTransferController extends Controller
             ]);
         }
     }
+
+ public function visitModule(Request $request)
+{
+    $module = $request->query('module');
+
+    // 🔹 Get main user info
+    $userEmail = session('user_email');
+    $userPosition = session('user_position');
+
+    // 🔹 Acting as logic
+    $actingAs = session('acting_as'); // optional, can be set by Admin
+
+    if (!$userEmail) {
+        // Log unauthorized access attempt
+        DB::table('cross_project_activity_logs')->insert([
+            'email' => 'Unknown',
+            'position' => 'Unknown',
+            'activity' => "Unauthorized attempt to access {$module} module",
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->away('http://login.test');
+    }
+
+    // 🔹 Determine redirect target
+    switch ($module) {
+        case 'hr-dashboard':
+            $target = 'http://Humanresource.test/HR';
+            break;
+        case 'employeeprofiles':
+            $target = 'http://Humanresource.test/Employeeprofiles';
+            break;
+        case 'evaluateservices':
+            $target = 'http://Humanresource.test/evaluateservices';
+            break;
+        case 'booking':
+            $target = 'http://Humanresource.test/Booking';
+            break;
+        case 'finance-dashboard':
+            $target = 'http://Finance.test';
+            break;
+        default:
+            $target = 'http://Capstone-Admin.test/AdminDashboard';
+    }
+
+    // 🔹 Log the visit with acting_as info
+    DB::table('cross_project_activity_logs')->insert([
+        'email' => $userEmail,
+        'position' => $userPosition ?? 'Unknown',
+        'activity' => $actingAs
+            ? "Visited {$module} module acting as {$actingAs}"
+            : "Visited {$module} module",
+        'ip_address' => $request->ip(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // 🔹 Optional: pass acting_as as query param if needed
+    if ($actingAs) {
+        $target .= '?acting_as=' . urlencode($actingAs);
+    }
+
+    return redirect()->away($target);
+}
+
+
 }
