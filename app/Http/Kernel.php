@@ -53,6 +53,8 @@ class Kernel extends HttpKernel
          'auth' => \App\Http\Middleware\Authenticate::class,
     'checkauth' => \App\Http\Middleware\CheckAuth::class,
         'position' => \App\Http\Middleware\CheckPosition::class,
+        'verify.hr.permission' => \App\Http\Middleware\VerifyHRPermission::class,
+        
 
 
 

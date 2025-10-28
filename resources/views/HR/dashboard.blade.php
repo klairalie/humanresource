@@ -4,8 +4,11 @@
     <!-- ==================== TOP STATS GRID ==================== -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         <!-- Number of Employees -->
+
+   
         <a href="{{ route('show.employeeprofiles') }}"
-           class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5 p-4 flex justify-between items-center h-24">
+
+           class="bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5 p-4 flex justify-between items-center h-24">
             <div>
                 <div class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $employeeCount }}</div>
                 <div class="text-xs sm:text-sm font-medium text-gray-600 mt-0.5">Number of Employees</div>
@@ -17,7 +20,7 @@
 
         <!-- Attendance -->
         <div @click="openModal = true"
-             class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5 p-4 flex justify-between items-center h-24 cursor-pointer">
+             class="bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5 p-4 flex justify-between items-center h-24 cursor-pointer">
             <div>
                 <div class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $attendanceCount }}</div>
                 <div class="text-xs sm:text-sm font-medium text-gray-600 mt-0.5">Attendance (In & Out)</div>
@@ -30,23 +33,55 @@
             </div>
         </div>
 
-        <!-- Number of AC Units -->
-        <a href="#"
-           class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5 p-4 flex justify-between items-center h-24">
-            <div>
-                <div class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $acUnitCount ?? '—' }}</div>
-                <div class="text-xs sm:text-sm font-medium text-gray-600 mt-0.5">Number of AC Units</div>
+        <!-- Service Requests Summary Card -->
+<a href="#"
+   class="bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-md transition transform hover:-translate-y-0.5 p-4 flex justify-between items-center h-24">
+
+    <div class="flex flex-col justify-between w-full">
+        <div class="text-gray-600 text-sm font-medium mb-2">Service Requests Overview</div>
+        <div class="flex justify-between w-full">
+            <!-- Completed -->
+            <div class="text-center">
+                <div class="text-lg sm:text-xl font-bold text-green-600">
+                    {{ $statusCounts['Completed'] ?? 0 }}
+                </div>
+                <div class="text-xs text-gray-500">Completed</div>
             </div>
-            <div class="bg-sky-100 text-sky-600 p-2 rounded-lg">
-                <i data-lucide="wind" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+            <!-- In Progress -->
+            <div class="text-center">
+                <div class="text-lg sm:text-xl font-bold text-yellow-600">
+                    {{ $statusCounts['In Progress'] ?? 0 }}
+                </div>
+                <div class="text-xs text-gray-500">In Progress</div>
             </div>
-        </a>
+            <!-- Pending -->
+            <div class="text-center">
+                <div class="text-lg sm:text-xl font-bold text-gray-600">
+                    {{ $statusCounts['Pending'] ?? 0 }}
+                </div>
+                <div class="text-xs text-gray-500">Pending</div>
+            </div>
+            <!-- Rescheduled -->
+            <div class="text-center">
+                <div class="text-lg sm:text-xl font-bold text-red-600">
+                    {{ $statusCounts['Rescheduled'] ?? 0 }}
+                </div>
+                <div class="text-xs text-gray-500">Rescheduled</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-sky-100 text-sky-600 p-2 rounded-lg ml-4">
+        <i data-lucide="layers" class="w-6 h-6"></i>
+    </div>
+</a>
+
     </div>
 
     <!-- ==================== ATTENDANCE MODAL ==================== -->
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
          x-show="openModal" x-cloak>
-        <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl p-4 relative animate-fadeIn">
+        <div class="bg-white w-full max-w-3xl shadow-2xl p-4 relative animate-fadeIn">
             <button @click="openModal = false"
                     class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl font-bold">&times;
             </button>
@@ -86,7 +121,7 @@
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <!-- Overall Forecast -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow p-4 flex flex-col">
+        <div class="bg-white border border-gray-200 shadow p-4 flex flex-col">
             <h3 class="font-bold text-gray-900 mb-2 text-sm sm:text-base">Overall Forecast</h3>
             <div class="flex-1 flex items-center justify-center min-h-[180px]">
                 <canvas id="forecastChart"></canvas>
@@ -123,7 +158,7 @@
         </div>
 
         <!-- Employee Insights -->
-        <div class="bg-white rounded-xl shadow p-4 border border-gray-200">
+        <div class="bg-white shadow p-4 border border-gray-200">
             <h3 class="font-bold mb-2 text-sm sm:text-base">Employee Insights (Last {{ $analysisMonths }} months)</h3>
             <div class="max-h-64 overflow-y-auto space-y-2 text-xs sm:text-sm">
                 @foreach($employeeRecommendations as $emp)
@@ -151,40 +186,122 @@
             </div>
         </div>
 
-        <!-- Attendance Summary -->
-        <div class="bg-white rounded-xl shadow p-4 border border-gray-200">
-            <h2 class="text-sm sm:text-base font-semibold mb-2">Attendance Summary</h2>
-            <div class="min-h-[180px]">
-                <canvas id="attendanceChart"></canvas>
-            </div>
-            <div class="mt-2 flex gap-2 flex-wrap text-xs">
-                <a href="{{ route('attendance.export') }}"
-                   class="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">Export</a>
-            </div>
-        </div>
+<!-- Attendance Summary -->
+<div x-data="{ open: false }" class="bg-white shadow p-4 border border-gray-200">
+    <div class="flex justify-between items-center mb-2">
+        <h2 class="text-sm sm:text-base font-semibold">Attendance Summary</h2>
+        <button 
+            @click="open = true; $nextTick(() => initFullChart())"
+            class="text-xs sm:text-sm text-blue-600 hover:underline"
+        >
+            Full View
+        </button>
+    </div>
 
-        <!-- Service Summary -->
-        <div class="bg-white rounded-xl shadow p-4 border border-gray-200">
-            <h2 class="text-sm sm:text-base font-semibold mb-2">Service Summary</h2>
-            <div class="min-h-[180px]">
-                <canvas id="serviceChart"></canvas>
-            </div>
-            <div class="mt-2 text-xs">
-                <a href="{{ route('services.export') }}"
-                   class="px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700">Export</a>
+    <div class="min-h-[180px]">
+        <canvas id="attendanceChart"></canvas>
+    </div>
+
+    <div class="mt-2 flex gap-2 flex-wrap text-xs">
+        <a href="{{ route('attendance.export') }}"
+           class="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+           Export
+        </a>
+    </div>
+
+    <!-- Full View Modal -->
+    <div 
+        x-show="open" 
+        x-transition 
+        x-cloak
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+        <div 
+            @click.away="open = false"
+            class="bg-white rounded-xl shadow-lg w-11/12 max-w-7xl h-[85vh] p-6 relative"
+        >
+            <button 
+                @click="open = false" 
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-lg font-bold"
+            >
+                ✕
+            </button>
+
+            <h2 class="text-lg font-semibold mb-4">Attendance Summary (Full View)</h2>
+
+            <div class="h-[70vh]">
+                <canvas id="attendanceChartFull"></canvas>
             </div>
         </div>
+    </div>
+</div>
+
+
+
+       <!-- Service Summary -->
+<div x-data="{ open: false }" class="bg-white shadow p-4 border border-gray-200">
+    <div class="flex justify-between items-center mb-2">
+        <h2 class="text-sm sm:text-base font-semibold">Service Summary</h2>
+        <button 
+            @click="open = true; $nextTick(() => initFullServiceChart())"
+            class="text-xs sm:text-sm text-blue-600 hover:underline"
+        >
+            Full View
+        </button>
+    </div>
+
+    <div class="min-h-[180px]">
+        <canvas id="serviceChart"></canvas>
+    </div>
+
+    <div class="mt-2 text-xs flex gap-2 flex-wrap">
+        <a href="{{ route('services.export') }}"
+           class="px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700">
+           Export
+        </a>
+    </div>
+
+    <!-- Full View Modal -->
+    <div 
+        x-show="open" 
+        x-transition 
+        x-cloak
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+        <div 
+            @click.away="open = false"
+            class="bg-white rounded-xl shadow-lg w-11/12 max-w-7xl h-[85vh] p-6 relative"
+        >
+            <button 
+                @click="open = false" 
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-lg font-bold"
+            >
+                ✕
+            </button>
+
+            <h2 class="text-lg font-semibold mb-4">Service Summary (Full View)</h2>
+
+            <div class="h-[70vh]">
+                <canvas id="serviceChartFull"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
     
 
     </div>
 
         <!-- Recent Activities -->
-        <div class="bg-white rounded-xl shadow p-4 border border-gray-200 mt-10 mb-10">
+        <div class="bg-white shadow p-4 border border-gray-200 mt-10 mb-10">
             <div class="flex justify-between items-center mb-2">
                 <h2 class="text-sm sm:text-base font-semibold">Recent Activities</h2>
+
+                @if (in_array(session('user_position'), ['Human resource manager']))
                 <a href="{{ route('recent-activities.index') }}"
                    class="text-xs sm:text-sm text-blue-600 hover:underline font-medium">View All →</a>
+                   @endif
+
             </div>
             <ul id="recentActivities" class="space-y-1 text-xs sm:text-sm text-gray-700 max-h-64 overflow-y-auto pr-2">
                 @forelse($recentActions as $action)
@@ -214,6 +331,8 @@
 <script> lucide.createIcons(); </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
+
 <script>
 /* === Attendance Summary Chart === */
 const attendanceCtx = document.getElementById('attendanceChart')?.getContext('2d');
@@ -235,7 +354,34 @@ if (attendanceCtx) {
         }
     });
 }
+function initFullChart() {
+    const fullCanvas = document.getElementById('attendanceChartFull');
+    if (!fullCanvas) return;
 
+    // Destroy any previous chart to avoid duplicates
+    if (window.fullAttendanceChart) {
+        window.fullAttendanceChart.destroy();
+    }
+
+    const ctxFull = fullCanvas.getContext('2d');
+    window.fullAttendanceChart = new Chart(ctxFull, {
+        type: 'bar',
+        data: {
+            labels: @json($labels),
+            datasets: [{
+                label: 'Attendance Days',
+                data: @json($totals),
+                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
 /* === Service Summary Chart === */
 const serviceCtx = document.getElementById('serviceChart')?.getContext('2d');
 if (serviceCtx) {
@@ -259,7 +405,41 @@ if (serviceCtx) {
         }
     });
 }
+function initFullServiceChart() {
+    const fullCanvas = document.getElementById('serviceChartFull');
+    if (!fullCanvas) return;
 
+    // Destroy any existing chart instance to avoid duplicates
+    if (window.fullServiceChart) {
+        window.fullServiceChart.destroy();
+    }
+
+    const ctxFull = fullCanvas.getContext('2d');
+    window.fullServiceChart = new Chart(ctxFull, {
+        type: 'bar',
+        data: {
+            labels: @json($serviceLabels),
+            datasets: [{
+                label: 'Average Total Score',
+                data: @json($serviceAverages),
+                backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                borderColor: 'rgba(255, 159, 64, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
+                    title: { display: true, text: 'Average Score' } 
+                } 
+            }
+        }
+    });
+}
 /* === Forecast Chart === */
 const forecastData = @json($forecastData);
 const forecastCanvas = document.getElementById('forecastChart');

@@ -2,11 +2,29 @@
     <div class="max-w-5xl mx-auto bg-white p-10 rounded-xl shadow-xl border border-gray-200 mb-20">
         <h1 class="text-3xl font-bold text-black mb-8 border-b pb-4">Edit Employee Profile</h1>
 
+        {{-- Error Handling --}}
         @if ($errors->any())
             <script>
                 @foreach ($errors->all() as $error)
                     alert("{{ $error }}");
                 @endforeach
+            </script>
+        @endif
+
+        SweetAlert Success Message
+        @if (session('success'))
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '{{ session('success') }}',
+                        confirmButtonColor: '#f59e0b',
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                });
             </script>
         @endif
 
@@ -39,21 +57,20 @@
             <!-- Position -->
             <div>
                 <label class="block text-sm font-semibold text-black mb-2">Position</label>
-               <select name="position" id="position"
-    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
-    <option value="">-- Select Position --</option>
-    @foreach ($salaries as $salary)
-        <option value="{{ $salary->position }}"
-            {{ old('position', $employee->position ?? '') == $salary->position ? 'selected' : '' }}
-            data-salary="{{ $salary->salary_rate }}">
-            {{ $salary->position }}
-        </option>
-    @endforeach
-</select>
-
+                <select name="position" id="position"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
+                    <option value="">-- Select Position --</option>
+                    @foreach ($salaries as $salary)
+                        <option value="{{ $salary->position }}"
+                            {{ old('position', $employee->position ?? '') == $salary->position ? 'selected' : '' }}
+                            data-salary="{{ $salary->salary_rate }}">
+                            {{ $salary->position }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
-            <!-- Basic Salary (auto-fetched via relationship) -->
+            <!-- Basic Salary -->
             <div>
                 <label class="block text-sm font-semibold text-black mb-2">Basic Salary</label>
                 <input type="text" id="salary_rate"
@@ -62,7 +79,7 @@
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 focus:ring-amber-500 text-black">
             </div>
 
-            <!-- Live update on position change -->
+            <!-- Update salary automatically when position changes -->
             <script>
                 document.getElementById('position').addEventListener('change', function() {
                     const salary = this.options[this.selectedIndex].dataset.salary;
@@ -106,7 +123,7 @@
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
             </div>
 
-            <!-- Confirm Card ID -->
+            <!-- Confirm Card ID Number -->
             <div>
                 <label class="block text-sm font-semibold text-black mb-2">Confirm Card ID Number</label>
                 <input type="text" id="confirm_card_Idnumber"
@@ -128,6 +145,7 @@
         </form>
     </div>
 
+    <!-- Card ID validation script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const cardInput = document.getElementById('card_Idnumber');

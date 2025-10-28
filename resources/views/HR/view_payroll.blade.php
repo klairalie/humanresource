@@ -79,7 +79,7 @@
                         <th class="px-5 py-3 text-left">Days Worked</th>
                         <th class="px-5 py-3 text-left">Start</th>
                         <th class="px-5 py-3 text-left">End</th>
-                        <th class="px-5 py-3 text-left">Basic Salary</th>
+                        <th class="px-5 py-3 text-left">Salary Rate</th>
                         <th class="px-5 py-3 text-left">Overtime</th>
                         <th class="px-5 py-3 text-left">Deductions</th>
                         <th class="px-5 py-3 text-left">Bonuses</th>
@@ -147,7 +147,7 @@
                                 <td class="px-4 py-2">${record.total_days_of_work}</td>
                                 <td class="px-4 py-2">${record.pay_period_start}</td>
                                 <td class="px-4 py-2">${record.pay_period_end}</td>
-                                <td class="px-4 py-2">${record.basic_salary}</td>
+                                <td class="px-4 py-2">${record.salary_rate}</td>
                                 <td class="px-4 py-2">${record.overtime_pay}</td>
                                 <td class="px-4 py-2">Cash-advance: ${record.deductions}</td>
                                 <td class="px-4 py-2">${record.bonuses}</td>

@@ -1,70 +1,93 @@
 <x-guest-layout>
-    <div class="max-w-4xl mx-auto p-6">
-        <h1 class="text-2xl font-bold text-red-600 mb-6">⚠ Queue Failure Notifications</h1>
+    <div class="max-w-5xl mx-auto p-8">
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-8 border-b pb-4">
+            <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600"></i>
+            <h1 class="text-3xl font-bold text-gray-800">Queue Failure Notifications</h1>
+        </div>
 
-        {{-- Flash messages --}}
+        {{-- Flash Messages --}}
         @if(session('success'))
-            <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
-                ✅ {{ session('success') }}
+            <div class="flex items-center gap-2 bg-green-100 border border-green-300 text-green-700 px-4 py-3 rounded-lg mb-5">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                <span>{{ session('success') }}</span>
             </div>
         @elseif(session('error'))
-            <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
-                ⚠ {{ session('error') }}
+            <div class="flex items-center gap-2 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-5">
+                <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+                <span>{{ session('error') }}</span>
             </div>
         @endif
 
         @if($failedJobs->isEmpty())
-            <div class="bg-green-100 text-green-700 p-4 rounded-lg">
-                ✅ No failed jobs. Everything is running smoothly.
+            <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 p-5 rounded-lg">
+                <i data-lucide="check" class="w-6 h-6"></i>
+                <span class="font-medium">No failed jobs — everything is running smoothly.</span>
             </div>
         @else
-            <div class="flex justify-end space-x-3 mb-6">
-                {{-- Retry all failed jobs --}}
+            <!-- Actions -->
+            <div class="flex justify-end gap-3 mb-6">
+                <!-- Retry All -->
                 <form action="{{ route('queue.retryAll') }}" method="POST">
                     @csrf
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                        🔄 Retry All
+                    <button type="submit"
+                        class="flex items-center gap-2 bg-blue-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-700 shadow-sm transition">
+                        <i data-lucide="rotate-ccw" class="w-5 h-5"></i> Retry All
                     </button>
                 </form>
 
-                {{-- Clear all failed jobs --}}
+                <!-- Clear All -->
                 <form action="{{ route('queue.clearAll') }}" method="POST" onsubmit="return confirm('Clear ALL failed jobs?')">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
-                        🗑 Clear All
+                    <button type="submit"
+                        class="flex items-center gap-2 bg-red-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-red-700 shadow-sm transition">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i> Clear All
                     </button>
                 </form>
             </div>
 
-            <div class="space-y-4">
+            <!-- Failed Jobs List -->
+            <div class="space-y-5">
                 @foreach($failedJobs as $job)
-                    <div class="bg-white shadow rounded-lg p-4 border border-red-300">
-                        <p><strong>ID:</strong> {{ $job->id }}</p>
-                        <p><strong>Queue:</strong> {{ $job->queue }}</p>
-                        <p><strong>Connection:</strong> {{ $job->connection }}</p>
-                        <p><strong>Failed At:</strong> {{ $job->failed_at }}</p>
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="server-crash" class="w-6 h-6 text-red-600"></i>
+                                <h2 class="text-lg font-semibold text-gray-800">Job #{{ $job->id }}</h2>
+                            </div>
+                            <span class="text-sm text-gray-500">Failed: {{ $job->failed_at }}</span>
+                        </div>
 
-                        <details class="mt-2">
-                            <summary class="cursor-pointer text-red-500">Error</summary>
-                            <pre class="bg-gray-100 p-2 rounded text-sm overflow-x-auto">{{ $job->exception }}</pre>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
+                            <p><strong>Queue:</strong> {{ $job->queue }}</p>
+                            <p><strong>Connection:</strong> {{ $job->connection }}</p>
+                        </div>
+
+                        <details class="mt-3 group">
+                            <summary class="cursor-pointer text-red-600 flex items-center gap-1 group-hover:underline">
+                                <i data-lucide="alert-circle" class="w-4 h-4"></i> View Error Details
+                            </summary>
+                            <pre class="bg-gray-50 border border-gray-200 mt-2 p-3 rounded-lg text-sm text-gray-800 overflow-x-auto">{{ $job->exception }}</pre>
                         </details>
 
-                        <div class="flex space-x-3 mt-4">
-                            {{-- Retry this job --}}
+                        <div class="flex gap-3 mt-4">
+                            <!-- Retry -->
                             <form action="{{ route('queue.retry', $job->id) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-                                    🔄 Retry
+                                <button type="submit"
+                                    class="flex items-center gap-2 bg-yellow-500 text-white px-3 py-1.5 rounded-lg hover:bg-yellow-600 shadow-sm transition">
+                                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Retry
                                 </button>
                             </form>
 
-                            {{-- Delete this job --}}
+                            <!-- Delete -->
                             <form action="{{ route('queue.delete', $job->id) }}" method="POST" onsubmit="return confirm('Delete this failed job?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">
-                                    🗑 Delete
+                                <button type="submit"
+                                    class="flex items-center gap-2 bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 shadow-sm transition">
+                                    <i data-lucide="trash" class="w-4 h-4"></i> Delete
                                 </button>
                             </form>
                         </div>
@@ -72,9 +95,16 @@
                 @endforeach
             </div>
 
-            <div class="mt-6">
+            <!-- Pagination -->
+            <div class="mt-8">
                 {{ $failedJobs->links() }}
             </div>
         @endif
     </div>
+
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
 </x-guest-layout>

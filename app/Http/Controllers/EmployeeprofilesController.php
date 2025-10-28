@@ -176,7 +176,7 @@ public function deactivate(Request $request, $employeeprofiles_id)
     // Delete from active employeeprofiles
     $employee->delete();
 
-    return redirect()->back()->with('success', 'Employee successfully deactivated and moved to archives.');
+    return redirect()->route('archived.profiles')->with('success', 'Employee successfully deactivated and moved to archives.');
 }
 
 }

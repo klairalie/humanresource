@@ -56,7 +56,7 @@ class AuthTransferController extends Controller
             return redirect()->away('http://humanresource.test/HR');
 
         } catch (DecryptException | Exception $e) {
-            return redirect()->away('http://login.test')->withErrors([
+            return redirect()->away('https://3RS-ERP.test/3RS/login')->withErrors([
                 'token' => 'Invalid or expired token.',
             ]);
         }
@@ -84,7 +84,7 @@ class AuthTransferController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->away('http://login.test');
+        return redirect()->away('https://3RS-ERP.test/3RS/login');
     }
 
     // 🔹 Determine redirect target

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('base_price', 10, 2)->nullable();
             $table->text('description')->nullable();
             $table->string('image_path')->nullable();
+            $table->string('image')->nullable();
             $table->enum('status', ['active','inactive'])->default('active');
             $table->timestamps();
         });

@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-lg border border-gray-200">
+    <div class="max-w-9xl mx-auto bg-white p-8 rounded-lg shadow-lg border border-gray-200">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800 border-b pb-3">Manage Leave Requests</h1>
             <a href="{{ route('show.attendance') }}"

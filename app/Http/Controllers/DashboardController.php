@@ -46,6 +46,11 @@ class DashboardController extends Controller
         $formattedDate = $selectedDate->format('l, F d Y');
         $failedCount   = DB::table('failed_jobs')->count();
 
+        $statusCounts = DB::table('service_request_items')
+        ->select('status', DB::raw('count(*) as total'))
+        ->groupBy('status')
+        ->pluck('total', 'status');
+      
         // 🔮 Forecasting — using Python
         $monthsAhead = 3;
         try {
@@ -247,6 +252,7 @@ class DashboardController extends Controller
             'userEmail', 
     'userPosition', 
     'allowedPositions',
+    'statusCounts'
         ));
     }
 
@@ -319,6 +325,6 @@ public function exportServices()
         $request->session()->regenerateToken();
 
         // Redirect to external login page
-        return redirect()->away('http://login.test');
+        return redirect()->away('https://3RS-ERP.test/3RS/login');
     }
 }

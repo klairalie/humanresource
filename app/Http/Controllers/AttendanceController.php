@@ -11,41 +11,57 @@ use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
-    public function showAttendance(Request $request)
-    {
-        $query = Attendance::with('employeeprofiles');
+public function showAttendance(Request $request)
+{
+    // Base query
+    $employeesQuery = Employeeprofiles::with(['attendances' => function ($q) {
+        $q->orderBy('date', 'desc');
+    }]);
 
-        // 🔍 Search by name
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->whereHas('employeeprofiles', function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%");
-            });
-        }
-
-        // 🎯 Filter by position
-        if ($request->filled('position')) {
-            $query->whereHas('employeeprofiles', function ($q) use ($request) {
-                $q->where('position', $request->input('position'));
-            });
-        }
-
-        // 📅 Filter by date
-        if ($request->filled('date')) {
-            $query->whereDate('date', $request->input('date'));
-        }
-
-        $attendances = $query->orderBy('date', 'desc')->paginate(20 )->appends($request->query());
-
-        $positions = Employeeprofiles::select('position')
-            ->distinct()
-            ->pluck('position');
-
-        return view('HR.view_attendance', compact('attendances', 'positions'));
+    // Search filter
+    if ($request->filled('search')) {
+        $search = $request->input('search');
+        $employeesQuery->where(function ($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%");
+        });
     }
 
-    
+    // Position filter
+    if ($request->filled('position')) {
+        $employeesQuery->where('position', $request->input('position'));
+    }
+
+    // Paginate
+    $employees = $employeesQuery->paginate(10)->appends($request->query());
+
+    // Get distinct positions for dropdown
+    $positions = Employeeprofiles::select('position')->distinct()->pluck('position');
+
+    // Prepare grouped attendance data (for JSON use)
+    $groupedAttendances = $employees->getCollection()
+        ->mapWithKeys(function ($employee) {
+            $attArr = $employee->attendances->map(function ($a) {
+                return [
+                    'id' => $a->attendance_id, // ✅ use actual PK
+                    'date' => $a->date ? \Carbon\Carbon::parse($a->date)->format('M d, Y') : '-',
+                    'time_in' => $a->time_in ? \Carbon\Carbon::parse($a->time_in)->format('h:i A') : '-',
+                    'time_out' => $a->time_out ? \Carbon\Carbon::parse($a->time_out)->format('h:i A') : '-',
+                    'status' => $a->status ?? '-',
+                ];
+            })->values();
+
+            // ✅ match to correct primary key name
+            return [$employee->employeeprofiles_id => $attArr];
+        })
+        ->toArray();
+
+    return view('HR.view_attendance', compact('employees', 'positions', 'groupedAttendances'));
+}
+
+
+
+
    
 
  public function showLeaverequest()

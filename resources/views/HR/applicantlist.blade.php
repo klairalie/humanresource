@@ -5,13 +5,13 @@
             <h1 class="text-2xl font-bold mb-4 md:mb-0">List of Applicants</h1>
 
             <!-- Search Bar -->
-            <form method="GET" action="" class="flex items-center space-x-2">
+            {{-- <form method="GET" action="" class="flex items-center space-x-2">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search applicants..."
                     class="px-4 py-2 border rounded-lg focus:ring focus:ring-blue-300 text-black">
                 <button type="submit" class="px-4 py-2 bg-blue-500 text-black rounded-lg hover:bg-blue-600">
                     Search
                 </button>
-            </form>
+            </form> --}}
         </div>
 
         <!-- Applicants Table -->

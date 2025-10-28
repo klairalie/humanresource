@@ -35,6 +35,13 @@ Route::get('/auth/verify', [AuthTransferController::class, 'verify'])->name('aut
 //     return view('index');
 // });
 
+// Route::middleware(['verify.hr.permission'])->group(function () {
+//     Route::get('/Employeeprofiles', [EmployeeprofilesController::class, 'index']);
+//     Route::get('/HR/view_attendance', [AttendanceController::class, 'index']);
+//     Route::get('/recent-activities', [DashboardController::class, 'index']);
+//     Route::get('/HR', [DashboardController::class, 'dashboard'])->name('show.dashboard');
+// });
+
 
 Route::middleware(['web', CheckAuth::class])->group(function () {
 Route::controller(DashboardController::class)->group(function () {
@@ -149,27 +156,6 @@ Route::controller(AssessmentTokenController::class)->group(function () {
 });
 
 
-Route::controller(AssessmentQuestionController::class)->group(function () {
-    Route::get('/AssessmentQuestions/viewquestions', 'assessmentView')->name('view.questions');
-    Route::get('/AssessmentQuestions/create', 'create')->name('Questions.create');
-    Route::post('/AssessmentQuestions/store', 'store')->name('Questions.store');
-    Route::delete('/AssessmentQuestions/destroy-all', 'destroyAll')->name('Questions.destroyAll');
-    Route::get('AssessmentQuestions/edit', 'edit')->name('Questions.edit');
-    Route::put('AssessmentQuestions/update/{assessmentQuestion}', 'update')->name('Questions.update');
-});
-
-Route::controller(AssessmentController::class)->group(function () {
-    Route::get('/assessments/create', 'create')->name('assessments.create');
-    Route::post('/assessments/store', 'store')->name('assessments.store');
-    Route::post('/assessment/begin', 'begin')->name('assessment.begin');
-
-    // Change showStartPage → showQuestionnaire
-    Route::get('/assessment/start/{token}', 'showQuestionnaire')->name('assessment.start');
-
-    Route::get('/assessment/questionnaire/{token}', 'showQuestionnaire')->name('assessment.questionnaire');
-    Route::post('/Assessment/assessmentquestionnaire/{token}', 'storeQuestion')->name('question.store');
-    Route::get('/assessment/result/{token}', 'showResult')->name('assessment.result');
-});
 
 Route::controller(InterviewController::class)->group(function () {
 
@@ -238,10 +224,38 @@ Route::controller(BookingController::class)->group(function () {
 Route::get('/editprofile', [ProfileController::class, 'showEditProfile'])->name('show.editprofile');
 Route::put('/editprofile', [ProfileController::class, 'update'])->name('profile.update');
 
+Route::post('/notifications/mark-all-read', function () {
+    session()->forget('notifications'); // optional if stored in session
+    cache()->forget('notifications');   // optional if stored in cache
+    return response()->json(['success' => true]);
+})->name('notifications.markAllRead');
 
+Route::get('/attendance/details/ajax/{employeeprofiles_id}', [AttendanceController::class, 'getEmployeeDetails'])
+    ->name('attendance.details.ajax');
 
 });
 
+Route::controller(AssessmentQuestionController::class)->group(function () {
+    Route::get('/AssessmentQuestions/viewquestions', 'assessmentView')->name('view.questions');
+    Route::get('/AssessmentQuestions/create', 'create')->name('Questions.create');
+    Route::post('/AssessmentQuestions/store', 'store')->name('Questions.store');
+    Route::delete('/AssessmentQuestions/destroy-all', 'destroyAll')->name('Questions.destroyAll');
+    Route::get('AssessmentQuestions/edit', 'edit')->name('Questions.edit');
+    Route::put('AssessmentQuestions/update/{assessmentQuestion}', 'update')->name('Questions.update');
+});
+
+Route::controller(AssessmentController::class)->group(function () {
+    Route::get('/assessments/create', 'create')->name('assessments.create');
+    Route::post('/assessments/store', 'store')->name('assessments.store');
+    Route::post('/assessment/begin', 'begin')->name('assessment.begin');
+
+    // Change showStartPage → showQuestionnaire
+    Route::get('/assessment/start/{token}', 'showQuestionnaire')->name('assessment.start');
+
+    Route::get('/assessment/questionnaire/{token}', 'showQuestionnaire')->name('assessment.questionnaire');
+    Route::post('/Assessment/assessmentquestionnaire/{token}', 'storeQuestion')->name('question.store');
+    Route::get('/assessment/result/{token}', 'showResult')->name('assessment.result');
+});
 
 
 

@@ -178,11 +178,14 @@
         ← Back to Applicants
     </a>
 
+   @if($applicant->applicant_status === 'Reviewed')
     <button 
         onclick="window.print()"
         class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
         Print / Save as PDF
     </button>
+@endif
+
 
     <!-- Schedule Interview Modal -->
     <div 

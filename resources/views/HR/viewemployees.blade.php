@@ -1,36 +1,56 @@
 <x-guest-layout>
     <div class="min-h-screen bg-transparent p-6 text-black">
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if (session('success'))
+    <script>
+        window.addEventListener('load', () => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#f59e0b',
+                timer: 2500,
+                showConfirmButton: false
+            });
+        });
+    </script>
+@endif
+
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <h1 class="text-2xl font-bold mb-4 md:mb-0">Employee Profiles</h1>
             <div class="flex items-center space-x-4">
 
+                @if (in_array(session('user_position'), ['Human resource manager']))
                 <!-- Add Employee -->
                 <a href="{{ route('view.payroll') }}"
-                    class="bg-gray-400 hover:bg-gray-900 text-black px-4 py-2 rounded-full text-md flex items-center justify-center">
+                    class="bg-gray-600 hover:bg-gray-900 text-white px-4 py-2 text-md flex items-center justify-center">
                     Payroll Operation
                 </a>
-
+                
                 <!-- View Archived -->
                 <a href="{{ route('archived.profiles') }}"
-                    class="bg-gray-400 hover:bg-gray-900 text-black px-4 py-2 rounded-full text-md flex items-center justify-center">
+                    class="bg-gray-600 hover:bg-gray-900 text-white px-4 py-2 text-md flex items-center justify-center">
                     View Archived Profiles
                 </a>
+                @endif
             </div>
         </div>
 
         <!-- Employee Table -->
-        <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
+        <div class=" shadow-lg overflow-hidden border border-gray-200">
 
             <!-- Search & Filter inside table container -->
             <div class="p-4 border-b flex items-center space-x-4">
                 <form method="GET" action="" class="flex space-x-2 w-full">
                     <input type="text" name="search" value="{{ request('search') }}"
                         placeholder="Search employee..."
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 w-64 text-black">
+                        class="px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 w-64 text-black">
 
                     <select name="position" onchange="this.form.submit()"
-                        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-black">
+                        class="px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 text-black">
                         <option value="">All Positions</option>
                         <option value="Administrative Manager"
                             {{ request('position') == 'Administrative Manager' ? 'selected' : '' }}>Administrative
@@ -52,7 +72,7 @@
 
             <table class="w-full border-collapse text-black">
                 <thead>
-                    <tr class="bg-gray-200 text-sm uppercase tracking-wide">
+                    <tr class="bg-gray-400 text-sm uppercase tracking-wide">
                         <th class="px-4 py-2 text-left font-semibold w-24">ID No.</th>
                         <th class="px-4 py-2 text-left font-semibold w-1/3">Employee</th>
                         <th class="px-4 py-2 text-center font-semibold w-40">Actions</th>
@@ -113,17 +133,19 @@
 
                                         <!-- Footer -->
                                         <div class="mt-6 flex justify-end space-x-3">
+                                            @if (in_array(session('user_position'), ['Human resource manager']))
                                             <!-- Edit Button -->
                                             <a href="{{ route('show.edit', $emp->employeeprofiles_id) }}"
                                                 class="bg-gray-700 hover:bg-gray-900 text-black px-4 py-2 rounded-lg font-medium transition text-sm">
                                                 Edit
                                             </a>
-
+                                            
                                             <!-- Deactivate Button (triggers reason modal) -->
                                             <button @click="deactivateOpen = true"
                                                 class="bg-red-600 hover:bg-red-700 text-black px-4 py-2 rounded-lg font-medium transition text-sm">
                                                 Deactivate
                                             </button>
+                                            @endif
 
                                             <!-- Close Button -->
                                             <button @click="open = false"

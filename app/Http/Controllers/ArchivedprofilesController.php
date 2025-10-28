@@ -33,7 +33,7 @@ class ArchivedProfilesController extends Controller
             'position'        => $archive->position,
             'hire_date'       => $archive->hire_date,
             'salary'          => $archive->salary,
-            'status'          => 'active', // mark as reactivated
+            'status'          => 'reactivated', // mark as reactivated
         ]);
 
         // Optional: Update the archive record to show it's reactivated

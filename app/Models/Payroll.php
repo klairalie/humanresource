@@ -20,10 +20,11 @@ class Payroll extends Model
         'pay_period',
         'pay_period_start',
         'pay_period_end',
-        'basic_salary', 
+        'salary_rate', 
         'overtime_pay', 
         'deductions',
-        'bonuses',  
+        'bonuses', 
+        'bonus_amount', 
         'status', 
     ];
 
@@ -33,7 +34,7 @@ class Payroll extends Model
      protected $casts = [
         'pay_period_start' => 'date',
         'pay_period_end' => 'date',
-        'basic_salary' => 'decimal:2',
+        'salary_rate' => 'decimal:2',
         'overtime_pay' => 'decimal:2',
         'deductions' => 'decimal:2',
         'net_pay' => 'decimal:2',

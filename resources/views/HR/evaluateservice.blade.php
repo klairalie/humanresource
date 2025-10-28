@@ -2,19 +2,16 @@
     <div class="min-h-screen p-8 text-black">
 
         <!-- ================= HEADER ================= -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-            <h1 class="text-3xl font-semibold tracking-tight">Service Evaluation</h1>
-
-            <div class="flex items-center space-x-3 mt-4 md:mt-0">
-                <input 
-                    type="text" 
-                    placeholder="Search by Date, Service Type, or Technician..." 
-                    class="w-80 px-3 py-2 border border-gray-400 rounded-lg shadow-sm focus:ring-2 focus:ring-gray-600 focus:outline-none text-black placeholder-gray-500"
-                >
-            </div>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4">
+            <h1 class="text-3xl font-bold tracking-tight">Service Evaluation</h1>
+            <input 
+                type="text" 
+                placeholder="Search by Date, Service Type, or Technician..." 
+                class="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-gray-600 focus:outline-none placeholder-gray-500 text-black"
+            >
         </div>
 
-        <!-- ================= SERVICE TABLES ================= -->
+        <!-- ================= SERVICE SECTIONS ================= -->
         @php
             $serviceSections = [
                 ['title' => 'Cleaning Services', 'items' => $cleaningItems],
@@ -24,107 +21,104 @@
         @endphp
 
         @foreach($serviceSections as $section)
-            <div class="mb-12">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-semibold border-l-4 border-gray-700 pl-3">
-                        {{ $section['title'] }}
-                    </h2>
-                </div>
+            <section class="mb-16">
+                <h2 class="text-2xl font-semibold border-l-4 border-gray-700 pl-3 mb-6">
+                    {{ $section['title'] }}
+                </h2>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-300 overflow-hidden">
-                    <table class="w-full border-collapse text-sm text-black">
-                        <thead>
-                            <tr class="bg-gray-100 text-left">
-                                <th class="px-5 py-3 font-semibold">Date</th>
-                                <th class="px-5 py-3 font-semibold">Service Type</th>
-                                <th class="px-5 py-3 font-semibold">Technician</th>
-                                <th class="px-5 py-3 font-semibold">Units</th>
-                                <th class="px-5 py-3 font-semibold">Status</th>
-                                <th class="px-5 py-3 text-center font-semibold">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($section['items'] as $item)
-                                @php
-                                    $statusClasses = [
-                                        'Pending' => 'bg-gray-200 text-gray-800',
-                                        'In Progress' => 'bg-gray-300 text-gray-800',
-                                        'Completed' => 'bg-gray-400 text-white',
-                                        'Rescheduled' => 'bg-gray-300 text-black',
-                                    ];
-                                @endphp
-                                <tr class="border-b hover:bg-gray-50 transition" data-id="{{ $item->item_id }}">
-                                    <td class="px-5 py-3">{{ $item->start_date ?? 'N/A' }}</td>
-                                    <td class="px-5 py-3">{{ $item->service_type ?? $item->service->service_type ?? 'N/A' }}</td>
-                                    <td class="px-5 py-3">{{ $item->technician->full_name ?? 'Unassigned' }}</td>
-                                    <td class="px-5 py-3">{{ $item->quantity ?? 0 }}</td>
-                                    <td class="px-5 py-3">
-                                        <span class="status-badge px-3 py-1 text-xs font-semibold rounded-full {{ $statusClasses[$item->status] ?? 'bg-gray-200 text-gray-800' }}">
+                @if($section['items']->isEmpty())
+                    <p class="text-center text-gray-500 py-6 border border-gray-200 rounded-lg bg-gray-50">
+                        No service reports available.
+                    </p>
+                @else
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        @foreach($section['items'] as $item)
+                            @php
+                                $statusColors = [
+                                    'Pending' => 'bg-gray-200 text-gray-800',
+                                    'In Progress' => 'bg-blue-100 text-blue-800',
+                                    'Completed' => 'bg-green-500 text-white',
+                                    'Rescheduled' => 'bg-yellow-200 text-yellow-800',
+                                ];
+
+                                $leadNames = $item->leadTechnicians->map(fn($t) => "{$t->first_name} {$t->last_name}")->implode(', ') ?: 'Unassigned';
+                                $assistantNames = $item->assistantTechnicians->map(fn($t) => "{$t->first_name} {$t->last_name}")->implode(', ') ?: 'Unassigned';
+                            @endphp
+
+                            <div class="bg-white rounded-2xl shadow-md border border-gray-200 hover:shadow-lg transition flex flex-col justify-between p-6" data-id="{{ $item->item_id }}">
+                                
+                                <!-- Card Header -->
+                                <div>
+                                    <div class="flex justify-between items-start mb-3">
+                                        <h3 class="text-lg font-semibold text-gray-800">
+                                            {{ $item->service_type ?? $item->service->service_type ?? 'N/A' }}
+                                        </h3>
+                                        <span class="status-badge px-3 py-1 text-xs font-semibold rounded-full {{ $statusColors[$item->status] ?? 'bg-gray-200 text-gray-800' }}">
                                             {{ $item->status ?? 'Pending' }}
                                         </span>
-                                    </td>
+                                    </div>
 
-                                    <!-- ================= ACTION COLUMN ================= -->
-                                    <td class="px-5 py-3 text-center">
-                                        @if($item->status === 'Completed')
+                                    <!-- Card Details -->
+                                    <div class="text-sm text-gray-600 space-y-1">
+                                        <p><strong>Date:</strong> {{ $item->start_date ?? 'N/A' }}</p>
+                                        <p><strong>Lead Technician:</strong> {{ $leadNames }}</p>
+                                        <p><strong>Assistant Technician:</strong> {{ $assistantNames }}</p>
+                                        <p><strong>Units:</strong> {{ $item->quantity ?? 0 }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Card Actions -->
+                                <div class="mt-4 flex justify-end">
+                                    @if($item->status === 'Completed')
+                                        <button 
+                                            class="view-summary-btn inline-flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
+                                            data-id="{{ $item->item_id }}">
+                                            <i data-lucide="file-text" class="w-4 h-4 text-gray-200"></i>
+                                            View Details
+                                        </button>
+                                    @else
+                                        <div class="relative">
                                             <button 
-                                                class="view-summary-btn inline-flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
-                                                data-id="{{ $item->item_id }}">
-                                                <i data-lucide="file-text" class="w-4 h-4 text-gray-200"></i>
-                                                View Details
+                                                class="action-toggle inline-flex items-center gap-1 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
+                                                type="button">
+                                                <i data-lucide="settings" class="w-4 h-4"></i>
+                                                Actions
+                                                <i data-lucide="chevron-down" class="w-3 h-3 ml-1"></i>
                                             </button>
-                                        @else
-                                            <div class="flex justify-center items-center">
-                                                <div class="relative group">
-                                                    <button 
-                                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition">
-                                                        <i data-lucide="settings" class="w-4 h-4"></i>
-                                                        Actions
-                                                        <i data-lucide="chevron-down" class="w-3 h-3 ml-1"></i>
-                                                    </button>
 
-                                                    <!-- Dropdown Menu -->
-                                                    <div class="hidden group-hover:block absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-20 text-left animate-fade-in">
-                                                        <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="Completed">
-                                                            <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
-                                                            Mark Completed
-                                                        </button>
-                                                        <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="In Progress">
-                                                            <i data-lucide="play-circle" class="w-4 h-4 text-blue-600"></i>
-                                                            In Progress
-                                                        </button>
-                                                        <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="Rescheduled">
-                                                            <i data-lucide="refresh-cw" class="w-4 h-4 text-yellow-600"></i>
-                                                            Reschedule
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                            <div class="action-menu hidden absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-20 text-left animate-fade-in">
+                                                <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="Completed">
+                                                    <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+                                                    Mark Completed
+                                                </button>
+                                                <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="In Progress">
+                                                    <i data-lucide="play-circle" class="w-4 h-4 text-blue-600"></i>
+                                                    In Progress
+                                                </button>
+                                                <button class="status-btn w-full flex items-center gap-2 px-4 py-2 text-gray-700 text-sm hover:bg-gray-100 transition" data-status="Rescheduled">
+                                                    <i data-lucide="refresh-cw" class="w-4 h-4 text-yellow-600"></i>
+                                                    Reschedule
+                                                </button>
                                             </div>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-gray-500 py-5">
-                                        No service reports available.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                                        </div>
+                                    @endif
+                                </div>
 
-                    <!-- PAGINATION -->
-                    <div class="p-4 bg-gray-50 border-t border-gray-200 mt-10">
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="mt-6">
                         {{ $section['items']->links('pagination::tailwind') }}
                     </div>
-                </div>
-            </div>
+                @endif
+            </section>
         @endforeach
     </div>
 
     <!-- ================= MODAL ================= -->
-    <div id="summaryModal" 
-         class="hidden fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
+    <div id="summaryModal" class="hidden fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 relative transform scale-95 transition-all duration-300 ease-in-out" id="modalBox">
             <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition">✕</button>
 
@@ -147,7 +141,7 @@
         </div>
     </div>
 
-    <!-- ================= ANIMATION STYLE ================= -->
+    <!-- ================= STYLES ================= -->
     <style>
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-4px); }
@@ -155,9 +149,6 @@
         }
         .animate-fade-in {
             animation: fadeIn 0.15s ease-in-out;
-        }
-        .group:hover .group-hover\:block {
-            display: block !important;
         }
     </style>
 
@@ -181,20 +172,33 @@
                 setTimeout(() => modal.classList.add('hidden'), 150);
             }
 
-            // View Details handler
             document.addEventListener('click', async (e) => {
+                if (e.target.closest('.action-toggle')) {
+                    const btn = e.target.closest('.action-toggle');
+                    const menu = btn.nextElementSibling;
+                    menu.classList.toggle('hidden');
+                    return;
+                }
+
+                document.querySelectorAll('.action-menu').forEach(menu => {
+                    if (!menu.contains(e.target) && !e.target.closest('.action-toggle')) {
+                        menu.classList.add('hidden');
+                    }
+                });
+
+                // ✅ View Details Modal
                 if (e.target.closest('.view-summary-btn')) {
                     const id = e.target.closest('.view-summary-btn').dataset.id;
                     try {
                         const response = await fetch(`/service/details/${id}`);
                         const result = await response.json();
-
                         if (result.success && result.data) {
                             const item = result.data;
                             summaryContent.innerHTML = `
                                 <div class="grid grid-cols-2 gap-4">
                                     <p><strong>Service Type:</strong> ${item.service_type}</p>
-                                    <p><strong>Technician:</strong> ${item.technician_name}</p>
+                                    <p><strong>Lead Technician:</strong> {{ $leadNames }}</p>
+                                    <p><strong>Assistant Technician:</strong> {{ $assistantNames }}</p>
                                     <p><strong>Date:</strong> ${item.start_date}</p>
                                     <p><strong>Units:</strong> ${item.quantity}</p>
                                     <p><strong>Status:</strong> ${item.status}</p>
@@ -202,22 +206,20 @@
                                 </div>
                             `;
                             openModal();
-                        } else {
-                            alert('Failed to load service details.');
-                        }
-                    } catch (error) {
-                        console.error(error);
+                        } else alert('Failed to load service details.');
+                    } catch (err) {
+                        console.error(err);
                         alert('Error loading details.');
                     }
                 }
 
-                // STATUS UPDATE
+                // ✅ Update Status
                 if (e.target.closest('.status-btn')) {
                     const btn = e.target.closest('.status-btn');
                     const newStatus = btn.dataset.status;
-                    const row = btn.closest('tr');
-                    const id = row.dataset.id;
-                    const badge = row.querySelector('.status-badge');
+                    const card = btn.closest('[data-id]');
+                    const id = card.dataset.id;
+                    const badge = card.querySelector('.status-badge');
 
                     try {
                         const res = await fetch(`/service/update-status/${id}`, {
@@ -234,17 +236,16 @@
                             badge.textContent = newStatus;
                             badge.className = `status-badge px-3 py-1 text-xs font-semibold rounded-full ${
                                 newStatus === 'Completed'
-                                    ? 'bg-gray-400 text-white'
+                                    ? 'bg-green-500 text-white'
                                     : newStatus === 'In Progress'
-                                    ? 'bg-gray-300 text-gray-800'
+                                    ? 'bg-blue-100 text-blue-800'
                                     : newStatus === 'Rescheduled'
-                                    ? 'bg-gray-300 text-black'
+                                    ? 'bg-yellow-200 text-yellow-800'
                                     : 'bg-gray-200 text-gray-800'
                             }`;
 
-                            // Replace dropdown with View Details button
-                            const actionCell = row.querySelector('td:last-child');
-                            actionCell.innerHTML = `
+                            const actionDiv = card.querySelector('.mt-4');
+                            actionDiv.innerHTML = `
                                 <button 
                                     class="view-summary-btn inline-flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
                                     data-id="${id}">
@@ -252,11 +253,9 @@
                                     View Details
                                 </button>
                             `;
-                        } else {
-                            alert('Failed to update status.');
-                        }
-                    } catch (error) {
-                        console.error(error);
+                        } else alert('Failed to update status.');
+                    } catch (err) {
+                        console.error(err);
                         alert('Error updating status.');
                     }
                 }
