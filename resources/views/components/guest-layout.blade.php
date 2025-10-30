@@ -242,7 +242,7 @@
         <div
             class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
             <i data-lucide="user" class="w-6 h-6 shrink-0"></i>
-            <span x-show="sidebarOpen" x-transition>Manage Employee Profiles</span>
+            <span x-show="sidebarOpen" x-transition>Employees Management</span>
         </div>
     </a>
 @endif
@@ -272,7 +272,7 @@
     <div
         class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
         <i data-lucide="file-text" class="w-6 h-6 shrink-0"></i>
-        <span x-show="sidebarOpen" x-transition>Evaluate Employee Services</span>
+        <span x-show="sidebarOpen" x-transition>Service Requests and Summary</span>
     </div>
 </a>
 @endif

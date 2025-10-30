@@ -58,6 +58,16 @@
                 <p class="text-sm text-gray-500">Track employee presence and schedules.</p>
             </a>
 
+             <!-- Employee Attendance -->
+            <a href="{{ route('resume.form') }}"
+               class="block p-6 bg-gradient-to-br from-orange-50 to-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+                <div class="flex items-center mb-3">
+                    <i data-lucide="user-check" class="w-7 h-7 text-orange-600 mr-2"></i>
+                    <h2 class="font-semibold text-gray-800">Resume Format</h2>
+                </div>
+                <p class="text-sm text-gray-500">Create and Update Company Resume format.</p>
+            </a>
+
             <!-- Edit Profile Info -->
             <a href="{{ route('show.editprofile') }}"
                class="block p-6 bg-gradient-to-br from-pink-50 to-white rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1">

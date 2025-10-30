@@ -41,7 +41,7 @@ return new class extends Migration {
             // Payment & status
             $table->string('type_of_payment')->nullable();
             $table->enum('order_status', ['Pending', 'Ongoing', 'Completed', 'Cancelled'])->default('Pending');
-            $table->enum('payment_status', ['Unpaid', 'Partially Paid', 'Paid', 'Cancelled'])->default('Unpaid');
+            $table->enum('payment_status', ['Unpaid', 'Partially Paid', 'Paid', 'Cancelled', 'Requested'])->default('Unpaid');
             $table->date('accomplishment_date')->nullable();
 
             // Extra info

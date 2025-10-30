@@ -27,7 +27,7 @@
                 <!-- Add Employee -->
                 <a href="{{ route('view.payroll') }}"
                     class="bg-gray-600 hover:bg-gray-900 text-white px-4 py-2 text-md flex items-center justify-center">
-                    Payroll Operation
+                    View Payroll Table
                 </a>
                 
                 <!-- View Archived -->
@@ -75,6 +75,7 @@
                     <tr class="bg-gray-400 text-sm uppercase tracking-wide">
                         <th class="px-4 py-2 text-left font-semibold w-24">ID No.</th>
                         <th class="px-4 py-2 text-left font-semibold w-1/3">Employee</th>
+                        <th class="px-4 py-2 text-left font-semibold w-1/3">Position</th>
                         <th class="px-4 py-2 text-center font-semibold w-40">Actions</th>
                     </tr>
                 </thead>
@@ -83,6 +84,7 @@
                         <tr x-data="{ open: false, deactivateOpen: false }" class="hover:bg-gray-50 transition">
                             <td class="px-4 py-2">{{ $emp->employeeprofiles_id }}</td>
                             <td class="px-4 py-2">{{ $emp->last_name }}, {{ $emp->first_name }}</td>
+                            <td class="px-4 py-2">{{ $emp->position }}</td>
                             <td class="px-4 py-2 text-center">
                                 <button @click="open = true" class="font-medium hover:underline text-black">
                                     View Details
@@ -113,7 +115,8 @@
 
                                             <dt class="font-semibold">Salary Rate:</dt>
                                             <dd class="col-span-2">
-                                                ₱{{ $emp->salary_rates ? number_format($emp->salary_rates->salary_rate, 2) : 'N/A' }}
+                                               ₱{{ $emp->salary_rates ? number_format($emp->salary_rates->salary_rate, 2) : 'N/A' }}
+
                                             </dd>
 
 

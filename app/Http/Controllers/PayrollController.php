@@ -8,7 +8,9 @@ use App\Models\Employeeprofiles;
 use App\Models\Leaveovertimerequest;
 use App\Models\Payroll;
 use App\Models\Deduction;
+use App\Models\SalaryRate;
 use Illuminate\Http\Request;
+use App\Models\OvertimeRequest;
 
 class PayrollController extends Controller
 {
@@ -17,37 +19,99 @@ class PayrollController extends Controller
         $search = $request->input('search');
         $employees = Employeeprofiles::all();
         $payPeriod = $this->getCurrentPayPeriod();
+        $today = now(); // current date
 
         foreach ($employees as $employee) {
-            $salaryRecord = Salaries::whereRaw('TRIM(LOWER(position)) = ?', [strtolower(trim($employee->position))])->first();
-            $basicSalary = $salaryRecord ? $salaryRecord->basic_salary : 0;
+            // ✅ Get daily salary rate
+            $salaryRecord = SalaryRate::whereRaw('TRIM(LOWER(position)) = ?', [strtolower(trim($employee->position))])->first();
+            $salaryRate = $salaryRecord ? $salaryRecord->salary_rate : 0;
 
-            $deduction = Deduction::where('employeeprofiles_id', $employee->employeeprofiles_id)
-                ->whereBetween('deduction_date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
-                ->sum('amount');
-
+            // ✅ Count total days worked
             $totalDaysOfWork = Attendance::where('employeeprofiles_id', $employee->employeeprofiles_id)
                 ->whereBetween('date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
                 ->where('status', 'Out')
                 ->count();
 
-            $overtimePay = 100 * Leaveovertimerequest::where('employeeprofiles_id', $employee->employeeprofiles_id)
-                ->whereBetween('request_date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
-                ->sum('overtime_hours');
+            // ✅ Handle bonuses
+            $bonusAmount = 0;
+            $bonuses = $request->input('bonuses');
 
+            if ($bonuses === '13th Month Pay(Mandatory)') {
+                $year = now()->year;
+                $totalBasicSalary = Payroll::where('employeeprofiles_id', $employee->employeeprofiles_id)
+                    ->whereYear('pay_period_start', $year)
+                    ->sum('basic_salary');
+
+                $bonusAmount = $totalBasicSalary / 12;
+
+                $employee->update([
+                    'bonuses' => '13th Month Pay(Mandatory)',
+                    'bonus_amount' => $bonusAmount,
+                ]);
+            }
+
+            // ✅ Compute basic salary and gross pay
+            $basicSalary = $salaryRate * $totalDaysOfWork;
+            $overtimePay = OvertimeRequest::where('employeeprofiles_id', $employee->employeeprofiles_id)
+                ->where('status', 'Approved')
+                ->whereBetween('approved_date', [$payPeriod['pay_period_start'], $payPeriod['pay_period_end']])
+                ->sum('amount') ?? 0;
+
+            $grossPay = $basicSalary + $overtimePay + $bonusAmount;
+
+            // ✅ Initialize deductions
+            $tax_deduction = 0;
+            $sss_contribution = 0;
+            $philhealth_contribution = 0;
+            $pagibig_contribution = 0;
+            $total_deductions = 0;
+
+            // ✅ Tax threshold ~20,833/month (250k/year)
+            $taxThreshold = 20833;
+
+            if ($basicSalary > $taxThreshold) {
+                // Income Tax (simplified first bracket)
+                $annualGross = $grossPay * 12;
+                $taxableIncome = max(0, $annualGross - 250000);
+                $annualIncomeTax = $taxableIncome * 0.15;
+                $tax_deduction = $annualIncomeTax / 12;
+
+                // SSS 2025 (5% employee)
+                $msc = $grossPay; // approximate MSC 5k–35k
+                $sss_contribution = $msc * 0.05;
+
+                // PhilHealth 2025 (5% split)
+                $philhealth_contribution = ($grossPay * 0.05) / 2;
+
+                // Pag-IBIG (fixed)
+                $pagibig_contribution = 100;
+            }
+
+            $total_deductions = $tax_deduction + $sss_contribution + $philhealth_contribution + $pagibig_contribution;
+
+            // ✅ Check if payroll record already exists
             $existingPayroll = Payroll::where('employeeprofiles_id', $employee->employeeprofiles_id)
                 ->where('pay_period_start', $payPeriod['pay_period_start'])
                 ->where('pay_period_end', $payPeriod['pay_period_end'])
                 ->first();
 
+            // ✅ Create or update payroll record
             if (!$existingPayroll) {
                 Payroll::create([
                     'employeeprofiles_id' => $employee->employeeprofiles_id,
+                    'salary_rate'         => $salaryRate,
                     'basic_salary'        => $basicSalary,
                     'total_days_of_work'  => $totalDaysOfWork,
                     'overtime_pay'        => $overtimePay,
-                    'deductions'          => $deduction,
-                    'bonuses'             => 'none as of the moment',
+                    'gross_pay'           => $grossPay,
+                    'tax_deduction'       => $tax_deduction,
+                    'sss_contribution'    => $sss_contribution,
+                    'philhealth_contribution' => $philhealth_contribution,
+                    'pagibig_contribution'=> $pagibig_contribution,
+                    'deductions'          => $total_deductions,
+                    'bonuses'             => $bonuses ?? 'none',
+                    'bonus_amount'        => $bonusAmount,
+                    'net_pay'             => $grossPay - $total_deductions,
                     'status'              => 'Pending',
                     'pay_period_start'    => $payPeriod['pay_period_start'],
                     'pay_period_end'      => $payPeriod['pay_period_end'],
@@ -55,14 +119,25 @@ class PayrollController extends Controller
                 ]);
             } else {
                 $existingPayroll->update([
-                    'deductions'         => $deduction,
+                    'salary_rate'        => $salaryRate,
                     'basic_salary'       => $basicSalary,
                     'total_days_of_work' => $totalDaysOfWork,
                     'overtime_pay'       => $overtimePay,
+                    'gross_pay'          => $grossPay,
+                    'tax_deduction'      => $tax_deduction,
+                    'sss_contribution'   => $sss_contribution,
+                    'philhealth_contribution' => $philhealth_contribution,
+                    'pagibig_contribution'=> $pagibig_contribution,
+                    'deductions'         => $total_deductions,
+                    'bonuses'            => $bonuses ?? 'none',
+                    'bonus_amount'       => $bonusAmount,
+                    'net_pay'            => $grossPay - $total_deductions,
+                    'status'             => 'Pending',
                 ]);
             }
         }
 
+        // ✅ Search and paginate results
         $payroll = Payroll::with('employeeprofiles')
             ->when($search, function ($query, $search) {
                 $query->whereHas('employeeprofiles', function ($q) use ($search) {
@@ -76,10 +151,7 @@ class PayrollController extends Controller
         return view('HR.view_payroll', compact('payroll', 'search'));
     }
 
-    public function showPayrollform()
-    {
-        return view('HR.payrollform');
-    }
+
 
     private function getCurrentPayPeriod()
     {
@@ -102,76 +174,43 @@ class PayrollController extends Controller
         ];
     }
 
-   public function storePayroll(Request $request)
+public function storePayroll(Request $request)
 {
-    // Validate the request
     $validated = $request->validate([
-        'employeeprofiles_id' => 'required|exists:employeeprofiles,employeeprofiles_id',
-        'total_days_of_work'  => 'required|integer',
-        'basic_salary'        => 'required|numeric',
-        'overtime_pay'        => 'required|numeric',
-        'deductions'          => 'nullable|string',
-        'bonuses'             => 'nullable|string',
-        'pay_period_start'    => 'required|date',
-        'pay_period_end'      => 'required|date',
-        'pay_period'          => 'required|string',
+        'payroll_id' => 'required|exists:payrolls,payroll_id',
+        'bonuses' => 'nullable|string',
+        'bonus_amount' => 'required_with:bonuses|nullable|numeric|min:0',
     ]);
 
-    // Merge defaults and status
-    $data = array_merge($validated, [
-        'deductions' => $validated['deductions'] ?? 'no deduction',
-        'bonuses'    => $validated['bonuses'] ?? 'none as of the moment',
-        'status'     => 'Pending'
+    $payroll = \App\Models\Payroll::findOrFail($validated['payroll_id']);
+
+    if (empty($validated['bonuses'])) {
+        $validated['bonus_amount'] = null;
+    }
+
+    $payroll->update([
+        'bonuses' => $validated['bonuses'],
+        'bonus_amount' => $validated['bonus_amount'],
     ]);
 
-    // Create a new payroll record
-    Payroll::create($data);
-
-    // Return JSON response for AJAX
-    return response()->json([
-        'success' => true,
-        'message' => 'Payroll record stored successfully!'
-    ]);
+    return response()->json(['success' => true]);
 }
+
 
 public function getEmployeePayroll($employeeprofiles_id)
 {
-    $records = Payroll::where('employeeprofiles_id', $employeeprofiles_id)->get();
+    // Retrieve payroll records for the given employee ID
+    $records = Payroll::where('employeeprofiles_id', $employeeprofiles_id)
+        ->with('employeeprofiles')
+        ->orderByDesc('created_at')
+        ->get();
+
+    if ($records->isEmpty()) {
+        return response()->json([], 200); // Return empty array if no data
+    }
+
     return response()->json($records);
 }
 
-// public function updatePayroll(Request $request, $payroll_id)
-// {
-//     $validated = $request->validate([
-//         'total_days_of_work'  => 'required|integer',
-//         'basic_salary'        => 'required|numeric',
-//         'overtime_pay'        => 'required|numeric',
-//         'deductions'          => 'nullable|string',
-//         'bonuses'             => 'nullable|string',
-//         'pay_period_start'    => 'required|date',
-//         'pay_period_end'      => 'required|date',
-//         'pay_period'          => 'required|string',
-//     ]);
-
-//     $payroll = Payroll::findOrFail($payroll_id);
-
-//     $payroll->update([
-//         'total_days_of_work' => $validated['total_days_of_work'],
-//         'basic_salary'       => $validated['basic_salary'],
-//         'overtime_pay'       => $validated['overtime_pay'],
-//         'deductions'         => $validated['deductions'] ?? 'no deduction',
-//         'bonuses'            => $validated['bonuses'] ?? 'none as of the moment',
-//         'pay_period_start'   => $validated['pay_period_start'],
-//         'pay_period_end'     => $validated['pay_period_end'],
-//         'pay_period'         => $validated['pay_period'],
-//         'status'             => 'Updated',
-//     ]);
-
-//     return response()->json([
-//         'success' => true,
-//         'message' => 'Payroll record updated successfully!',
-//         'updated_record' => $payroll
-//     ]);
-// }
 
 }

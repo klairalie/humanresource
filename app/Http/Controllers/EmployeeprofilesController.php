@@ -41,7 +41,7 @@ class EmployeeprofilesController extends Controller
         }
 
         // Fetch all active employees with their salary info
-        $employee = Employeeprofiles::with('salary')
+        $employee = Employeeprofiles::with('salary_rates')
             ->whereIn('status', ['active', 'reactivated'])
             ->when(request('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {

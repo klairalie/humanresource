@@ -16,10 +16,10 @@ class AttendanceFactory extends Factory
         $employee = Employeeprofiles::inRandomOrder()->first();
 
         return [
-            'date' => fake()->dateTimeBetween('2025-01-01', '2025-09-30')->format('Y-m-d'),
+            'date' => fake()->dateTimeBetween('2025-01-01', '2025-10-29')->format('Y-m-d'),
             'time_in' => fake()->time('H:i:s'),
             'time_out' => fake()->time('H:i:s'),
-            'status' => fake()->randomElement(['Absent', 'Present']),
+            'status' => fake()->randomElement(['Absent', 'Out']),
             'employeeprofiles_id' => $employee->employeeprofiles_id,
         ];
     }

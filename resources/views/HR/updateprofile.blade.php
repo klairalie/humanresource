@@ -70,9 +70,9 @@
                 </select>
             </div>
 
-            <!-- Basic Salary -->
+            <!-- Salary Rate -->
             <div>
-                <label class="block text-sm font-semibold text-black mb-2">Basic Salary</label>
+                <label class="block text-sm font-semibold text-black mb-2">Salary Rate</label>
                 <input type="text" id="salary_rate"
                        value="{{ $employee->salary_rates?->salary_rate ?? '' }}"
                        readonly

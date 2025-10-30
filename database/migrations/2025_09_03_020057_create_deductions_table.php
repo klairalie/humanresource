@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('deductions', function (Blueprint $table) {
-            $table->id('deduction_id');
-            $table->foreignId('employeeprofiles_id')->constrained('employeeprofiles', 'employeeprofiles_id')->onDelete('cascade');
+        Schema::create('deduction_types', function (Blueprint $table) {
+            $table->id('deductiontype_id');
             $table->string('deduction_type');
-            $table->decimal('partial_payment',10, 2)->nullable();
             $table->decimal('amount', 10, 2);
-            $table->date('deduction_date'); 
-            $table->date('partialpay_date')->nullable();
             $table->timestamps();
         });
     }

@@ -146,7 +146,7 @@ public function showAttendance(Request $request)
                 'updated_at' => Carbon::now(),
             ]);
 
-        return redirect()->route('overtime.index')->with('success', 'Overtime request approved successfully.');
+        return redirect()->route('show.overtime')->with('success', 'Overtime request approved successfully.');
     }
 
     // ❌ Reject overtime request
@@ -159,6 +159,6 @@ public function showAttendance(Request $request)
                 'updated_at' => Carbon::now(),
             ]);
 
-        return redirect()->route('overtime.index')->with('error', 'Overtime request rejected.');
+        return redirect()->route('show.overtime')->with('error', 'Overtime request rejected.');
     }
 }

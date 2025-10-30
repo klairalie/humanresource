@@ -325,6 +325,6 @@ public function exportServices()
         $request->session()->regenerateToken();
 
         // Redirect to external login page
-        return redirect()->away('https://3RS-ERP.test/3RS/login');
+        return redirect()->away('https://3RS-ERP.test/login');
     }
 }

@@ -49,7 +49,7 @@ return new class extends Migration {
                   ->nullOnDelete()
                   ->cascadeOnUpdate();
 
-            $table->enum('status', ['Pending', 'In Progress', 'Completed', 'Rescheduled'])->default('Pending');
+            $table->enum('status', ['Pending', 'In Progress', 'Completed', 'Rescheduled','Requested'])->default('Pending');
 
             // Billing flags
             $table->boolean('bill_separately')->default(false);

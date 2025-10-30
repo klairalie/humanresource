@@ -56,7 +56,7 @@ class AuthTransferController extends Controller
             return redirect()->away('http://humanresource.test/HR');
 
         } catch (DecryptException | Exception $e) {
-            return redirect()->away('https://3RS-ERP.test/3RS/login')->withErrors([
+            return redirect()->away('https://3RS-ERP.test/login')->withErrors([
                 'token' => 'Invalid or expired token.',
             ]);
         }
@@ -84,7 +84,7 @@ class AuthTransferController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->away('https://3RS-ERP.test/3RS/login');
+        return redirect()->away('https://3RS-ERP.test/login');
     }
 
     // 🔹 Determine redirect target
@@ -102,7 +102,7 @@ class AuthTransferController extends Controller
             $target = 'http://Humanresource.test/Booking';
             break;
         case 'finance-dashboard':
-            $target = 'http://Finance.test';
+            $target = 'http://Capstone-Finance.test/finance';
             break;
         default:
             $target = 'http://Capstone-Admin.test/AdminDashboard';

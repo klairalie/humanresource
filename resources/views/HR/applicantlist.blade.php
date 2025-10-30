@@ -3,15 +3,6 @@
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <h1 class="text-2xl font-bold mb-4 md:mb-0">List of Applicants</h1>
-
-            <!-- Search Bar -->
-            {{-- <form method="GET" action="" class="flex items-center space-x-2">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search applicants..."
-                    class="px-4 py-2 border rounded-lg focus:ring focus:ring-blue-300 text-black">
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-black rounded-lg hover:bg-blue-600">
-                    Search
-                </button>
-            </form> --}}
         </div>
 
         <!-- Applicants Table -->
@@ -229,9 +220,17 @@
 
                     <p class="mb-2"><strong>Attachments:</strong></p>
                     <ul class="list-disc pl-6">
-                        <li class="mb-1"><a :href="'/storage/' + applicant.resume_file" target="_blank" class="text-black hover:underline">Resume</a></li>
-                        <li class="mb-1"><a :href="'/storage/' + applicant.good_moral_file" target="_blank" class="text-black hover:underline">Good Moral</a></li>
-                        <li class="mb-1"><a :href="'/storage/' + applicant.coe_file" target="_blank" class="text-black hover:underline">Certificate of Employment</a></li>
+                       <li class="mb-1">
+<li class="mb-1">
+  <a :href="applicant.resume_file" target="_blank" class="text-black hover:underline">Resume</a>
+</li>
+<li class="mb-1">
+  <a :href="applicant.good_moral_file" target="_blank" class="text-black hover:underline">Good Moral</a>
+</li>
+<li class="mb-1">
+  <a :href="applicant.coe_file" target="_blank" class="text-black hover:underline">Certificate of Employment</a>
+</li>
+
                     </ul>
                 </div>
 
