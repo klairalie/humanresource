@@ -19,7 +19,7 @@ class CheckAuth
                 'permissions' => $payload["permissions"] ?? [],
             ]);
             }catch(\Exception $e){
-                return redirect()->away('https://3RS-ERP.test/login');
+                return redirect()->away('http://3RS-ERP.test/login');
 
             }
         }
@@ -52,7 +52,7 @@ class CheckAuth
         }
 
         if (!$userEmail || !$userPosition) {
-            return redirect()->away('https://3RS-ERP.test/login');
+            return redirect()->away('http://3RS-ERP.test/login');
         }
 
         return $next($request);

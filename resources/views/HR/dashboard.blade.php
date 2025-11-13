@@ -95,22 +95,29 @@
                             <th class="px-2 py-2 text-left font-semibold">Employee</th>
                             <th class="px-2 py-2 text-left font-semibold">Time In</th>
                             <th class="px-2 py-2 text-left font-semibold">Time Out</th>
+                            <th class="px-2 py-2 text-left font-semibold"> Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($attendances as $attendance)
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-2 py-1 border-t">
-                                    {{ $attendance->employeeprofiles->first_name }} {{ $attendance->employeeprofiles->last_name }}
-                                </td>
-                                <td class="px-2 py-1 border-t">
-                                    {{ $attendance->time_in ? \Carbon\Carbon::parse($attendance->time_in)->format('h:i A') : '—' }}
-                                </td>
-                                <td class="px-2 py-1 border-t">
-                                    {{ $attendance->time_out ? \Carbon\Carbon::parse($attendance->time_out)->format('h:i A') : 'Pending' }}
-                                </td>
-                            </tr>
-                        @endforeach
+                       <tbody>
+    @foreach ($attendances as $attendance)
+        <tr class="hover:bg-gray-50 transition">
+            <td class="px-2 py-1 border-t">
+                {{ $attendance->employeeprofiles ? $attendance->employeeprofiles->first_name . ' ' . $attendance->employeeprofiles->last_name : '—' }}
+            </td>
+            <td class="px-2 py-1 border-t">
+                {{ $attendance->time_in ? \Carbon\Carbon::parse($attendance->time_in)->format('h:i A') : '—' }}
+            </td>
+            <td class="px-2 py-1 border-t">
+                {{ $attendance->time_out ? \Carbon\Carbon::parse($attendance->time_out)->format('h:i A') : '—' }}
+            </td>
+            <td class="px-2 py-1 border-t">
+                {{ $attendance->status ?? '—' }}
+            </td>
+        </tr>
+    @endforeach
+</tbody>
+
                     </tbody>
                 </table>
             </div>
@@ -324,6 +331,7 @@
                 @endforelse
             </ul>
         </div>
+        
 </div>
 
 <!-- Scripts -->

@@ -3,7 +3,9 @@
 
         <!-- ================= HEADER ================= -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4">
-            <h1 class="text-3xl font-bold tracking-tight">Service Requests and Summary</h1>
+            <h1 class="text-3xl font-extrabold mb-4 md:mb-0 tracking-wide text-black flex items-center gap-2">
+                Service Requests and Summary
+            </h1>
             <input 
                 type="text" 
                 placeholder="Search by Date, Service Type, or Technician..." 
@@ -43,6 +45,8 @@
 
                                 $leadNames = $item->leadTechnicians->map(fn($t) => "{$t->first_name} {$t->last_name}")->implode(', ') ?: 'Unassigned';
                                 $assistantNames = $item->assistantTechnicians->map(fn($t) => "{$t->first_name} {$t->last_name}")->implode(', ') ?: 'Unassigned';
+
+                                $isUnassigned = ($leadNames === 'Unassigned' && $assistantNames === 'Unassigned');
                             @endphp
 
                             <div class="bg-white rounded-2xl shadow-md border border-gray-200 hover:shadow-lg transition flex flex-col justify-between p-6" data-id="{{ $item->item_id }}">
@@ -76,7 +80,27 @@
                                             <i data-lucide="file-text" class="w-4 h-4 text-gray-200"></i>
                                             View Details
                                         </button>
+
+                                    @elseif($item->status === 'Rescheduled')
+                                        <!-- Disabled Action Button -->
+                                        <button 
+                                            class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-400 text-white text-xs font-medium rounded-md cursor-not-allowed opacity-70"
+                                            disabled>
+                                            <i data-lucide="settings" class="w-4 h-4"></i>
+                                            Actions Disabled
+                                        </button>
+
+                                    @elseif($isUnassigned)
+                                        <!-- Disabled if no technicians assigned -->
+                                        <button 
+                                            class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-400 text-white text-xs font-medium rounded-md cursor-not-allowed opacity-70"
+                                            disabled>
+                                            <i data-lucide="user-x" class="w-4 h-4"></i>
+                                            No Technicians Assigned
+                                        </button>
+
                                     @else
+                                        <!-- Active Action Menu -->
                                         <div class="relative">
                                             <button 
                                                 class="action-toggle inline-flex items-center gap-1 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
@@ -103,7 +127,6 @@
                                         </div>
                                     @endif
                                 </div>
-
                             </div>
                         @endforeach
                     </div>
@@ -152,6 +175,9 @@
         }
     </style>
 
+    <!-- ================= SWEETALERT2 ================= -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- ================= SCRIPT ================= -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -173,6 +199,7 @@
             }
 
             document.addEventListener('click', async (e) => {
+                // Toggle dropdown
                 if (e.target.closest('.action-toggle')) {
                     const btn = e.target.closest('.action-toggle');
                     const menu = btn.nextElementSibling;
@@ -180,13 +207,14 @@
                     return;
                 }
 
+                // Close other menus
                 document.querySelectorAll('.action-menu').forEach(menu => {
                     if (!menu.contains(e.target) && !e.target.closest('.action-toggle')) {
                         menu.classList.add('hidden');
                     }
                 });
 
-                // ✅ View Details Modal
+                // View Details Modal
                 if (e.target.closest('.view-summary-btn')) {
                     const id = e.target.closest('.view-summary-btn').dataset.id;
                     try {
@@ -197,8 +225,8 @@
                             summaryContent.innerHTML = `
                                 <div class="grid grid-cols-2 gap-4">
                                     <p><strong>Service Type:</strong> ${item.service_type}</p>
-                                    <p><strong>Lead Technician:</strong> {{ $leadNames }}</p>
-                                    <p><strong>Assistant Technician:</strong> {{ $assistantNames }}</p>
+                                    <p><strong>Lead Technician:</strong> ${item.lead_technician}</p>
+                                    <p><strong>Assistant Technician:</strong> ${item.assistant_technician}</p>
                                     <p><strong>Date:</strong> ${item.start_date}</p>
                                     <p><strong>Units:</strong> ${item.quantity}</p>
                                     <p><strong>Status:</strong> ${item.status}</p>
@@ -206,14 +234,16 @@
                                 </div>
                             `;
                             openModal();
-                        } else alert('Failed to load service details.');
+                        } else {
+                            Swal.fire('Error', 'Failed to load service details.', 'error');
+                        }
                     } catch (err) {
                         console.error(err);
-                        alert('Error loading details.');
+                        Swal.fire('Error', 'An unexpected error occurred.', 'error');
                     }
                 }
 
-                // ✅ Update Status
+                // Update Status (with confirmation)
                 if (e.target.closest('.status-btn')) {
                     const btn = e.target.closest('.status-btn');
                     const newStatus = btn.dataset.status;
@@ -221,43 +251,70 @@
                     const id = card.dataset.id;
                     const badge = card.querySelector('.status-badge');
 
-                    try {
-                        const res = await fetch(`/service/update-status/${id}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            },
-                            body: JSON.stringify({ status: newStatus }),
-                        });
-                        const data = await res.json();
+                    Swal.fire({
+                        title: `Are you sure?`,
+                        text: `Change status to "${newStatus}"?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, update it',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#111827',
+                        cancelButtonColor: '#6B7280',
+                        reverseButtons: true,
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            try {
+                                const res = await fetch(`/service/update-status/${id}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    },
+                                    body: JSON.stringify({ status: newStatus }),
+                                });
 
-                        if (data.success) {
-                            badge.textContent = newStatus;
-                            badge.className = `status-badge px-3 py-1 text-xs font-semibold rounded-full ${
-                                newStatus === 'Completed'
-                                    ? 'bg-green-500 text-white'
-                                    : newStatus === 'In Progress'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : newStatus === 'Rescheduled'
-                                    ? 'bg-yellow-200 text-yellow-800'
-                                    : 'bg-gray-200 text-gray-800'
-                            }`;
+                                const data = await res.json();
 
-                            const actionDiv = card.querySelector('.mt-4');
-                            actionDiv.innerHTML = `
-                                <button 
-                                    class="view-summary-btn inline-flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
-                                    data-id="${id}">
-                                    <i data-lucide="file-text" class="w-4 h-4 text-gray-200"></i>
-                                    View Details
-                                </button>
-                            `;
-                        } else alert('Failed to update status.');
-                    } catch (err) {
-                        console.error(err);
-                        alert('Error updating status.');
-                    }
+                                if (data.success) {
+                                    badge.textContent = newStatus;
+                                    badge.className = `status-badge px-3 py-1 text-xs font-semibold rounded-full ${
+                                        newStatus === 'Completed'
+                                            ? 'bg-green-500 text-white'
+                                            : newStatus === 'In Progress'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : newStatus === 'Rescheduled'
+                                            ? 'bg-yellow-200 text-yellow-800'
+                                            : 'bg-gray-200 text-gray-800'
+                                    }`;
+
+                                    const actionDiv = card.querySelector('.mt-4');
+                                    if (newStatus === 'Completed') {
+                                        actionDiv.innerHTML = `
+                                            <button 
+                                                class="view-summary-btn inline-flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
+                                                data-id="${id}">
+                                                <i data-lucide="file-text" class="w-4 h-4 text-gray-200"></i>
+                                                View Details
+                                            </button>
+                                        `;
+                                    }
+
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Updated!',
+                                        text: `Status changed to "${newStatus}" successfully.`,
+                                        timer: 2000,
+                                        showConfirmButton: false,
+                                    });
+                                } else {
+                                    Swal.fire('Failed!', data.message || 'Failed to update status.', 'error');
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                Swal.fire('Error!', 'An error occurred while updating status.', 'error');
+                            }
+                        }
+                    });
                 }
             });
         });

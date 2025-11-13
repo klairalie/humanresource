@@ -18,14 +18,7 @@
                             <td class="px-6 py-4 text-black font-medium">{{ $log->action_type }}</td>
                             <td class="px-6 py-4 text-black">{{ $log->created_at->format('F d, Y') }}</td>
                             <td class="px-6 py-4 text-black">{{ $log->created_at->format('h:i A') }}</td>
-                            <td class="px-6 py-4 text-black">
-                                @if($log->employeeprofiles)
-                                    {{ $log->employeeprofiles->first_name }} {{ $log->employeeprofiles->last_name }}
-                                @elseif($log->applicant)
-                                    {{ $log->applicant->first_name }} {{ $log->applicant->last_name }}
-                                @else
-                                    System
-                                @endif
+                            <td class="px-6 py-4 text-black">{{ $log->email }}
                             </td>
                         </tr>
                     @empty

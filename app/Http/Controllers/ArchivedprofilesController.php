@@ -11,7 +11,7 @@ class ArchivedProfilesController extends Controller
 
     public function showArchivedProfiles()
     {
-        $archives = DB::table('archiveprofiles')->orderBy('archived_at','desc')->get();
+        $archives = DB::table('archiveprofiles')->orderBy('archived_at','desc')->paginate(10);
         return view('HR.archivedprofiles', compact('archives'));
     }
 

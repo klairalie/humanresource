@@ -10,14 +10,14 @@ class ActivityLog extends Model
     use HasFactory;
 
     protected $table = 'act_logs';
+    protected $primaryKey = 'activity_log_id';
 
     protected $fillable = [
         'action_type',
-        'employeeprofiles_id',
-        'applicant_id',
+        'email',
         'description',
+        'action_date',
     ];
-
     // For employee logs
     public function employeeprofiles()
     {
@@ -28,5 +28,9 @@ class ActivityLog extends Model
     public function applicant()
     {
         return $this->belongsTo(Applicant::class, 'applicant_id');
+    }
+
+    public function servicerequestitem(){
+        return $this->belongsTo(ServiceRequestItem::class, 'item_id');
     }
 }

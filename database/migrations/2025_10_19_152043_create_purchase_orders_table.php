@@ -17,7 +17,8 @@ return new class extends Migration {
             $table->json('items')->nullable(); // unit/parts ordered
             $table->unsignedBigInteger('created_by')->nullable(); // admin_id
             $table->timestamps();
-
+            $table->unsignedBigInteger('ap_id')->nullable();
+            $table->foreign('ap_id')->references('ap_id')->on('accounts_payable')->cascadeOnDelete();
             $table->foreign('supplier_id')->references('supplier_id')->on('suppliers');
             $table->foreign('service_request_item_id')->references('item_id')->on('service_request_items');
             $table->foreign('created_by')->references('admin_id')->on('administrativeaccounts');

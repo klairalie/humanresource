@@ -16,7 +16,7 @@ return new class extends Migration
                 $table->date('payment_date');
                 $table->enum('payment_method', ['Cash','Bank Transfer','GCash','Check','Other']);
                 $table->string('reference_number')->nullable();
-                $table->enum('status', ['Pending','Paid','Cancelled'])->default('Pending');
+                $table->enum('status', ['Pending', 'Released'])->default('Pending');
                 $table->timestamps();
                 $table->index(['employeeprofiles_id','status']);
             });

@@ -4,7 +4,6 @@ namespace App\Observers;
 
 use App\Models\Employeeprofiles;
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Auth;
 
 class EmployeeProfileObserver
 {
@@ -12,15 +11,15 @@ class EmployeeProfileObserver
     {
         ActivityLog::create([
             'action_type' => 'New Employee Added',
-            'employeeprofiles_id' => session('employeeprofiles_id') ?? Auth::user()->employeeprofiles_id ?? null,
-            'description' => "Added new employee: {$employee->first_name} {$employee->last_name}"
+            'email' => session('user_email') ?? 'user@example.com', // permanently stored in DB
+            'description' => "Added new employee: {$employee->first_name} {$employee->last_name}",
         ]);
     }
 
     public function updated(Employeeprofiles $employee)
     {
-        $actorId = session('employeeprofiles_id') ?? Auth::user()->employeeprofiles_id ?? null;
-
+        $actorEmail = session('user_email') ?? 'user@example.com';
+   
         // Check if 'status' column changed
         if ($employee->isDirty('status')) {
             $oldStatus = $employee->getOriginal('status');
@@ -29,28 +28,28 @@ class EmployeeProfileObserver
             if ($newStatus === 'active') {
                 ActivityLog::create([
                     'action_type' => 'Employee Reactivated',
-                    'employeeprofiles_id' => $actorId,
-                    'description' => "Reactivated employee: {$employee->first_name} {$employee->last_name}"
+                    'email' => $actorEmail,
+                    'description' => "Reactivated employee: {$employee->first_name} {$employee->last_name}",
                 ]);
             } elseif ($newStatus === 'inactive') {
                 ActivityLog::create([
                     'action_type' => 'Employee Deactivated',
-                    'employeeprofiles_id' => $actorId,
-                    'description' => "Deactivated employee: {$employee->first_name} {$employee->last_name}"
+                    'email' => $actorEmail,
+                    'description' => "Deactivated employee: {$employee->first_name} {$employee->last_name}",
                 ]);
             } else {
                 ActivityLog::create([
                     'action_type' => 'Employee Status Changed',
-                    'employeeprofiles_id' => $actorId,
-                    'description' => "Changed status of {$employee->first_name} {$employee->last_name} from '{$oldStatus}' to '{$newStatus}'."
+                    'email' => $actorEmail,
+                    'description' => "Changed status of {$employee->first_name} {$employee->last_name} from '{$oldStatus}' to '{$newStatus}'.",
                 ]);
             }
         } else {
-            // Log normal updates
+            // Log regular updates
             ActivityLog::create([
                 'action_type' => 'Employee Updated',
-                'employeeprofiles_id' => $actorId,
-                'description' => "Updated employee: {$employee->first_name} {$employee->last_name}"
+                'email' => $actorEmail,
+                'description' => "Updated employee: {$employee->first_name} {$employee->last_name}",
             ]);
         }
     }
@@ -59,17 +58,17 @@ class EmployeeProfileObserver
     {
         ActivityLog::create([
             'action_type' => 'Employee Deleted',
-            'employeeprofiles_id' => session('employeeprofiles_id') ?? Auth::user()->employeeprofiles_id ?? null,
-            'description' => "Deleted employee: {$employee->first_name} {$employee->last_name}"
+            'email' => session('user_email') ?? 'user@example.com',
+            'description' => "Deleted employee: {$employee->first_name} {$employee->last_name}",
         ]);
     }
 
     public function restored(Employeeprofiles $employee)
     {
         ActivityLog::create([
-            'action_type' => 'Employee Restored',
-            'employeeprofiles_id' => session('employeeprofiles_id') ?? Auth::user()->employeeprofiles_id ?? null,
-            'description' => "Restored employee: {$employee->first_name} {$employee->last_name}"
+            'action_type' => 'Employee Reactivated', // or 'Employee Restored'
+            'email' => session('user_email') ?? 'user@example.com',
+            'description' => "Restored employee: {$employee->first_name} {$employee->last_name}",
         ]);
     }
 
@@ -77,8 +76,8 @@ class EmployeeProfileObserver
     {
         ActivityLog::create([
             'action_type' => 'Employee Deactivated',
-            'employeeprofiles_id' => session('employeeprofiles_id') ?? Auth::user()->employeeprofiles_id ?? null,
-            'description' => "Deactivated employee: {$employee->first_name} {$employee->last_name}"
+            'email' => session('user_email') ?? 'user@example.com',
+            'description' => "Deactivated employee: {$employee->first_name} {$employee->last_name}",
         ]);
     }
 }

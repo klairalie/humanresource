@@ -144,6 +144,7 @@
     @endif
     </div>
 
+
     <!-- Profile Dropdown -->
     <div x-data="{ open: false }" class="relative">
         <div @click="open = !open" class="flex items-center space-x-2 cursor-pointer select-none">
@@ -190,105 +191,103 @@
 
     <div class="h-full w-full flex pt-15 bg-[#F4F7FA] text-white">
 
-        <!-- Sidebar -->
-        <div x-cloak @mouseenter="sidebarOpen = true" @mouseleave="sidebarOpen = false"
-            class="group bg-gradient-to-b from-[#e65c33] to-[#b53d20] p-4 shadow-md flex flex-col space-y-4 fixed top-14 left-0 bottom-0 z-30 transition-all duration-300 ease-in-out"
-            :class="sidebarOpen ? 'w-64' : 'w-20'">
-            <div class="flex-1 p-2 space-y-9 mt-10">
+    <!-- Sidebar -->
+    <div x-cloak 
+         @mouseenter="sidebarOpen = true" 
+         @mouseleave="sidebarOpen = false"
+         class="group bg-gradient-to-b from-[#e65c33] to-[#b53d20] p-4 shadow-md flex flex-col space-y-4 fixed top-14 left-0 bottom-0 z-30 transition-all duration-300 ease-in-out"
+         :class="sidebarOpen ? 'w-64' : 'w-20'">
+
+       <!-- Sidebar Header -->
+<div class="flex items-center justify-center space-x-2 mt-17 mb-18 pb-5 border-b border-black">
+    <i data-lucide="briefcase" class="w-8 h-10 text-white "></i>
+    <h4 class="logo-text text-center font-bold text-xl" x-show="sidebarOpen" x-transition>
+        Human Resource
+    </h4>
+</div>
 
 
-@php
-    use Illuminate\Support\Facades\DB;
+        <div class="flex-1 p-3 space-y-8">
+            @php
+                use Illuminate\Support\Facades\DB;
+                $userPosition = session('user_position');
+                $permissionKey = 'employeeProfile';
 
-    $userPosition = session('user_position');
-    $permissionKey = 'employeeProfile'; // the permission you want to check
+                $hasPermission = DB::table('position_permissions')
+                    ->where('position', $userPosition)
+                    ->where('permission_id', $permissionKey)
+                    ->where('is_allowed', 1)
+                    ->exists();
+            @endphp
 
-    // Check if permission exists for this position
-    $hasPermission = DB::table('position_permissions')
-        ->where('position', $userPosition)
-        ->where('permission_id', $permissionKey)
-        ->where('is_allowed', 1)
-        ->exists();
-@endphp
-@if ($userPosition === 'Human resource manager' || ($userPosition === 'Administrative manager' && $hasPermission))
+            @if ($userPosition === 'Human resource manager' || ($userPosition === 'Administrative manager' && $hasPermission))
                 <a href="{{ route('show.dashboard') }}" class="block">
-    <div
-        class="flex items-center rounded-md cursor-pointer bg-[#FFFFFF38] hover:bg-[#FFFFFF50] text-white
-               transition-all duration-200"
-        :class="sidebarOpen ? 'p-4 space-x-4 justify-start' : 'py-3 px-6 justify-center'">
-        <i data-lucide="home" class="w-6 h-6 shrink-0"></i>
-        <span x-show="sidebarOpen" x-transition>Dashboard</span>
-    </div>
-</a>
-@endif
+                    <div class="flex items-center rounded-md cursor-pointer bg-[#FFFFFF38] hover:bg-[#FFFFFF50] text-white transition-all duration-200"
+                         :class="sidebarOpen ? 'p-4 space-x-4 justify-start' : 'py-3 px-6 justify-center'">
+                        <i data-lucide="home" class="w-6 h-6 shrink-0"></i>
+                        <span x-show="sidebarOpen" x-transition>Dashboard</span>
+                    </div>
+                </a>
+            @endif
 
-@if (in_array(session('user_position'), ['Human resource manager']))
-    <a href="{{ route('show.listapplicants') }}" class="block">
-        <div
-            class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
-            <i data-lucide="id-card" class="w-6 h-6 shrink-0"></i>
-            <span x-show="sidebarOpen" x-transition>Manage Applicants</span>
-        </div>
-    </a>
-@endif
+            @if (in_array(session('user_position'), ['Human resource manager']))
+                <a href="{{ route('show.listapplicants') }}" class="block">
+                    <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
+                        <i data-lucide="id-card" class="w-6 h-6 shrink-0"></i>
+                        <span x-show="sidebarOpen" x-transition>Manage Applicants</span>
+                    </div>
+                </a>
+            @endif
 
-@php
-    $userPosition = session('user_position');
-    $hasPermission = session('permission_key')['employeeProfile']->is_allowed ?? false;
-@endphp
+            @php
+                $userPosition = session('user_position');
+                $hasPermission = session('permission_key')['employeeProfile']->is_allowed ?? false;
+            @endphp
 
-@if ($userPosition === 'Human resource manager' || ($userPosition === 'Administrative Manager' && $hasPermission))
-    <a href="{{ route('show.employeeprofiles') }}" class="block">
-        <div
-            class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
-            <i data-lucide="user" class="w-6 h-6 shrink-0"></i>
-            <span x-show="sidebarOpen" x-transition>Employees Management</span>
-        </div>
-    </a>
-@endif
+            @if ($userPosition === 'Human resource manager' || ($userPosition === 'Administrative Manager' && $hasPermission))
+                <a href="{{ route('show.employeeprofiles') }}" class="block">
+                    <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
+                        <i data-lucide="user" class="w-6 h-6 shrink-0"></i>
+                        <span x-show="sidebarOpen" x-transition>Employees Management</span>
+                    </div>
+                </a>
+            @endif
 
-@php
-    $userPosition = session('user_position');
-    $hasPermission = session('permission_key')['employeeProfile']->is_allowed ?? false;
-@endphp
-@if ($userPosition === 'Human resource manager' || ($userPosition === 'Administrative Manager' && $hasPermission))
-<a href="{{ route('show.attendance') }}" class="block">
-    <div
-        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
-        <i data-lucide="clock" class="w-6 h-6 shrink-0"></i>
-        <span x-show="sidebarOpen" x-transition>Manage Attendance and OT</span>
-    </div>
-</a>
-@endif
+            @if ($userPosition === 'Human resource manager' || ($userPosition === 'Administrative Manager' && $hasPermission))
+                <a href="{{ route('show.attendance') }}" class="block">
+                    <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
+                        <i data-lucide="clock" class="w-6 h-6 shrink-0"></i>
+                        <span x-show="sidebarOpen" x-transition>Manage Attendance and OT</span>
+                    </div>
+                </a>
+            @endif
 
-@php
-    $userPosition = session('user_position');
-    $hasPermission = session('permission_key')['evaluationResults']->is_allowed ?? false;
-@endphp
+            @php
+                $userPosition = session('user_position');
+                $hasPermission = session('permission_key')['evaluationResults']->is_allowed ?? false;
+            @endphp
 
-
-@if ($userPosition === 'Human resource manager' || ($userPosition === 'Administrative Manager' && $hasPermission))
-<a href="{{ route('show.evaluateservices') }}" class="block">
-    <div
-        class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
-        <i data-lucide="file-text" class="w-6 h-6 shrink-0"></i>
-        <span x-show="sidebarOpen" x-transition>Service Requests and Summary</span>
-    </div>
-</a>
-@endif
-            </div>
-      
-        </div>
-
-        <!-- Main Content -->
-        <div class="absolute right-0 top-16 h-screen overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out p-5 text-black"
-            :class="sidebarOpen ? 'ml-64' : 'ml-20'"
-            :style="sidebarOpen ? 'width: calc(100% - 16rem);' : 'width: calc(100% - 5rem);'">
-            <main class="min-h-screen bg-transparent text-white">
-                {{ $slot }}
-            </main>
+            @if ($userPosition === 'Human resource manager' || ($userPosition === 'Administrative Manager' && $hasPermission))
+                <a href="{{ route('show.evaluateservices') }}" class="block">
+                    <div class="flex items-center space-x-4 p-3 rounded-md cursor-pointer hover:bg-[#FFFFFF50] text-white">
+                        <i data-lucide="file-text" class="w-6 h-6 shrink-0"></i>
+                        <span x-show="sidebarOpen" x-transition>Service Requests and Summary</span>
+                    </div>
+                </a>
+            @endif
         </div>
     </div>
+
+    <!-- Main Content -->
+    <div class="absolute right-0 top-16 h-screen overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out p-5 text-black"
+         :class="sidebarOpen ? 'ml-64' : 'ml-20'"
+         :style="sidebarOpen ? 'width: calc(100% - 16rem);' : 'width: calc(100% - 5rem);'">
+        <main class="min-h-screen bg-transparent text-white">
+            {{ $slot }}
+        </main>
+    </div>
+</div>
+
 
     <script>
         lucide.createIcons();

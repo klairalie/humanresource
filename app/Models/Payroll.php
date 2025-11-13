@@ -34,6 +34,7 @@ class Payroll extends Model
         'status',
         'year',
         'month',
+        'cash_advance'
     ];
 
     protected $casts = [
@@ -50,6 +51,7 @@ class Payroll extends Model
         'deductions' => 'decimal:2',
         'bonus_amount' => 'decimal:2',
         'net_pay' => 'decimal:2',
+        'cash_advance' => 'decimal:2'
     ];
 
     public function employeeprofiles()

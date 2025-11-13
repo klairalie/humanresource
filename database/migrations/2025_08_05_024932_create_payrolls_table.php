@@ -36,6 +36,7 @@ return new class extends Migration
     $table->string('status')->default('Pending');
     $table->year('year')->default(now()->year);
     $table->string('month')->nullable();
+    $table->decimal('cash_advance', 10, 2)->nullable();
     $table->timestamps();
 });
 

@@ -2,7 +2,7 @@
     <div class="min-h-screen p-6 mt-10 text-black" x-data="applicantModal()" x-cloak>
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <h1 class="text-2xl font-bold mb-4 md:mb-0">List of Applicants</h1>
+            <h1 class="text-3xl font-extrabold mb-4 md:mb-0 tracking-wide text-black flex items-center gap-2">List of Applicants</h1>
         </div>
 
         <!-- Applicants Table -->
@@ -26,53 +26,75 @@
                             <td class="px-4 py-2">{{ $applicant->email }}</td>
                             <td class="px-4 py-2">{{ $applicant->position ?? 'N/A' }}</td>
 
-                            <!-- Status Column -->
-                            @php
-                                $interview = \DB::table('interviews')
-                                    ->where('applicant_id', $applicant->applicant_id)
-                                    ->latest('created_at')
-                                    ->first();
+                           @php
+    $interview = \DB::table('interviews')
+        ->where('applicant_id', $applicant->applicant_id)
+        ->latest('created_at')
+        ->first();
 
-                                $statusClasses = [
-                                    'Pending'             => 'bg-gray-200 text-black',
-                                    'On Screening'        => 'bg-blue-100 text-black',
-                                    'Passed Screening'    => 'bg-yellow-100 text-black',
-                                    'Reviewed'            => 'bg-indigo-100 text-black',
-                                    'Scheduled Interview' => 'bg-purple-100 text-black',
-                                    'Failed Screening'    => 'bg-red-100 text-black',
-                                    'Done'                => 'bg-green-600 text-black',
-                                    'Unattended'          => 'bg-gray-300 text-black',
-                                    'Hired'               => 'bg-green-700 text-black',
-                                    'Rejected'            => 'bg-red-700 text-black',
-                                ];
+    $statusClasses = [
+        'Pending'             => 'bg-gray-200 text-black',
+        'On Screening'        => 'bg-blue-100 text-black',
+        'Passed Screening'    => 'bg-yellow-100 text-black',
+        'Reviewed'            => 'bg-indigo-100 text-black',
+        'Scheduled Interview' => 'bg-purple-100 text-black',
+        'Failed Screening'    => 'bg-red-100 text-black',
+        'Done'                => 'bg-green-600 text-black',
+        'Unattended'          => 'bg-gray-300 text-black',
+        'Hired'               => 'bg-green-700 text-black',
+        'Rejected'            => 'bg-red-700 text-black',
+    ];
 
-                                $status = $applicant->applicant_status ?? 'Pending';
+    $status = $applicant->applicant_status ?? 'Pending';
 
-                                $hasAssessment = \DB::table('assessment_results')
-                                    ->where('applicant_id', $applicant->applicant_id)
-                                    ->exists();
+    $hasAssessment = \DB::table('assessment_results')
+        ->where('applicant_id', $applicant->applicant_id)
+        ->exists();
 
-                                if ($status === 'On Screening' && $hasAssessment) {
-                                    $status = 'Done Taking Assessment';
-                                    $classApplicant = 'bg-green-100 text-black';
-                                } else {
-                                    $classApplicant = $statusClasses[$status] ?? 'bg-gray-200 text-black';
-                                }
+    // 🔍 Check if assessment token expired
+    $assessmentToken = \DB::table('assessment_tokens')
+        ->where('applicant_id', $applicant->applicant_id)
+        ->latest('created_at')
+        ->first();
 
-                                $interviewStatus = ($status !== 'Hired' && $status !== 'Rejected') ? ($interview->status ?? null) : null;
-                                $classInterview = $interviewStatus ? ($statusClasses[$interviewStatus] ?? 'bg-gray-200 text-black') : null;
-                            @endphp
+    $isTokenExpired = $assessmentToken && \Carbon\Carbon::parse($assessmentToken->expires_at)->isPast();
 
-                            <td class="px-4 py-2 w-56">
-                                <span class="px-2 py-1 rounded-full text-sm block mb-1 {{ $classApplicant }}">
-                                    {{ $status }}
-                                </span>
-                                @if ($interviewStatus)
-                                    <span class="px-2 py-1 rounded-full text-sm block {{ $classInterview }}">
-                                        {{ $interviewStatus }}
-                                    </span>
-                                @endif
-                            </td>
+    // ✅ Logic for screening and assessment
+    if ($status === 'On Screening') {
+        if ($hasAssessment) {
+            $status = 'Done Taking Assessment';
+            $classApplicant = 'bg-green-100 text-black';
+        } elseif ($isTokenExpired) {
+            // Auto mark as rejected if token expired and no assessment result
+            $status = 'Rejected';
+            $classApplicant = 'bg-red-700 text-white';
+
+            // Optional: Update status in database instantly
+            \DB::table('applicants')
+                ->where('applicant_id', $applicant->applicant_id)
+                ->update(['applicant_status' => 'Rejected']);
+        } else {
+            $classApplicant = $statusClasses[$status] ?? 'bg-gray-200 text-black';
+        }
+    } else {
+        $classApplicant = $statusClasses[$status] ?? 'bg-gray-200 text-black';
+    }
+
+    $interviewStatus = ($status !== 'Hired' && $status !== 'Rejected') ? ($interview->status ?? null) : null;
+    $classInterview = $interviewStatus ? ($statusClasses[$interviewStatus] ?? 'bg-gray-200 text-black') : null;
+@endphp
+
+<td class="px-4 py-2 w-56">
+    <span class="px-2 py-1 rounded-full text-sm block mb-1 {{ $classApplicant }}">
+        {{ $status }}
+    </span>
+    @if ($interviewStatus)
+        <span class="px-2 py-1 rounded-full text-sm block {{ $classInterview }}">
+            {{ $interviewStatus }}
+        </span>
+    @endif
+</td>
+
 
                             <!-- Actions Column -->
                             <td class="px-4 py-2">

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Middleware\TrimStrings;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Console\Scheduling\Schedule;
 class Kernel extends HttpKernel
 {
     /**
@@ -55,8 +56,7 @@ class Kernel extends HttpKernel
         'position' => \App\Http\Middleware\CheckPosition::class,
         'verify.hr.permission' => \App\Http\Middleware\VerifyHRPermission::class,
         
-
-
-
     ];
+
+
 }

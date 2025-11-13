@@ -3,7 +3,6 @@
 use App\Http\Controllers\ArchivedprofilesController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DeductionController;
 use App\Http\Controllers\EmployeeprofilesController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\EvaluateservicesController;
@@ -24,8 +23,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AuthTransferController;
 use App\Http\Middleware\CheckAuth;
 use App\Http\Controllers\ProfileController;
-use App\Http\Middleware\CheckPermission;
-use App\Models\AssessmentResult;
+ use App\Http\Controllers\HolidayController;
 
 //COMMENTED ROUTES ARE NOT ALREADY USED
 
@@ -33,6 +31,12 @@ Route::get('/auth/verify', [AuthTransferController::class, 'verify'])->name('aut
 
 
 Route::middleware(['web', CheckAuth::class])->group(function () {
+
+   
+
+Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays.index');
+Route::get('/holidays/update', [HolidayController::class, 'updateHolidays'])->name('holidays.update');
+
 Route::controller(DashboardController::class)->group(function () {
     Route::get('/HR', 'dashboard')->name('show.dashboard');
     
@@ -43,6 +47,9 @@ Route::controller(DashboardController::class)->group(function () {
     Route::get('/export-services', 'exportServices')->name('services.export');
 });
 
+Route::post('/payroll/apply-bonus', [PayrollController::class, 'applyBonusToPresent']);
+
+Route::get('/create-daily-attendance', [EmployeeAttendanceController::class, 'createDailyAttendance']);
 
 Route::get('/recent-activities', [ActivityLogController::class, 'index'])->name('recent-activities.index');
 
@@ -81,13 +88,10 @@ Route::controller(PayrollController::class)->group(function () {
 });
 
 Route::controller(EvaluateservicesController::class)->group(function () {
-
     Route::get('/evaluateservices', 'showEvaluateServices')->name('show.evaluateservices');
     Route::post('/service/update-status/{id}', 'updateStatus')->name('service.update-status');
-
-    // Route::get('/quoation', 'showQuotationForm')->name('show.quotationform');
+    Route::get('/service/details/{id}', 'getServiceDetails')->name('service.details'); // ✅ Added this
 });
-
 Route::controller(ArchivedprofilesController::class)->group(function () {
     Route::get('/archivedprofiles/login', 'loginForm')->name('archived.login');
     Route::get('/archivedprofiles', 'showArchivedProfiles')->name('archived.profiles');
@@ -95,7 +99,7 @@ Route::controller(ArchivedprofilesController::class)->group(function () {
 });
 
 
-
+Route::get('/results', [AssessmentResultController::class, 'showEvaluationResults'])->name('results.index');
 
 Route::controller(ApplicantController::class)->group(function () {
     Route::post('/applicationform', 'store')->name('applicants.store');
@@ -155,6 +159,11 @@ Route::controller(AssessmentResultController::class)->group(function () {
     Route::post('/assessment/submit/{token}', [AssessmentResultController::class, 'store'])->name('assessment.submit');
     Route::get('/assessmentresult', [AssessmentResultController::class, 'showAssessmentResults'])->name('assessment.results');
     Route::get('/assessment-results/{applicant_id}', [AssessmentResultController::class, 'showResult'])->name('assessment.result.view');
+
+
+Route::get('/results', [AssessmentResultController::class, 'showEvaluationResults'])->name('results.index');
+
+
 });
 
 

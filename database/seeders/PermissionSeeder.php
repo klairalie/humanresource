@@ -19,7 +19,12 @@ class PermissionSeeder extends Seeder
             ['permission_key' => 'applicationTestResult', 'description' => 'View Applicants Test Results'],
             ['permission_key' => 'archivedProfiles', 'description' => 'View Archived Profiles'],
             ['permission_key' => 'serviceReports', 'description' => 'View Services Summary Reports'],
-           
+            //Finance Module Permissions
+
+            ['permission_key' => 'billingPage', 'description' => 'Visit Billing Page'],
+            ['permission_key' => 'purchaseOrders', 'description' => 'View Purchase Orders'],
+            ['permission_key' => 'inventoryPage', 'description' => 'Visit Inventory Page'],
+          
         ];
 
         foreach ($permissions as $perm) {

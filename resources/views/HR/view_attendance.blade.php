@@ -17,7 +17,7 @@
 
     <!-- Main Container -->
     <div class="max-w-5xl mx-auto bg-white p-15 mt-6 mb-35 shadow-lg border border-gray-200 text-black">
-        <h1 class="text-2xl font-bold mb-5 border-b pb-3 text-gray-800">Daily Attendance Record</h1>
+        <h1 class="text-3xl font-extrabold mb-4 md:mb-3 tracking-wide text-black flex items-center gap-2">Daily Attendance Record</h1>
 
         <!-- Employee Table -->
         <table class="w-full border border-gray-200 text-sm rounded-lg overflow-hidden">
@@ -37,7 +37,7 @@
                             <button
                                 type="button"
                                 onclick='openModal({{ $employee->employeeprofiles_id }}, {!! json_encode($employee->first_name . " " . $employee->last_name) !!})'
-                                class="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow transition duration-200 ease-in-out hover:scale-105">
+                                class="inline-flex items-center gap-1 bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow transition duration-200 ease-in-out hover:scale-105">
                                 <i class="fa-solid fa-eye text-white"></i>
                                 View Details
                             </button>

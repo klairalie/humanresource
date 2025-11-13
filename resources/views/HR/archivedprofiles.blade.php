@@ -21,57 +21,64 @@
 
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Archived Employee Profiles</h1>
+            <h1 class="text-lg sm:text-xl font-semibold text-gray-800">Archived Employee Profiles</h1>
         </div>
 
         <!-- Table Wrapper -->
-        <div class="bg-gray-300s shadow-md overflow-hidden">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="min-w-full table-auto border border-gray-200 text-sm sm:text-base">
+                <table class="table-fixed min-w-full border border-gray-200 text-xs sm:text-sm">
                     <thead class="bg-gray-100 text-gray-700">
                         <tr>
-                            <th class="px-4 sm:px-6 py-3 text-left">ID</th>
-                            <th class="px-4 sm:px-6 py-3 text-left">Name</th>
-                            <th class="px-4 sm:px-6 py-3 text-left">Position</th>
-                            <th class="px-4 sm:px-6 py-3 text-left">Contact</th>
-                            <th class="px-4 sm:px-6 py-3 text-left">Hire Date</th>
-                            <th class="px-4 sm:px-6 py-3 text-left">Reason</th>
-                            <th class="px-4 sm:px-6 py-3 text-left">Archived At</th>
-                            <th class="px-4 sm:px-6 py-3 text-left">Archived By</th>
-                            <th class="px-4 sm:px-6 py-3 text-center">Action</th>
+                            <th class="w-14 px-2 py-2 text-left">ID</th>
+                            <th class="w-32 px-2 py-2 text-left">Name</th>
+                            <th class="w-28 px-2 py-2 text-left">Position</th>
+                            <th class="w-28 px-2 py-2 text-left">Contact</th>
+                            <th class="w-28 px-2 py-2 text-left">Hire Date</th>
+                            <th class="w-40 px-2 py-2 text-left truncate">Reason</th>
+                            <th class="w-36 px-2 py-2 text-left">Archived At</th>
+                            <th class="w-28 px-2 py-2 text-left">Archived By</th>
+                            <th class="w-20 px-2 py-2 text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @foreach($archives as $arc)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->archiveprofiles_id }}</td>
-                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->last_name }}, {{ $arc->first_name }}</td>
-                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->position }}</td>
-                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->contact_number }}</td>
-                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->hire_date }}</td>
-                                <td class="px-4 sm:px-6 py-3">{{ $arc->reason }}</td>
-                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->archived_at }}</td>
-                                <td class="px-4 sm:px-6 py-3 whitespace-nowrap">{{ $arc->archived_by }}</td>
-                                <td class="px-4 sm:px-6 py-3 text-center">
+                                <td class="px-2 py-2 whitespace-nowrap text-gray-700">{{ $arc->archiveprofiles_id }}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-gray-700 truncate">{{ $arc->last_name }}, {{ $arc->first_name }}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-gray-700">{{ $arc->position }}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-gray-700">{{ $arc->contact_number }}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-gray-700">{{ $arc->hire_date }}</td>
+                                <td class="px-2 py-2 text-gray-700 truncate max-w-[150px]">{{ $arc->reason }}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-gray-700">
+                                    {{ \Carbon\Carbon::parse($arc->archived_at)->format('M d, Y h:i A') }}
+                                </td>
+                                <td class="px-2 py-2 whitespace-nowrap text-gray-700">{{ $arc->archived_by }}</td>
+                                <td class="px-2 py-2 text-center">
                                     @if($arc->status === 'deactivated')
                                         <form action="{{ route('archived.reactivate', $arc->archiveprofiles_id) }}" method="POST" class="reactivate-form">
                                             @csrf
                                             @method('PUT')
                                             @if (in_array(session('user_position'), ['Human resource manager']))
                                             <button type="button" 
-                                                    class="px-3 py-1 bg-green-700 text-white rounded-md hover:bg-green-600 transition text-sm reactivate-btn">
+                                                    class="px-2 py-1 bg-green-700 text-white rounded-md hover:bg-green-600 transition text-xs reactivate-btn">
                                                 Reactivate
                                             </button>
                                             @endif
                                         </form>
                                     @else
-                                        <span class="text-gray-500 italic">Active</span>
+                                        <span class="text-gray-500 italic text-xs">Active</span>
                                     @endif
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            {{-- ✅ Pagination Links --}}
+            <div class="px-4 py-3 bg-white border-t border-gray-200">
+                {{ $archives->links('pagination::tailwind') }}
             </div>
         </div>
     </div>
@@ -98,5 +105,4 @@
             });
         });
     </script>
-
 </x-guest-layout>

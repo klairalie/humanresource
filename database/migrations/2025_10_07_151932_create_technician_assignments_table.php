@@ -22,7 +22,7 @@ return new class extends Migration {
                   ->cascadeOnUpdate();
 
             $table->enum('role', ['Lead', 'Assistant'])->default('Assistant');
-            $table->enum('status', ['Assigned', 'Completed'])->default('Assigned');
+            $table->enum('status', ['Assigned', 'Completed', 'Rescheduled'])->default('Assigned');
 
             $table->timestamps();
 

@@ -3,7 +3,7 @@
         <div class="bg-white shadow-xl rounded-2xl w-full max-w-2xl p-8 relative" x-data="{ showModal: false }">
 
             <!-- Close (X) Button -->
-            <a href="{{ route('show.dashboard') }}" 
+            <a href="{{ route('settings.index') }}" 
                class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
                 ✕
             </a>
@@ -24,7 +24,7 @@
                     <input type="file" 
                            name="resume" 
                            accept=".doc,.docx" 
-                           class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                           class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-sky-500 focus:outline-none text-black">
                     @error('resume')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -57,7 +57,7 @@
                         </thead>
                         <tbody class="text-sm">
                             @if($resume)
-                                <tr class="border-t">
+                                <tr class="border-t text-black">
                                     <td class="px-4 py-2">{{ $resume->file_name }}</td>
                                     <td class="px-4 py-2">
                                         {{ \Carbon\Carbon::parse($resume->created_at)->format('M d, Y h:i A') }}
@@ -96,12 +96,7 @@
                  x-cloak>
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative">
                     
-                    <!-- Close Button -->
-                    <button @click="showModal = false" 
-                            class="absolute top-3 right-3 text-gray-500 hover:text-gray-800">
-                        ✕
-                    </button>
-
+                
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">Resume Details</h3>
                     
                     @if($resume)

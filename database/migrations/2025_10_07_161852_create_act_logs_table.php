@@ -13,14 +13,11 @@ return new class extends Migration
     {
         Schema::create('act_logs', function (Blueprint $table) {
             $table->id('activity_log_id');
-            $table->string('action_type'); // e.g., "New Employee Added", "Document uploaded", "System updated"
-           $table->foreignId('employeeprofiles_id')
-      ->nullable()
-      ->constrained('employeeprofiles', 'employeeprofiles_id')
-      ->onDelete('cascade');
-
+            $table->string('action_type'); // e.g., "New Employee Added", "Document Uploaded", etc.
+            $table->string('email')->default('HR Manager'); // user responsible for the action
             $table->text('description')->nullable(); // optional details
-            $table->timestamps();
+            $table->dateTime('action_date')->default(now()); // ✅ exact date and time when action happened
+            $table->timestamps(); // created_at and updated_at
         });
     }
 

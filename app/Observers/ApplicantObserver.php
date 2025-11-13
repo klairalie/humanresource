@@ -4,38 +4,41 @@ namespace App\Observers;
 
 use App\Models\Applicant;
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Auth;
 
 class ApplicantObserver
 {
     public function created(Applicant $applicant)
     {
+        $actorEmail = session('user_email') ?? 'user@example.com'; // Permanently stored in DB
+
         ActivityLog::create([
             'action_type' => 'New Applicant Submitted',
-            'employeeprofiles_id' => $applicant->applicant_id,
+            'email' => $actorEmail,
             'description' => "New applicant submitted: {$applicant->first_name} {$applicant->last_name} ({$applicant->position})",
         ]);
     }
 
     public function updated(Applicant $applicant)
     {
+        $actorEmail = session('user_email') ?? 'user@example.com'; // Permanently stored in DB
+
         // ✅ Detect if applicant_status was changed
         if ($applicant->isDirty('applicant_status')) {
             $oldStatus = $applicant->getOriginal('applicant_status');
             $newStatus = $applicant->applicant_status;
 
-            // Blade-synced statuses (same as in your view)
+            // Status messages synced with your blade/UI
             $statusMessages = [
-                'Pending'             => 'Application submitted and awaiting screening.',
-                'On Screening'        => 'Application moved to screening phase.',
-                'Passed Screening'    => 'Applicant passed the screening stage.',
-                'Reviewed'            => 'Applicant document reviewed.',
-                'Scheduled Interview' => 'Interview has been scheduled.',
-                'Failed Screening'    => 'Applicant failed screening stage.',
-                'Done'                => 'Applicant has completed the process.',
-                'Unattended'          => 'Applicant did not attend the interview.',
-                'Hired'               => 'Applicant has been hired.',
-                'Rejected'            => 'Applicant was rejected after evaluation.',
+                'Pending'               => 'Application submitted and awaiting screening.',
+                'On Screening'          => 'Application moved to screening phase.',
+                'Passed Screening'      => 'Applicant passed the screening stage.',
+                'Reviewed'              => 'Applicant document reviewed.',
+                'Scheduled Interview'   => 'Interview has been scheduled.',
+                'Failed Screening'      => 'Applicant failed screening stage.',
+                'Done'                  => 'Applicant has completed the process.',
+                'Unattended'            => 'Applicant did not attend the interview.',
+                'Hired'                 => 'Applicant has been hired.',
+                'Rejected'              => 'Applicant was rejected after evaluation.',
                 'Done Taking Assessment' => 'Applicant finished taking the assessment.',
             ];
 
@@ -43,7 +46,7 @@ class ApplicantObserver
 
             ActivityLog::create([
                 'action_type' => 'Applicant Status Updated',
-                'applicant_id' => $applicant->applicant_id, // use correct FK
+                'email' => $actorEmail,
                 'description' => "{$applicant->first_name} {$applicant->last_name}: {$statusMessage}",
             ]);
         } else {
@@ -52,7 +55,7 @@ class ApplicantObserver
 
             ActivityLog::create([
                 'action_type' => 'Applicant Information Updated',
-                'applicant_id' => $applicant->applicant_id,
+                'email' => $actorEmail,
                 'description' => "Updated applicant {$applicant->first_name} {$applicant->last_name}. Changed fields: {$changedFields}.",
             ]);
         }
@@ -60,9 +63,11 @@ class ApplicantObserver
 
     public function deleted(Applicant $applicant)
     {
+        $actorEmail = session('user_email') ?? 'user@example.com'; // Permanently stored in DB
+
         ActivityLog::create([
             'action_type' => 'Applicant Deleted',
-            'applicant_id' => $applicant->id,
+            'email' => $actorEmail,
             'description' => "Deleted applicant record: {$applicant->first_name} {$applicant->last_name} ({$applicant->position})",
         ]);
     }

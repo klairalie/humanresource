@@ -81,4 +81,8 @@ public function salary_rates()
     return $this->hasOne(SalaryRate::class, 'position', 'position');
 }
 
+public function bonuses()
+{
+    return $this->hasMany(Bonus::class, 'employeeprofiles_id', 'employeeprofiles_id');
+}
 }

@@ -25,4 +25,20 @@ class EvaluationSummary extends Model
     protected $casts = [
         'category_scores' => 'array',
     ];
+
+    public function evaluator()
+{
+    return $this->belongsTo(Employeeprofiles::class, 'evaluator_id', 'employeeprofiles_id');
+}
+
+public function evaluatee()
+{
+    return $this->belongsTo(Employeeprofiles::class, 'evaluatee_id', 'employeeprofiles_id');
+}
+
+public function assessment()
+{
+    return $this->belongsTo(Assessment::class, 'assessment_id', 'assessment_id');
+}
+
 }

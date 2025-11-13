@@ -12,6 +12,11 @@ use App\Session\HybridSessionHandler;
 use App\Observers\EmployeeProfileObserver;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Auth;
+use App\Observers\ApplicantObserver;
+use App\Models\Applicant;
+use App\Models\ServiceRequestItem;
+use App\Observers\EvaluateServicesObserver;
+
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -20,8 +25,10 @@ class AppServiceProvider extends ServiceProvider
     }
 
     public function boot(): void
-    {
+    {   
         Employeeprofiles::observe(EmployeeProfileObserver::class);
+        Applicant::observe(ApplicantObserver::class);
+        ServiceRequestItem::observe(EvaluateServicesObserver::class);
         // Configure PhpWord PDF rendering
         Settings::setPdfRendererName('TCPDF');
         Settings::setPdfRendererPath(base_path('vendor/tecnickcom/tcpdf'));
@@ -38,96 +45,120 @@ class AppServiceProvider extends ServiceProvider
 });
 
   View::composer('*', function ($view) {
-        // Build notifications (same logic as above)
-        $leaveRequests = DB::table('leave_requests')
-            ->join('employeeprofiles', 'leave_requests.employeeprofiles_id', '=', 'employeeprofiles.employeeprofiles_id')
-            ->where('leave_requests.status', 'Pending')
-            ->select('employeeprofiles.first_name', 'employeeprofiles.last_name', 'leave_requests.created_at')
-            ->get();
+    // Build notifications
+    $leaveRequests = DB::table('leave_requests')
+        ->join('employeeprofiles', 'leave_requests.employeeprofiles_id', '=', 'employeeprofiles.employeeprofiles_id')
+        ->where('leave_requests.status', 'Pending')
+        ->select('employeeprofiles.first_name', 'employeeprofiles.last_name', 'leave_requests.created_at')
+        ->get();
 
-        $serviceRequests = DB::table('service_request_items')
-            ->where('status', 'Pending')
-            ->select('service_request_id', 'created_at')
-            ->get();
+    $serviceRequests = DB::table('service_request_items')
+        ->where('status', 'Pending')
+        ->select('service_request_id', 'created_at')
+        ->get();
 
-        $overtimeRequests = DB::table('overtime_requests')
-            ->join('employeeprofiles', 'overtime_requests.employeeprofiles_id', '=', 'employeeprofiles.employeeprofiles_id')
-            ->where('overtime_requests.status', 'Pending')
-            ->select('employeeprofiles.first_name', 'employeeprofiles.last_name', 'overtime_requests.created_at')
-            ->get();
+    $overtimeRequests = DB::table('overtime_requests')
+        ->join('employeeprofiles', 'overtime_requests.employeeprofiles_id', '=', 'employeeprofiles.employeeprofiles_id')
+        ->where('overtime_requests.status', 'Pending')
+        ->select('employeeprofiles.first_name', 'employeeprofiles.last_name', 'overtime_requests.created_at')
+        ->get();
 
-        $pendingApplicants = DB::table('applicants')
-    ->where('applicant_status', 'Pending')
-    ->select('first_name', 'last_name', 'created_at') // include last_name
-    ->get();
+    $pendingApplicants = DB::table('applicants')
+        ->where('applicant_status', 'Pending')
+        ->select('first_name', 'last_name', 'created_at')
+        ->get();
 
-        $releasedPayrolls = DB::table('payrolls')
-            ->where('status', 'Released')
-            ->select('payroll_id', 'created_at')
-            ->get();
+    $releasedPayrolls = DB::table('payrolls')
+        ->where('status', 'Released')
+        ->select('payroll_id', 'created_at')
+        ->get();
 
-        $failedCount = DB::table('failed_jobs')->count();
+    $failedCount = DB::table('failed_jobs')->count();
 
-        $notifications = collect();
+    $notifications = collect();
 
-        foreach ($leaveRequests as $leave) {
-            $notifications->push([
-                'type' => 'leave',
-                'message' => "{$leave->first_name} {$leave->last_name} submitted a leave request.",
-                'link' => route('show.leaverequest'),
-                'time' => $leave->created_at,
-            ]);
-        }
-        
-         foreach ($serviceRequests as $service) {
-            $notifications->push([
-                'type' => 'service',
-                'message' => "Service Request #{$service->service_request_id} is pending.",
-                'link' => route('show.evaluateservices'),
-                'time' => $service->created_at,
-            ]);
-        }
-        
-        foreach ($overtimeRequests as $ot) {
-            $notifications->push([
-                'type' => 'overtime',
-                'message' => "{$ot->first_name} {$ot->last_name} filed an overtime request.",
-                'link' => route('show.overtime'),
-                'time' => $ot->created_at,
-            ]);
-        }
+    // Leave requests notifications
+    foreach ($leaveRequests as $leave) {
+        $notifications->push([
+            'type' => 'leave',
+            'message' => "{$leave->first_name} {$leave->last_name} submitted a leave request.",
+            'link' => route('show.leaverequest'),
+            'time' => $leave->created_at,
+        ]);
+    }
 
-        foreach ($pendingApplicants as $app) {
-    $fullName = trim("{$app->first_name} {$app->last_name}");
-    $notifications->push([
-        'type' => 'applicant',
-        'message' => "New applicant: {$fullName} awaiting review.",
-        'link' => route('show.listapplicants'),
-        'time' => $app->created_at,
-    ]);
-}
-        foreach ($releasedPayrolls as $payroll) {
-            $notifications->push([
-                'type' => 'payroll',
-                'message' => "Payroll #{$payroll->payroll_id} has been released.",
-                'link' => route('view.payroll'),
-                'time' => $payroll->created_at,
-            ]);
-        }
-        if ($failedCount > 0) {
-            $notifications->push([
-                'type' => 'queue',
-                'message' => "{$failedCount} system queue failure(s) detected.",
-                'link' => route('queue.failures'),
-                'time' => now(),
-            ]);
-        }
+    // Service requests notifications
+    foreach ($serviceRequests as $service) {
+        $notifications->push([
+            'type' => 'service',
+            'message' => "Service Request #{$service->service_request_id} is pending.",
+            'link' => route('show.evaluateservices'),
+            'time' => $service->created_at,
+        ]);
+    }
 
-        $notifications = $notifications->sortByDesc('time')->values();
+    // Overtime notifications
+    foreach ($overtimeRequests as $ot) {
+        $notifications->push([
+            'type' => 'overtime',
+            'message' => "{$ot->first_name} {$ot->last_name} filed an overtime request.",
+            'link' => route('show.overtime'),
+            'time' => $ot->created_at,
+        ]);
+    }
 
-        // Share with all views
-        $view->with('notifications', $notifications);
-    });
+    // Pending applicants notifications
+    foreach ($pendingApplicants as $app) {
+        $fullName = trim("{$app->first_name} {$app->last_name}");
+        $notifications->push([
+            'type' => 'applicant',
+            'message' => "New applicant: {$fullName} awaiting review.",
+            'link' => route('show.listapplicants'),
+            'time' => $app->created_at,
+        ]);
+    }
+
+    // Released payroll notifications
+    foreach ($releasedPayrolls as $payroll) {
+        $notifications->push([
+            'type' => 'payroll',
+            'message' => "Payroll #{$payroll->payroll_id} has been released.",
+            'link' => route('view.payroll'),
+            'time' => $payroll->created_at,
+        ]);
+    }
+
+    // HOLIDAY NOTIFICATION
+    $today = now()->toDateString();
+    $holidayToday = DB::table('holidays')
+        ->where('holiday_date', $today)
+        ->first();
+
+    if ($holidayToday) {
+        $notifications->push([
+            'type' => 'holiday',
+            'message' => "Today is {$holidayToday->holiday_type} Holiday: {$holidayToday->holiday_name}",
+            'link' => '#', // Optional: link to holiday management page
+            'time' => now(),
+        ]);
+    }
+
+    // Failed jobs notifications
+    if ($failedCount > 0) {
+        $notifications->push([
+            'type' => 'queue',
+            'message' => "{$failedCount} system queue failure(s) detected.",
+            'link' => route('queue.failures'),
+            'time' => now(),
+        ]);
+    }
+
+    // Sort newest first
+    $notifications = $notifications->sortByDesc('time')->values();
+
+    // Share with all views
+    $view->with('notifications', $notifications);
+});
     }
 }
 

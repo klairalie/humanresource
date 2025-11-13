@@ -31,13 +31,12 @@ class DashboardController extends Controller
             ? Carbon::parse($request->input('date'))->startOfDay()
             : Carbon::today();
 
-        $attendanceCount = Attendance::whereDate('date', $selectedDate)
-            ->where(function ($q) {
-                $q->whereBetween('time_in', ['06:00:00', '17:00:00'])
-                    ->orWhereBetween('time_out', ['17:00:00', '18:00:00']);
-            })
-            ->distinct('employeeprofiles_id')
-            ->count('employeeprofiles_id');
+      $attendanceCount = Attendance::whereDate('date', $selectedDate)
+    ->where(function ($q) {
+        $q->whereBetween('time_in', ['06:00:00', '17:00:00'])
+          ->orWhereBetween('time_out', ['17:00:00', '18:00:00']);
+    })
+    ->count(DB::raw('DISTINCT employeeprofiles_id'));
 
         $attendances = Attendance::with('employeeprofiles')
             ->whereDate('date', $selectedDate)
@@ -325,6 +324,6 @@ public function exportServices()
         $request->session()->regenerateToken();
 
         // Redirect to external login page
-        return redirect()->away('https://3RS-ERP.test/login');
+        return redirect()->away('http://3RS-ERP.test/login');
     }
 }

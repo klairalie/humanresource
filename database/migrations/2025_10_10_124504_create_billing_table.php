@@ -13,7 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('service_request_id');
             $table->unsignedBigInteger('customer_id');
             $table->date('billing_date');
-            $table->date('due_date');
+          $table->date('due_date')->nullable();
             $table->decimal('total_amount', 12, 2);
             $table->decimal('discount', 12, 2)->default(0.00);
             $table->decimal('tax', 12, 2)->default(0.00);

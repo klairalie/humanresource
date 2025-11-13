@@ -19,23 +19,28 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call([
+        HolidaysSeeder::class,
+    ]);
+
+    
         // 🧑‍💼 Seed base employees first
         $this->call([
             
             EmployeeprofilesSeeder::class,
         ]);
 
-        // 🗓️ For each employee, seed multiple attendances (Jan–Sep)
+        // 🗓️ For each employee, seed multiple attendances (Jan–Nov)
         Employeeprofiles::all()->each(function ($employee) {
             Attendance::factory()->count(200)->create([
                 'employeeprofiles_id' => $employee->employeeprofiles_id,
             ]);
         });
 
-        // 📊 Evaluation summaries
-        if (Employeeprofiles::count() > 1) {
-            EvaluationSummary::factory()->count(60)->create();
-        }
+        // // 📊 Evaluation summaries
+        // if (Employeeprofiles::count() > 1) {
+        //     EvaluationSummary::factory()->count(60)->create();
+        // }
 
         // ===============================
         // 🧱 Additional app-related data

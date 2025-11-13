@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ServiceRequestItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // ✅ For DB operations
 
 class EvaluateservicesController extends Controller
 {
@@ -22,10 +23,10 @@ class EvaluateservicesController extends Controller
             ->paginate(10, ['*'], 'repair_page');
 
         // Installation Services (10 per page)
-        $installmentItems = ServiceRequestItem::with(['service', 'leadTechnicians', 'assistantTechnicians'])
-            ->where('service_type', 'Installment')
-            ->orderBy('start_date', 'desc')
-            ->paginate(10, ['*'], 'installment_page');
+     $installmentItems = ServiceRequestItem::with(['service', 'leadTechnicians', 'assistantTechnicians'])
+    ->whereIn('service_type', ['Buy and Install', 'Buy Only', 'Install Only'])
+    ->orderBy('start_date', 'desc')
+    ->paginate(10, ['*'], 'installment_page');
 
         return view('HR.evaluateservice', compact(
             'cleaningItems',
@@ -39,13 +40,24 @@ class EvaluateservicesController extends Controller
     {
         try {
             $service = ServiceRequestItem::findOrFail($id);
-            $service->status = $request->input('status');
+            $newStatus = $request->input('status');
+
+            // ✅ Update the service_request_items status
+            $service->status = $newStatus;
             $service->save();
+
+            // ✅ If Rescheduled, also update technician_assignments table
+            if ($newStatus === 'Rescheduled') {
+                DB::table('technician_assignments')
+                    ->where('item_id', $service->item_id) // use correct FK column name
+                    ->update(['status' => 'Rescheduled']);
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status updated successfully!'
+                'message' => 'Status updated successfully!',
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
