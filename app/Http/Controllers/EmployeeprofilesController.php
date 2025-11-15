@@ -95,7 +95,8 @@ class EmployeeprofilesController extends Controller
             'hire_date'         => 'nullable|date',
             'status'            => 'nullable|string|max:255',
             'emergency_contact' => 'nullable|string|max:255',
-            'card_Idnumber'     => 'nullable|string|max:255|unique:employeeprofiles,card_Idnumber,' . $employee->employeeprofiles_id . ',employeeprofiles_id',
+            'face_descriptor' => 'nullable|string',
+
         ]);
 
         $employee->update($validated);
@@ -119,7 +120,8 @@ class EmployeeprofilesController extends Controller
             'hire_date'         => 'nullable|date',
             'status'            => 'required|string|max:255',
             'emergency_contact' => 'nullable|string|max:255',
-            'card_Idnumber'     => 'nullable|string|max:255|unique:employeeprofiles,card_Idnumber',
+            'face_descriptor' => 'nullable|string',
+
         ]);
 
         Employeeprofiles::create([

@@ -126,6 +126,7 @@
                     Save Changes
                 </button>
             </div>
+            <input type="hidden" id="face_descriptor" name="face_descriptor" value="{{ old('face_descriptor', $employee->face_descriptor) }}">
         </form>
        <div id="camera-wrapper" style="position:relative; width:640px; height:480px; margin:auto;">
 

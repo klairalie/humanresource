@@ -89,12 +89,19 @@ async function startFaceRegistration() {
     }
 
     storedDescriptor = detections[0].descriptor;
-    localStorage.setItem("faceDescriptor", JSON.stringify(Array.from(storedDescriptor)));
+    const descriptorArray = Array.from(storedDescriptor);
+
+    // Save to localStorage
+    localStorage.setItem("faceDescriptor", JSON.stringify(descriptorArray));
+
+    // ✅ REQUIRED: Send to backend on Save Changes
+    document.getElementById("face_descriptor").value = JSON.stringify(descriptorArray);
 
     updateStatus("Face registered successfully!", "success");
 
     setTimeout(() => initializeFaceValidation(), 800);
 }
+
 
 /* ============================================================
    VALIDATION
