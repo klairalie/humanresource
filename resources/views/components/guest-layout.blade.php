@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WELCOME TO HR DASHBOARD</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css',
+    'resources/js/face-api.min.js',
+    'resources/js/cam.js'])
 
     <!-- Alpine.js -->
     <script src="//unpkg.com/alpinejs" defer></script>

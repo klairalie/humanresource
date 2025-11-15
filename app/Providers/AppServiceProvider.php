@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use App\Session\HybridSessionHandler;
 use App\Observers\EmployeeProfileObserver;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Auth;
 use App\Observers\ApplicantObserver;
 use App\Models\Applicant;
@@ -25,7 +26,10 @@ class AppServiceProvider extends ServiceProvider
     }
 
     public function boot(): void
-    {   
+    {  if ($this->app->environment('local') || $this->app->environment('production')) {
+        URL::forceScheme('https');
+    }
+
         Employeeprofiles::observe(EmployeeProfileObserver::class);
         Applicant::observe(ApplicantObserver::class);
         ServiceRequestItem::observe(EvaluateServicesObserver::class);

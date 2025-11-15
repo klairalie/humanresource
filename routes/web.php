@@ -256,3 +256,7 @@ Route::post('/attendance/manual-update', [EmployeeAttendanceController::class, '
 
 
 
+Route::get('/cam', function() {
+    
+    return view('HR.xample');
+});

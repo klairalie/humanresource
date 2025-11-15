@@ -23,7 +23,7 @@ class Employeeprofiles extends Model
         'hire_date',
         'status',
         'emergency_contact',
-        'card_Idnumber',
+        'face_descriptor',
 
     ];
     /** @use HasFactory<\Database\Factories\EmployeeprofilesFactory> */

@@ -115,22 +115,6 @@
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
             </div>
 
-            <!-- Card ID Number -->
-            <div>
-                <label class="block text-sm font-semibold text-black mb-2">Card ID Number</label>
-                <input type="text" name="card_Idnumber" id="card_Idnumber"
-                       value="{{ old('card_Idnumber', $employee->card_Idnumber) }}"
-                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
-            </div>
-
-            <!-- Confirm Card ID Number -->
-            <div>
-                <label class="block text-sm font-semibold text-black mb-2">Confirm Card ID Number</label>
-                <input type="text" id="confirm_card_Idnumber"
-                       value="{{ old('card_Idnumber', $employee->card_Idnumber) }}"
-                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
-            </div>
-
             <!-- Buttons -->
             <div class="flex justify-end space-x-3 mt-6 col-span-2 mb-5">
                 <a href="{{ route('show.employeeprofiles') }}"
@@ -143,21 +127,10 @@
                 </button>
             </div>
         </form>
+         <div>
+                 <video id="video" width="720" height="560" autoplay muted></video>
+            </div>
     </div>
 
-    <!-- Card ID validation script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const cardInput = document.getElementById('card_Idnumber');
-            const confirmCardInput = document.getElementById('confirm_card_Idnumber');
-
-            confirmCardInput.addEventListener('input', function () {
-                if (cardInput.value !== confirmCardInput.value) {
-                    confirmCardInput.setCustomValidity("Card ID Numbers do not match!");
-                } else {
-                    confirmCardInput.setCustomValidity("");
-                }
-            });
-        });
-    </script>
+   
 </x-guest-layout>
