@@ -127,9 +127,37 @@
                 </button>
             </div>
         </form>
-         <div>
-                 <video id="video" width="720" height="560" autoplay muted></video>
-            </div>
+       <div id="camera-wrapper" style="position:relative; width:640px; height:480px; margin:auto;">
+
+    <!-- VIDEO -->
+    <video id="video" width="640" height="480" autoplay muted playsinline
+        style="position:absolute; top:0; left:0; background:black;">
+    </video>
+
+    <!-- CANVAS OVERLAY -->
+    <canvas id="overlay" width="640" height="480"
+        style="position:absolute; top:0; left:0;">
+    </canvas>
+
+    <!-- STATUS -->
+    <div id="status-div"
+        style="position:absolute; top:10px; left:10px;
+               background:rgba(0,0,0,0.7); color:white; padding:10px;
+               font-family:Arial; font-size:14px; z-index:100;">
+        Camera inactive. Click Register Face.
+    </div>
+
+    <!-- REGISTER BUTTON -->
+    <button id="register-btn"
+        style="position:absolute; bottom:10px; left:10px;
+               padding:10px 20px; background:#007bff; color:white; border:none;
+               font-size:16px; cursor:pointer; z-index:100;">
+        Register Face
+    </button>
+
+</div>
+
+
     </div>
 
    
