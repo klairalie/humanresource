@@ -14,7 +14,7 @@ return new class extends Migration
           ->constrained('assessments', 'assessment_id')
           ->onDelete('cascade');
     $table->string('position');
-    $table->enum('category', ['Knowledge', 'Ability', 'Strength']); // 👈 add this
+    $table->enum('category', ['Work Performance & Skills','Teamwork & Collaboration','Professional Behavior','Safety & Responsibility']); // 👈 add this
     $table->text('question');
     $table->integer('rating')->nullable(); // 1–5 rating, optional
     $table->timestamps();

@@ -268,7 +268,7 @@ public function viewPayroll(Request $request)
         $philhealth_contribution = 0;
         $pagibig_contribution = 0;
 
-        $isSecondPay = date('d', strtotime($payPeriod['pay_period_end'])) > 15;
+        $isSecondPay = date('d', strtotime($payPeriod['pay_period_end'])) > 14;
         $taxThreshold = 20833;
 
         if ($isSecondPay && $basicSalaryTax > $taxThreshold) {
@@ -352,7 +352,7 @@ public function viewPayroll(Request $request)
         // Example: first half and second half
         if ($today->day <= 15) {
             $start = date("$year-$month-01");
-            $end = date("$year-$month-15");
+            $end = date("$year-$month-14"); //I EDIT IT HERE
         } else {
             $start = date("$year-$month-16");
             $end = date("$year-$month-" . cal_days_in_month(CAL_GREGORIAN, $month, $year));

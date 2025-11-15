@@ -237,4 +237,29 @@ if ($action === 'time_out') {
         Cache::forget("otp_{$employeeId}");
         return back()->with('error', 'Invalid action.');
     }
+
+    public function manualUpdate(Request $request)
+{
+    $request->validate([
+        'employee_id' => 'required|integer',
+        'dates' => 'required|array'
+    ]);
+
+    foreach ($request->dates as $date) {
+        Attendance::updateOrCreate(
+            [
+                'employeeprofiles_id' => $request->employee_id,
+                'date' => Carbon::parse($date)->format('Y-m-d')
+            ],
+            [
+                'time_in' => '07:00:00',
+                'time_out' => '17:00:00',
+                'status' => 'Present'
+            ]
+        );
+    }
+
+    return response()->json(['success' => true, 'message' => 'Selected attendance records updated successfully.']);
+}
+
 }

@@ -2,28 +2,36 @@
     <div class="min-h-screen p-8 text-black">
 
         <!-- ================= HEADER ================= -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-20 gap-4 mt-20">
             <h1 class="text-3xl font-extrabold mb-4 md:mb-0 tracking-wide text-black flex items-center gap-2">
                 Service Requests and Summary
             </h1>
-            <input 
-                type="text" 
-                placeholder="Search by Date, Service Type, or Technician..." 
-                class="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-gray-600 focus:outline-none placeholder-gray-500 text-black"
+
+            <!-- 🔹 Dropdown Filter -->
+            <select 
+                id="sectionFilter"
+                class="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-gray-600 focus:outline-none text-black bg-white"
             >
+                <option value="all">All Services</option>
+                <option value="cleaning">Cleaning Services</option>
+                <option value="repair">Repair Services</option>
+                <option value="installation">Installation Services</option>
+                <option value="maintenance">Maintenance Services</option>
+            </select>
         </div>
 
         <!-- ================= SERVICE SECTIONS ================= -->
         @php
             $serviceSections = [
-                ['title' => 'Cleaning Services', 'items' => $cleaningItems],
-                ['title' => 'Repair Services', 'items' => $repairItems],
-                ['title' => 'Installation Services', 'items' => $installmentItems],
+                ['title' => 'Cleaning Services', 'items' => $cleaningItems, 'id' => 'cleaning'],
+                ['title' => 'Repair Services', 'items' => $repairItems, 'id' => 'repair'],
+                ['title' => 'Installation Services', 'items' => $installmentItems, 'id' => 'installation'],
+                ['title' => 'Maintenance Services', 'items' => $maintenanceItems ?? collect(), 'id' => 'maintenance'],
             ];
         @endphp
 
         @foreach($serviceSections as $section)
-            <section class="mb-16">
+            <section id="{{ $section['id'] }}" class="service-section mb-16">
                 <h2 class="text-2xl font-semibold border-l-4 border-gray-700 pl-3 mb-6">
                     {{ $section['title'] }}
                 </h2>
@@ -45,7 +53,6 @@
 
                                 $leadNames = $item->leadTechnicians->map(fn($t) => "{$t->first_name} {$t->last_name}")->implode(', ') ?: 'Unassigned';
                                 $assistantNames = $item->assistantTechnicians->map(fn($t) => "{$t->first_name} {$t->last_name}")->implode(', ') ?: 'Unassigned';
-
                                 $isUnassigned = ($leadNames === 'Unassigned' && $assistantNames === 'Unassigned');
                             @endphp
 
@@ -82,7 +89,6 @@
                                         </button>
 
                                     @elseif($item->status === 'Rescheduled')
-                                        <!-- Disabled Action Button -->
                                         <button 
                                             class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-400 text-white text-xs font-medium rounded-md cursor-not-allowed opacity-70"
                                             disabled>
@@ -91,7 +97,6 @@
                                         </button>
 
                                     @elseif($isUnassigned)
-                                        <!-- Disabled if no technicians assigned -->
                                         <button 
                                             class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-400 text-white text-xs font-medium rounded-md cursor-not-allowed opacity-70"
                                             disabled>
@@ -100,7 +105,6 @@
                                         </button>
 
                                     @else
-                                        <!-- Active Action Menu -->
                                         <div class="relative">
                                             <button 
                                                 class="action-toggle inline-flex items-center gap-1 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
@@ -170,9 +174,7 @@
             from { opacity: 0; transform: translateY(-4px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in {
-            animation: fadeIn 0.15s ease-in-out;
-        }
+        .animate-fade-in { animation: fadeIn 0.15s ease-in-out; }
     </style>
 
     <!-- ================= SWEETALERT2 ================= -->
@@ -185,7 +187,9 @@
             const modalBox = document.getElementById('modalBox');
             const summaryContent = document.getElementById('summaryContent');
             const closeModalBtns = [document.getElementById('closeModal'), document.getElementById('closeFooter')];
+            const filterDropdown = document.getElementById('sectionFilter');
 
+            // 🔹 Close modal
             closeModalBtns.forEach(btn => btn.addEventListener('click', closeModal));
 
             function openModal() {
@@ -198,8 +202,25 @@
                 setTimeout(() => modal.classList.add('hidden'), 150);
             }
 
+            // 🔹 Filter Sections by Dropdown
+            filterDropdown.addEventListener('change', () => {
+                const selected = filterDropdown.value;
+                const sections = document.querySelectorAll('.service-section');
+
+                sections.forEach(section => {
+                    if (selected === 'all') {
+                        section.style.display = 'block';
+                    } else if (section.id === selected) {
+                        section.style.display = 'block';
+                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            });
+
+            // 🔹 Card Action Events
             document.addEventListener('click', async (e) => {
-                // Toggle dropdown
                 if (e.target.closest('.action-toggle')) {
                     const btn = e.target.closest('.action-toggle');
                     const menu = btn.nextElementSibling;
@@ -207,14 +228,13 @@
                     return;
                 }
 
-                // Close other menus
                 document.querySelectorAll('.action-menu').forEach(menu => {
                     if (!menu.contains(e.target) && !e.target.closest('.action-toggle')) {
                         menu.classList.add('hidden');
                     }
                 });
 
-                // View Details Modal
+                // View Details
                 if (e.target.closest('.view-summary-btn')) {
                     const id = e.target.closest('.view-summary-btn').dataset.id;
                     try {
@@ -243,7 +263,7 @@
                     }
                 }
 
-                // Update Status (with confirmation)
+                // Update Status
                 if (e.target.closest('.status-btn')) {
                     const btn = e.target.closest('.status-btn');
                     const newStatus = btn.dataset.status;
@@ -274,7 +294,6 @@
                                 });
 
                                 const data = await res.json();
-
                                 if (data.success) {
                                     badge.textContent = newStatus;
                                     badge.className = `status-badge px-3 py-1 text-xs font-semibold rounded-full ${
@@ -286,18 +305,6 @@
                                             ? 'bg-yellow-200 text-yellow-800'
                                             : 'bg-gray-200 text-gray-800'
                                     }`;
-
-                                    const actionDiv = card.querySelector('.mt-4');
-                                    if (newStatus === 'Completed') {
-                                        actionDiv.innerHTML = `
-                                            <button 
-                                                class="view-summary-btn inline-flex items-center gap-2 px-3 py-1.5 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition"
-                                                data-id="${id}">
-                                                <i data-lucide="file-text" class="w-4 h-4 text-gray-200"></i>
-                                                View Details
-                                            </button>
-                                        `;
-                                    }
 
                                     Swal.fire({
                                         icon: 'success',

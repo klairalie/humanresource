@@ -161,8 +161,8 @@ function attendanceModal() {
             const minutes = now.getMinutes();
             const currentTime = hours * 100 + minutes;
 
-            if (action === 'time_in' && (currentTime < 600 || currentTime > 800)) {
-                alert("⏰ Time In is only allowed between 6:00 AM and 8:00 AM.");
+            if (action === 'time_in' && (currentTime < 600 || currentTime > 1200)) {
+                alert("⏰ Time In is only allowed between 6:00 AM and 12:00 AM.");
                 return;
             }
 

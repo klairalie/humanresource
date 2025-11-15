@@ -252,6 +252,7 @@ Route::controller(AssessmentController::class)->group(function () {
     Route::get('/assessment/result/{token}', 'showResult')->name('assessment.result');
 });
 
+Route::post('/attendance/manual-update', [EmployeeAttendanceController::class, 'manualUpdate'])->name('attendance.manualUpdate');
 
 
 
