@@ -130,19 +130,18 @@ public function update(Request $request, $employeeprofiles_id)
 }
 
 
-// ======== AJAX DUPLICATE CHECK ========
 public function checkFaceDuplicate(Request $request)
 {
     $descriptor = $request->input('face_descriptor');
     $currentId = $request->input('employeeprofiles_id', null);
 
     if (!$descriptor) {
-        return response()->json(['status' => 'error', 'message' => 'No descriptor provided']);
+        return response()->json(['status' => 'error', 'message' => 'No descriptor provided'], 422);
     }
 
     $descriptorArray = json_decode($descriptor, true);
     if (!is_array($descriptorArray)) {
-        return response()->json(['status' => 'error', 'message' => 'Invalid descriptor format']);
+        return response()->json(['status' => 'error', 'message' => 'Invalid descriptor format'], 422);
     }
 
     $THRESHOLD = 0.45;
@@ -165,7 +164,7 @@ public function checkFaceDuplicate(Request $request)
         }
     }
 
-    return response()->json(['status' => 'ok']);
+    return response()->json(['status' => 'unique']);
 }
 
 public function deactivate(Request $request, $employeeprofiles_id)

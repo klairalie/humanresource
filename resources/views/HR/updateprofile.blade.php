@@ -1,6 +1,6 @@
 <x-guest-layout>
-    <div class="max-w-5xl mx-auto bg-white p-10 rounded-xl shadow-xl border border-gray-200 mb-20">
-        <h1 class="text-3xl font-bold text-black mb-8 border-b pb-4">Edit Employee Profile</h1>
+    <div class="max-w-5xl mx-auto bg-white p-8 md:p-10 rounded-xl shadow-xl border border-gray-200 mb-20">
+        <h1 class="text-3xl font-bold text-black mb-6 border-b pb-4">Edit Employee Profile</h1>
 
         {{-- Error Handling --}}
         @if ($errors->any())
@@ -11,7 +11,7 @@
             </script>
         @endif
 
-        SweetAlert Success Message
+        {{-- SweetAlert Success Message --}}
         @if (session('success'))
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <script>
@@ -81,9 +81,14 @@
 
             <!-- Update salary automatically when position changes -->
             <script>
-                document.getElementById('position').addEventListener('change', function() {
-                    const salary = this.options[this.selectedIndex].dataset.salary;
-                    document.getElementById('salary_rate').value = salary || '';
+                document.addEventListener('DOMContentLoaded', function () {
+                    const positionEl = document.getElementById('position');
+                    if (positionEl) {
+                        positionEl.addEventListener('change', function () {
+                            const salary = this.options[this.selectedIndex].dataset.salary;
+                            document.getElementById('salary_rate').value = salary || '';
+                        });
+                    }
                 });
             </script>
 
@@ -114,57 +119,74 @@
                 <input type="date" name="hire_date" value="{{ old('hire_date', $employee->hire_date) }}"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
             </div>
-            <div>
-<label class="block text-sm font-semibold text-black mb-2">Face Descriptor</label>
-                <input type="text" name="face_descriptor" value="{{ old('face_descriptor', $employee->face_descriptor) }} "
-                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black" readonly>
 
-                
+            <!-- Face Descriptor (read-only visible field for debugging) -->
+            <div>
+                <label class="block text-sm font-semibold text-black mb-2">Face Descriptor</label>
+                <input type="text" name="face_descriptor_display"
+                       value="{{ old('face_descriptor', $employee->face_descriptor) }} "
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black" readonly>
             </div>
-            <!-- Buttons -->
+
+            <!-- Buttons (form) -->
             <div class="flex justify-end space-x-3 mt-6 col-span-2 mb-5">
                 <a href="{{ route('show.employeeprofiles') }}"
                    class="px-6 py-2 bg-gray-300 text-black rounded-lg hover:bg-gray-400 transition font-semibold">
                     Cancel
                 </a>
-                <button type="submit"
+                <button type="submit" id="save-btn"
                         class="px-6 py-2 bg-amber-500 text-black font-semibold rounded-lg hover:bg-amber-600 transition">
                     Save Changes
                 </button>
             </div>
+
             <input type="hidden" id="face_descriptor" name="face_descriptor" value="{{ old('face_descriptor', $employee->face_descriptor) }}">
         </form>
-       <div id="camera-wrapper" style="position:relative; width:640px; height:480px; margin:auto;">
 
-    <!-- VIDEO -->
-    <video id="video" width="640" height="480" autoplay muted playsinline
-        style="position:absolute; top:0; left:0; background:black;">
-    </video>
+        {{-- CAMERA MODULE --}}
+        <div class="mt-6 bg-gray-50 border border-gray-200 rounded-md p-4 md:p-6 max-w-3xl mx-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-black">Face Registration</h2>
+                <div class="text-sm text-gray-600">Follow the steps to register the face</div>
+            </div>
 
-    <!-- CANVAS OVERLAY -->
-    <canvas id="overlay" width="640" height="480"
-        style="position:absolute; top:0; left:0;">
-    </canvas>
+            <div id="camera-wrapper" class="relative w-full max-w-[640px] mx-auto aspect-video bg-black rounded-md overflow-hidden">
+                <!-- VIDEO -->
+                <video id="video" width="640" height="480" autoplay muted playsinline
+                       class="absolute inset-0 w-full h-full object-cover bg-black"></video>
 
-    <!-- STATUS -->
-    <div id="status-div"
-        style="position:absolute; top:10px; left:10px;
-               background:rgba(0,0,0,0.7); color:white; padding:10px;
-               font-family:Arial; font-size:14px; z-index:100;">
-        Camera inactive. Click Register Face.
-    </div>
+                <!-- CANVAS OVERLAY -->
+                <canvas id="overlay" width="640" height="480"
+                        class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
 
-    <!-- REGISTER BUTTON -->
-    <button id="register-btn"
-        style="position:absolute; bottom:10px; left:10px;
-               padding:10px 20px; background:#007bff; color:white; border:none;
-               font-size:16px; cursor:pointer; z-index:100;">
-        Register Face
-    </button>
+                <!-- STATUS -->
+                <div id="status-div"
+                     class="absolute top-3 left-3 bg-black bg-opacity-60 text-white px-3 py-1 rounded text-sm z-20">
+                    Camera inactive. Click Turn On Camera.
+                </div>
 
-</div>
+                <!-- CONTROL BUTTONS (bottom-left) -->
+                <div class="absolute bottom-3 left-3 z-30 flex items-center gap-2">
+                    <button id="turnon-btn" type="button"
+                            class="px-3 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600 text-sm">
+                        Turn On Camera
+                    </button>
 
+                    <button id="register-btn" type="button" style="display:none;"
+                            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                        Register Face
+                    </button>
 
+                    <button id="retake-btn" type="button" style="display:none;"
+                            class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">
+                        Retake Face
+                    </button>
+                </div>
+            </div>
+
+            {{-- Preview / Descriptor area (generated by JS) --}}
+            <div id="descriptor-preview-container" class="mt-4"></div>
+        </div>
     </div>
 
    

@@ -267,5 +267,6 @@ Route::controller(EmployeeAttendanceController::class)->group(function () {
 Route::get('/attendance/employees', [EmployeeAttendanceController::class, 'getEmployees']);
 Route::get('/attendance/descriptor/{id}', [EmployeeAttendanceController::class, 'getDescriptor']);
 Route::post('/attendance/record', [EmployeeAttendanceController::class, 'recordAttendance']);
+// web.php
 Route::post('/check-face-duplicate', [EmployeeprofilesController::class, 'checkFaceDuplicate'])
-     ->name('check.face.duplicate');
+    ->name('check-face-duplicate');

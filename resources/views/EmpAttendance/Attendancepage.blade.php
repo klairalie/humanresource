@@ -13,6 +13,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js/dist/face-api.min.js"></script>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
       /* Ensure canvas overlays video correctly inside modal */
       .video-wrapper { position: relative; width: 100%; }
@@ -87,7 +88,7 @@
 
         <!-- FACE SCAN MODAL -->
         <template x-if="showModal">
-            <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="fixed inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
                 <div class="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl relative">
 
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
@@ -148,15 +149,17 @@ function attendanceModal() {
         lastBlinkTime: 0,
         validationComplete: false,
 
-        // thresholds
+        // thresholds and configuration
         MAX_DISTANCE: 0.6,
         EAR_THRESHOLD: 0.28,
         BLINK_COOLDOWN: 400, // ms
+        BLINK_SEQUENCE_TIMEOUT: 6000, // ms allowed between blinks before reset
+        REQUIRED_BLINKS: 2, // you chose 2 blinks
 
+        // ---------------- UI / lifecycle ----------------
         async openModal(action) {
             this.actionType = action;
             this.showModal = true;
-            this.buttonText = 'Start Validation';
             this.selectedEmployeeId = '';
             this.resetValidationState();
             await this.fetchEmployees();
@@ -164,6 +167,7 @@ function attendanceModal() {
         },
 
         closeModal() {
+            // If user closes the modal while processing, stop and reset
             this.stopCamera();
             this.showModal = false;
             this.resetValidationState();
@@ -181,7 +185,6 @@ function attendanceModal() {
                 // clear existing options except placeholder
                 select.innerHTML = '<option value="">-- Select employee --</option>';
                 json.employees.forEach(e => {
-                    // adapt to either id field naming
                     const id = e.employeeprofiles_id ?? e.id ?? e.employeeprofiles_id;
                     const opt = document.createElement('option');
                     opt.value = id;
@@ -196,6 +199,7 @@ function attendanceModal() {
 
         updateStatus(msg, type = 'info') {
             const el = document.getElementById('statusDivCustom');
+            if (!el) return;
             el.textContent = msg;
             el.style.background = type === 'error' ? 'rgba(255,75,75,0.9)' : (type === 'success' ? 'rgba(40,200,120,0.9)' : 'rgba(0,0,0,0.6)');
         },
@@ -226,10 +230,13 @@ function attendanceModal() {
                 this.videoStream.getTracks().forEach(t => t.stop());
                 this.videoStream = null;
             }
+            // stop detection loop
             this.detectLoopRunning = false;
-            this.validationComplete = false;
+            // reset blink state
             this.blinkCount = 0;
             this.blinkedRecently = false;
+            this.lastBlinkTime = 0;
+
             const canvas = document.getElementById('overlayCanvas');
             if (canvas) {
                 const ctx = canvas.getContext('2d');
@@ -268,37 +275,40 @@ function attendanceModal() {
             this.buttonText = 'Start Validation';
         },
 
+        // ----------------- Main flow -------------------
         async startValidationFlow() {
     if (!this.selectedEmployeeId) {
         this.updateStatus('Please select an employee first', 'error');
         return;
     }
 
+    // disable action button immediately
     this.processing = true;
-    this.buttonText = 'Preparing...';
+    this.buttonText = 'Validating...';
+    this.updateStatus('Preparing validation...', 'info');
 
     try {
-        if (!faceapi.nets.tinyFaceDetector.params) {
-            this.updateStatus('Loading face models...', 'info');
-            await Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-            ]);
-        }
+        // load face-api models
+        this.updateStatus('Loading face models...', 'info');
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+        ]);
 
-        // fetch descriptor
+        // fetch stored descriptor
         const descriptorArray = await this.fetchDescriptor(this.selectedEmployeeId);
-        if (!descriptorArray) {
-            throw new Error('Not registered');
-        }
-
+        if (!descriptorArray) throw new Error('Not registered');
         this.storedDescriptor = new Float32Array(descriptorArray);
-        this.updateStatus('Descriptor loaded. Look at the camera.', 'info');
-        this.buttonText = 'Validation starting in 3...';
 
-        // countdown before first blink
-        await this.blinkCountdown(2); // repeat twice for 2 blinks
+        this.updateStatus('Descriptor loaded. Looking for your face...', 'info');
+
+        // wait until a face is detected and matches
+        await this.waitForFaceMatch();
+
+        // face matched — start blink detection immediately
+        this.updateStatus('Face matched! Please blink twice to validate.', 'success');
+        this.buttonText = 'Blinking...';
 
         this.blinkCount = 0;
         this.detectLoopRunning = true;
@@ -306,31 +316,37 @@ function attendanceModal() {
 
     } catch (err) {
         console.error(err);
-        const msg = err.message.includes('owner') ? 'Invalid owner' : err.message || 'Failed to start validation';
+        const msg = err.message || 'Failed to start validation';
         this.updateStatus(msg, 'error');
         this.processing = false;
         this.buttonText = 'Start Validation';
     }
 },
 
-async blinkCountdown(times) {
-    for (let i = 0; i < times; i++) {
-        for (let j = 1; j <= 3; j++) {
-            this.updateStatus(`Blink ${i+1}: ${j}...`, 'info');
-            await new Promise(r => setTimeout(r, 800)); // 0.8s per count
-        }
-        this.updateStatus(`Blink ${i+1}: Blink!`, 'info');
-        await new Promise(r => setTimeout(r, 800)); // wait before next blink
-    }
-},
+        // show a short countdown message for each required blink
+        async blinkCountdown(times) {
+            for (let i = 0; i < times; i++) {
+                for (let j = 3; j >= 1; j--) {
+                    this.updateStatus(`Blink ${i+1}: ${j}...`, 'info');
+                    await new Promise(r => setTimeout(r, 600)); // faster rhythm
+                }
+                this.updateStatus(`Blink ${i+1}: Now!`, 'info');
+                // small pause to allow user to blink
+                await new Promise(r => setTimeout(r, 800));
+            }
+        },
 
-
+        // Detection loop: runs continuously while detectLoopRunning = true
         async runDetectLoop() {
             const video = document.getElementById('modalVideo');
             const canvas = document.getElementById('overlayCanvas');
             const ctx = canvas.getContext('2d');
 
-            if (!this.detectLoopRunning) return;
+            // If detectLoopRunning is false, bail out quickly (no blink detection)
+            if (!this.detectLoopRunning) {
+                // do not flip processing flag here — we keep processing true until success/error
+                return;
+            }
 
             try {
                 const detections = await faceapi
@@ -341,11 +357,13 @@ async blinkCountdown(times) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 if (!detections || detections.length === 0) {
-                    this.updateStatus('No face detected', 'error');
+                    this.updateStatus('No face detected. Keep facing the camera.', 'error');
+                    // continue loop
                     if (this.detectLoopRunning) requestAnimationFrame(() => this.runDetectLoop());
                     return;
                 }
 
+                // Use first detection (you may change logic to find best match among multiple)
                 const displaySize = { width: canvas.width, height: canvas.height };
                 const resized = faceapi.resizeResults(detections, displaySize);
                 faceapi.draw.drawDetections(canvas, resized);
@@ -354,14 +372,17 @@ async blinkCountdown(times) {
                 const detection = detections[0];
                 const distance = faceapi.euclideanDistance(detection.descriptor, this.storedDescriptor);
 
+                // If face doesn't match stored descriptor, treat as not recognized
                 if (distance > this.MAX_DISTANCE) {
                     this.updateStatus('Face not recognized (match failed).', 'error');
-                    this.blinkCount = 0; // reset
+                    // reset blink sequence to be safe
+                    this.blinkCount = 0;
+                    // continue loop to keep checking
                     if (this.detectLoopRunning) requestAnimationFrame(() => this.runDetectLoop());
                     return;
                 }
 
-                // face matched - compute EAR & blink
+                // face matched: compute EAR & detect blink transitions
                 const leftEye = detection.landmarks.getLeftEye().map(p => ({ x: p.x, y: p.y }));
                 const rightEye = detection.landmarks.getRightEye().map(p => ({ x: p.x, y: p.y }));
                 const leftEAR = this.getEAR(leftEye);
@@ -372,50 +393,112 @@ async blinkCountdown(times) {
                 ctx.fillStyle = 'white';
                 ctx.font = '16px Arial';
                 ctx.fillText(`EAR: ${ear.toFixed(3)}`, 10, 20);
-                ctx.fillText(`Blinks: ${this.blinkCount}/2`, 10, 40);
+                ctx.fillText(`Blinks: ${this.blinkCount}/${this.REQUIRED_BLINKS}`, 10, 40);
                 ctx.fillText(`Match score: ${(1 - distance).toFixed(3)}`, 10, 60);
 
                 const now = Date.now();
-                if (ear < this.EAR_THRESHOLD && !this.blinkedRecently && now - this.lastBlinkTime > this.BLINK_COOLDOWN) {
+
+                // Blink detection: only when EAR drops below threshold and not recently blinked
+                if (ear < this.EAR_THRESHOLD && !this.blinkedRecently && (now - this.lastBlinkTime) > this.BLINK_COOLDOWN) {
                     this.blinkCount++;
                     this.blinkedRecently = true;
                     this.lastBlinkTime = now;
-                    this.updateStatus(`Blink detected! (${this.blinkCount}/2)`, 'info');
+                    this.updateStatus(`Blink detected! (${this.blinkCount}/${this.REQUIRED_BLINKS})`, 'info');
 
-                    if (this.blinkCount >= 2) {
+                    // If required blinks reached, validation success
+                    if (this.blinkCount >= this.REQUIRED_BLINKS) {
                         this.validationComplete = true;
                         this.detectLoopRunning = false;
                         this.updateStatus('Face validated successfully!', 'success');
-                        // record attendance
-                        await this.recordAttendanceAJAX(this.selectedEmployeeId, this.actionType);
-                        // close modal after small delay
+
+                        // record attendance (AJAX)
+                        try {
+                            await this.recordAttendanceAJAX(this.selectedEmployeeId, this.actionType);
+                        } catch (err) {
+                            console.error('Error recording attendance:', err);
+                            // continue to close modal and reset anyway
+                        }
+
+                        // give a small visual pause then close modal & reset
                         setTimeout(() => {
                             this.stopCamera();
                             this.showModal = false;
                             this.resetValidationState();
                         }, 700);
-                        return;
+
+                        return; // stop the loop after success
                     }
                 } else if (ear >= this.EAR_THRESHOLD) {
+                    // reset recent blink flag when eyes open again
                     this.blinkedRecently = false;
                 }
 
-                // reset sequence if too slow
-                if (this.blinkCount > 0 && now - this.lastBlinkTime > 6000) {
+                // Reset blink sequence if too slow between blinks
+                if (this.blinkCount > 0 && (now - this.lastBlinkTime) > this.BLINK_SEQUENCE_TIMEOUT) {
                     this.blinkCount = 0;
-                    this.updateStatus('Blink sequence reset. Blink twice.', 'info');
+                    this.updateStatus('Blink sequence reset. Please blink twice in sequence.', 'info');
                 }
 
                 if (this.detectLoopRunning) requestAnimationFrame(() => this.runDetectLoop());
             } catch (err) {
                 console.error(err);
                 this.updateStatus('Detection error', 'error');
-                if (this.detectLoopRunning) requestAnimationFrame(() => this.runDetectLoop());
-            } finally {
+                // Stop running further to avoid flood; allow retry by user (processing remains true so button remains disabled).
+                this.detectLoopRunning = false;
                 this.processing = false;
+                this.buttonText = 'Start Validation';
             }
         },
 
+        // Wait until a face is detected AND matched to stored descriptor
+        async waitForFaceMatch(timeoutMs = 20000) {
+            const video = document.getElementById('modalVideo');
+            const start = Date.now();
+
+            return new Promise((resolve, reject) => {
+                const loop = async () => {
+                    try {
+                        if (!video || video.readyState < 2) {
+                            // video not ready yet
+                            if ((Date.now() - start) > timeoutMs) return reject(new Error('Camera not ready'));
+                            requestAnimationFrame(loop);
+                            return;
+                        }
+
+                        const detections = await faceapi
+                            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                            .withFaceLandmarks()
+                            .withFaceDescriptors();
+
+                        if (detections && detections.length > 0) {
+                            // check first face for match
+                            const dist = faceapi.euclideanDistance(detections[0].descriptor, this.storedDescriptor);
+                            if (dist <= this.MAX_DISTANCE) {
+                                // matched
+                                return resolve(true);
+                            } else {
+                                // not matched yet — inform user
+                                this.updateStatus('Face detected but not recognized. Make sure it\'s the selected employee.', 'error');
+                            }
+                        } else {
+                            this.updateStatus('No face detected. Please face the camera.', 'info');
+                        }
+
+                        if ((Date.now() - start) > timeoutMs) {
+                            return reject(new Error('Face not detected in time. Try again.'));
+                        }
+
+                        requestAnimationFrame(loop);
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+
+                loop();
+            });
+        },
+
+        // ------------------ AJAX -----------------------
         async recordAttendanceAJAX(employeeId, action) {
             this.updateStatus('Recording attendance...', 'info');
             try {
@@ -441,19 +524,21 @@ async blinkCountdown(times) {
                 }
 
                 this.updateStatus(json.message || 'Recorded', 'success');
-                Swal.fire({
+
+                await Swal.fire({
                     icon: 'success',
                     title: action === 'time_in' ? 'Time In Recorded' : 'Time Out Recorded',
                     text: json.message || 'Attendance logged successfully.',
                     confirmButtonColor: '#2563eb'
-                }).then(() => {
-                    // reload to reflect updated table
-                    window.location.reload();
                 });
+
+                // reload to reflect updated table
+                window.location.reload();
             } catch (err) {
                 console.error(err);
                 this.updateStatus('Server error', 'error');
                 Swal.fire({ icon: 'error', title: 'Error', text: 'Server error while recording attendance.' });
+                throw err;
             }
         }
     }
