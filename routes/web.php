@@ -260,3 +260,12 @@ Route::get('/cam', function() {
     
     return view('HR.xample');
 });
+
+Route::controller(EmployeeAttendanceController::class)->group(function () {
+    Route::get('/Attendancepage', 'showEmpAttendance')->name('employee.attendance');
+});
+Route::get('/attendance/employees', [EmployeeAttendanceController::class, 'getEmployees']);
+Route::get('/attendance/descriptor/{id}', [EmployeeAttendanceController::class, 'getDescriptor']);
+Route::post('/attendance/record', [EmployeeAttendanceController::class, 'recordAttendance']);
+Route::post('/check-face-duplicate', [EmployeeprofilesController::class, 'checkFaceDuplicate'])
+     ->name('check.face.duplicate');

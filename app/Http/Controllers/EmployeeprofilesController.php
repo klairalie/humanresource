@@ -82,67 +82,91 @@ class EmployeeprofilesController extends Controller
     }
 
     // 🔹 Update Employee Profile
-    public function update(Request $request, $employeeprofiles_id)
-    {
-        $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
+ // ======== UPDATE FUNCTION ========
+public function update(Request $request, $employeeprofiles_id)
+{
+    $employee = Employeeprofiles::findOrFail($employeeprofiles_id);
 
-        $validated = $request->validate([
-            'first_name'        => 'required|string|max:255',
-            'last_name'         => 'required|string|max:255',
-            'address'           => 'nullable|string|max:255',
-            'position'          => 'nullable|string|max:255',
-            'contact_number'    => 'nullable|string|max:255',
-            'hire_date'         => 'nullable|date',
-            'status'            => 'nullable|string|max:255',
-            'emergency_contact' => 'nullable|string|max:255',
-            'face_descriptor' => 'nullable|string',
+    $validated = $request->validate([
+        'first_name'        => 'required|string|max:255',
+        'last_name'         => 'required|string|max:255',
+        'address'           => 'nullable|string|max:255',
+        'position'          => 'nullable|string|max:255',
+        'contact_number'    => 'nullable|string|max:255',
+        'hire_date'         => 'nullable|date',
+        'status'            => 'nullable|string|max:255',
+        'emergency_contact' => 'nullable|string|max:255',
+        'face_descriptor'   => 'nullable|string',
+    ]);
 
-        ]);
+    // ======= UNIQUE FACE CHECK =======
+    if (!empty($validated['face_descriptor'])) {
+        $incoming = json_decode($validated['face_descriptor'], true);
+        $THRESHOLD = 0.45;
 
-        $employee->update($validated);
+        $employees = Employeeprofiles::whereNotNull('face_descriptor')
+            ->where('employeeprofiles_id', '!=', $employeeprofiles_id)
+            ->get();
 
-        return redirect()
-            ->route('show.employeeprofiles')
-            ->with('success', 'Employee profile updated successfully.');
+        $euclidean = fn($a, $b) => sqrt(array_sum(array_map(fn($x, $y) => ($x-$y)**2, $a, $b)));
+
+        foreach ($employees as $emp) {
+            $existing = json_decode($emp->face_descriptor, true);
+            if (!is_array($existing)) continue;
+
+            // compare distances
+            if ($euclidean($incoming, $existing) < $THRESHOLD) {
+                return back()->withErrors([
+                    'face_descriptor' => "This face is already registered under: {$emp->first_name} {$emp->last_name}."
+                ])->withInput();
+            }
+        }
     }
 
-      // 🔹 Store New Employee Profile
-    public function submitEmployeeprofiles(Request $request)
-    {
-        $validated = $request->validate([
-            'first_name'        => 'required|string|max:255',
-            'last_name'         => 'required|string|max:255',
-            'address'           => 'required|string|max:255',
-            'email'             => 'required|email|unique:employeeprofiles,email',
-            'position'          => 'required|string|max:255',
-            'date_of_birth'     => 'required|date',
-            'contact_number'    => 'required|string|max:255',
-            'hire_date'         => 'nullable|date',
-            'status'            => 'required|string|max:255',
-            'emergency_contact' => 'nullable|string|max:255',
-            'face_descriptor' => 'nullable|string',
+    $employee->update($validated);
 
-        ]);
+    return redirect()->route('show.employeeprofiles')
+                     ->with('success', 'Employee profile updated successfully.');
+}
 
-        Employeeprofiles::create([
-            'first_name'        => $validated['first_name'],
-            'last_name'         => $validated['last_name'],
-            'address'           => $validated['address'],
-            'email'             => $validated['email'],
-            'position'          => $validated['position'],
-            'date_of_birth'     => $validated['date_of_birth'],
-            'contact_number'    => $validated['contact_number'],
-            'hire_date'         => $validated['hire_date'] ?? null,
-            'status'            => $validated['status'],
-            'emergency_contact' => $validated['emergency_contact'] ?? null,
-            'card_Idnumber'     => $validated['card_Idnumber'] ?? null,
-        ]);
 
-        return redirect()
-            ->route('show.employeeprofiles')
-            ->with('success', 'New employee profile added successfully.');
+// ======== AJAX DUPLICATE CHECK ========
+public function checkFaceDuplicate(Request $request)
+{
+    $descriptor = $request->input('face_descriptor');
+    $currentId = $request->input('employeeprofiles_id', null);
+
+    if (!$descriptor) {
+        return response()->json(['status' => 'error', 'message' => 'No descriptor provided']);
     }
 
+    $descriptorArray = json_decode($descriptor, true);
+    if (!is_array($descriptorArray)) {
+        return response()->json(['status' => 'error', 'message' => 'Invalid descriptor format']);
+    }
+
+    $THRESHOLD = 0.45;
+
+    $employees = Employeeprofiles::whereNotNull('face_descriptor')
+                                ->when($currentId, fn($q) => $q->where('employeeprofiles_id', '!=', $currentId))
+                                ->get();
+
+    $euclidean = fn($a, $b) => sqrt(array_sum(array_map(fn($x,$y)=>($x-$y)**2,$a,$b)));
+
+    foreach ($employees as $emp) {
+        $existing = json_decode($emp->face_descriptor, true);
+        if (!is_array($existing)) continue;
+
+        if ($euclidean($descriptorArray, $existing) < $THRESHOLD) {
+            return response()->json([
+                'status' => 'duplicate',
+                'matched_employee' => "{$emp->first_name} {$emp->last_name}"
+            ]);
+        }
+    }
+
+    return response()->json(['status' => 'ok']);
+}
 
 public function deactivate(Request $request, $employeeprofiles_id)
 {

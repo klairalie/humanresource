@@ -114,7 +114,13 @@
                 <input type="date" name="hire_date" value="{{ old('hire_date', $employee->hire_date) }}"
                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black">
             </div>
+            <div>
+<label class="block text-sm font-semibold text-black mb-2">Face Descriptor</label>
+                <input type="text" name="face_descriptor" value="{{ old('face_descriptor', $employee->face_descriptor) }} "
+                       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 text-black" readonly>
 
+                
+            </div>
             <!-- Buttons -->
             <div class="flex justify-end space-x-3 mt-6 col-span-2 mb-5">
                 <a href="{{ route('show.employeeprofiles') }}"
