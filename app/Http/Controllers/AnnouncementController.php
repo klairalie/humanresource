@@ -11,7 +11,7 @@ class AnnouncementController extends Controller
     public function index()
     {
         $announcements = Announcement::latest()->paginate(10);
-        return view('announcements.manage', compact('announcements'));
+        return view('HR.announcement', compact('announcements'));
     }
 
     // Store new announcement

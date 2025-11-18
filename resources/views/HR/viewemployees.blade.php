@@ -118,8 +118,7 @@
                                             <dt class="font-semibold">Emergency Contact:</dt>
                                             <dd class="col-span-2">{{ $emp->emergency_contact }}</dd>
 
-                                            <dt class="font-semibold">Card ID Number:</dt>
-                                            <dd class="col-span-2">{{ $emp->card_Idnumber }}</dd>
+                                            
                                         </dl>
 
                                         <!-- Footer -->

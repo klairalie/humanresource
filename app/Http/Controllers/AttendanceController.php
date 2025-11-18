@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
+
 public function showAttendance(Request $request)
 {
     // Base query
@@ -161,4 +162,25 @@ public function showAttendance(Request $request)
 
         return redirect()->route('show.overtime')->with('error', 'Overtime request rejected.');
     }
+
+    public function getStatuses()
+{
+    $statuses = [
+        'Pending',
+        'Late - On Duty',
+        'Present',
+        'Absent',
+        'Incomplete',
+        'Late - Present',
+        'Present - Undertime',
+        'Present - Halfday',
+        'On Duty'
+    ];
+
+    return response()->json([
+        'success' => true,
+        'statuses' => $statuses
+    ]);
+}
+
 }

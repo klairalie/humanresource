@@ -209,12 +209,12 @@
         <canvas id="attendanceChart"></canvas>
     </div>
 
-    <div class="mt-2 flex gap-2 flex-wrap text-xs">
+    {{-- <div class="mt-2 flex gap-2 flex-wrap text-xs">
         <a href="{{ route('attendance.export') }}"
            class="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">
            Export
         </a>
-    </div>
+    </div> --}}
 
     <!-- Full View Modal -->
     <div 

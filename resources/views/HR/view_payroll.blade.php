@@ -20,6 +20,7 @@
                 class="px-4 py-2 bg-gray-700 text-white font-semibold hover:bg-gray-800 transition-all shadow-md flex items-center gap-2">
                 <i data-lucide="settings" class="w-5 h-5 text-white"></i> Manage Bonus
             </button>
+            {{-- <a href="{{ route('payroll.records') }}" class="text-black">Payroll records</a> --}}
         </div>
     </div>
 
@@ -30,6 +31,7 @@
         <table class="min-w-full text-left">
             <thead>
                 <tr class="bg-gray-700 text-white uppercase text-sm font-bold text-center">
+                    
                     <th class="px-6 py-4">Employee ID</th>
                     <th class="px-6 py-4">First Name</th>
                     <th class="px-6 py-4">Last Name</th>
@@ -91,7 +93,7 @@
                         <th class="px-4 py-2 text-left">End</th>
                         <th class="px-4 py-2 text-left">Salary Rate</th>
                         <th class="px-4 py-2 text-left">Basic Salary</th>
-                        <th class="px-4 py-2 text-left">Basic Salary Tax</th>
+                     
                         <th class="px-4 py-2 text-left">Overtime Pay</th>
                         <th class="px-4 py-2 text-left">Deductions</th>
                         <th class="px-4 py-2 text-left">Bonuses</th>
@@ -208,21 +210,21 @@ function openDetailsModal(id) {
                         <td class="px-4 py-2">${r.pay_period_end}</td>
                         <td class="px-4 py-2">${r.salary_rate}</td>
                         <td class="px-4 py-2">${r.basic_salary}</td>
-                        <td class="px-4 py-2">${r.basic_salary_tax}</td>
+                       
                         <td class="px-4 py-2">${r.overtime_pay}</td>
                        <td class="px-4 py-2 text-left">
-    SSS: ${r.sss_contribution}<br>
-    PhilHealth: ${r.philhealth_contribution}<br>
-    Pag-IBIG: ${r.pagibig_contribution}<br>
-    Tax: ${r.tax_deduction}<br>
-    Cash Advance: ${r.cash_advance ?? 0}<br>
-    <strong>Total: ${r.deductions}</strong>
+  
+  Cash Advance: ₱${parseFloat(r.cash_advance || 0).toFixed(2)}<br>
+Late: ₱${parseFloat(r.late_deduction || 0).toFixed(2)}<br>
+Total: ₱${(parseFloat(r.cash_advance || 0) + parseFloat(r.late_deduction || 0)).toFixed(2)}
 </td>
 
                         <td class="px-4 py-2">${r.bonuses ?? '—'}</td>
                         <td class="px-4 py-2">${r.bonus_amount ?? '0.00'}</td>
                         <td class="px-4 py-2">${r.gross_pay}</td>
-                        <td class="px-4 py-2 font-semibold text-green-600">${r.net_pay}</td>
+                      <td class="px-4 py-2 font-semibold ${r.net_pay < 0 ? 'text-red-600' : 'text-green-600'}">
+    ${r.net_pay < 0 ? '-₱' + Math.abs(parseFloat(r.net_pay)).toFixed(2) : '₱' + parseFloat(r.net_pay).toFixed(2)}
+</td>
                         <td class="px-4 py-2 font-semibold">${r.status}</td>
                     </tr>`;
                 });

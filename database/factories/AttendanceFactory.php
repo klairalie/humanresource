@@ -5,23 +5,33 @@ namespace Database\Factories;
 use App\Models\Employeeprofiles;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Attendance>
- */
 class AttendanceFactory extends Factory
 {
     public function definition(): array
     {
-        // Get an existing employee, or create one if none exist
-        $employee = Employeeprofiles::inRandomOrder()->first();
+        // Random attendance status
+        $status = fake()->randomElement(['Present', 'Late - On Duty', 'Absent']);
+
+        // If Absent → no time_in / time_out
+        if ($status === 'Absent') {
+            return [
+                'date' => fake()->dateTimeBetween('2025-11-01', '2025-11-30')->format('Y-m-d'),
+                'time_in' => null,
+                'time_out' => null,
+                'status' => $status,
+            ];
+        }
+
+        // For Present or Late
+        $date = fake()->dateTimeBetween('2025-11-01', '2025-11-17');
+        $timeIn = fake()->dateTimeBetween($date->format('Y-m-d').' 06:00:00', $date->format('Y-m-d').' 08:00:00');
+        $timeOut = fake()->dateTimeBetween($date->format('Y-m-d').' 17:00:00', $date->format('Y-m-d').' 19:00:00');
 
         return [
-            'date' => fake()->dateTimeBetween('2025-01-01', '2025-11-08')->format('Y-m-d'),
-            'time_in' => fake()->dateTimeBetween('06:00:00', '08:00:00')->format('H:i:s'),
-'time_out' => fake()->dateTimeBetween('17:00:00', '19:00:00')->format('H:i:s'),
-
-            'status' => fake()->randomElement(['Absent', 'Present']),
-            'employeeprofiles_id' => $employee->employeeprofiles_id,
+            'date' => $date->format('Y-m-d'),
+            'time_in' => $timeIn->format('H:i:s'),
+            'time_out' => $timeOut->format('H:i:s'),
+            'status' => $status,
         ];
     }
 }

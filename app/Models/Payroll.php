@@ -28,6 +28,7 @@ class Payroll extends Model
         'philhealth_contribution',
         'pagibig_contribution',
         'deductions',
+        'late_deduction',
         'bonuses',
         'bonus_amount',
         'net_pay',
@@ -49,9 +50,11 @@ class Payroll extends Model
         'philhealth_contribution' => 'decimal:2',
         'pagibig_contribution' => 'decimal:2',
         'deductions' => 'decimal:2',
+        'late_deduction' => 'decimal:2',
         'bonus_amount' => 'decimal:2',
         'net_pay' => 'decimal:2',
         'cash_advance' => 'decimal:2'
+     
     ];
 
     public function employeeprofiles()

@@ -1,18 +1,21 @@
 <?php
 
 namespace Database\Seeders;
-use App\Models\Attendance;
-use Database\Factories\AttendanceFactory;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 use Illuminate\Database\Seeder;
+use App\Models\Attendance;
+use App\Models\Employeeprofiles;
 
 class AttendanceSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-      
+        Employeeprofiles::all()->each(function ($employee) {
+            Attendance::factory()
+                ->count(16)
+                ->create([
+                    'employeeprofiles_id' => $employee->employeeprofiles_id,
+                ]);
+        });
     }
 }

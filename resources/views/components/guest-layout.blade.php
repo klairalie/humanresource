@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet">
 </head>
 
-<body class="text-black h-full overflow-hidden bg-[#F4F7FA]" x-data="{ sidebarOpen: false }">
+<body class="text-black h-full overflow-hidden bg-[#F4F7FA]" x-data="{ sidebarOpen: true }">
 
    <!-- Navbar -->
 <nav
@@ -201,7 +201,7 @@
          :class="sidebarOpen ? 'w-64' : 'w-20'">
 
        <!-- Sidebar Header -->
-<div class="flex items-center justify-center space-x-2 mt-17 mb-18 pb-5 border-b border-black">
+<div class="flex items-center justify-center space-x-2 mt-15 mb-18 pb-5 border-b border-black">
     <i data-lucide="briefcase" class="w-8 h-10 text-white "></i>
     <h4 class="logo-text text-center font-bold text-xl" x-show="sidebarOpen" x-transition>
         Human Resource

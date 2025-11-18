@@ -126,25 +126,72 @@
             enableSaveButton(false);
         }
 
-        /* ========== CAMERA CONTROL ========== */
-        async function enableCamera() {
-            if (cameraActive) return;
-            updateStatus('Starting camera...');
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-                cameraActive = true;
-                video.onloadedmetadata = () => {
-                    video.play();
-                    updateStatus('Camera ready. Position your face and click Register Face to start Scan #1.', 'info');
-                    // Show Register button now that camera is active (Option A)
-                    registerButton.style.display = 'inline-block';
-                };
-            } catch (err) {
-                updateStatus('Unable to access camera. Please allow camera permissions.', 'error');
-                console.error(err);
+  /* ===== CAMERA TOGGLE ===== */
+turnOnButton.addEventListener('click', async () => {
+    if (!modelsLoaded) {
+        updateStatus('Models still loading. Please wait...', 'info');
+        return;
+    }
+
+    if (!cameraActive) {
+        // TURN ON CAMERA
+        updateStatus('Starting camera...');
+        try {
+            // Get available cameras and prioritize external ones
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const cameras = devices.filter(d => d.kind === "videoinput");
+
+            if (cameras.length === 0) {
+                updateStatus('❌ No camera detected', 'error');
+                throw new Error('No camera found');
             }
+
+            // Look for external cameras first
+            let externalCam = cameras.find(cam =>
+                cam.label.toLowerCase().includes("usb") ||
+                cam.label.toLowerCase().includes("webcam") ||
+                cam.label.toLowerCase().includes("external") ||
+                cam.label.toLowerCase().includes("logitech") || // Common external webcam brand
+                cam.label.toLowerCase().includes("c920") || // Common webcam model
+                cam.label.toLowerCase().includes("hd pro") // Common webcam model
+            );
+
+            let chosenCam = externalCam ?? cameras[0]; // Use external cam if found, otherwise first available
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    deviceId: { exact: chosenCam.deviceId },
+                    width: 640,
+                    height: 480
+                }
+            });
+            
+            video.srcObject = stream;
+            cameraActive = true;
+            video.onloadedmetadata = () => video.play();
+            updateStatus(`Camera ready (${chosenCam.label || 'External Webcam'}). Position your face and click Register Face to start Scan #1.`, 'info');
+            registerButton.style.display = 'inline-block';
+            retakeButton.style.display = 'none';
+            turnOnButton.textContent = 'Turn Off Camera';
+        } catch (err) {
+            updateStatus('Unable to access camera. Please allow camera permissions.', 'error');
+            console.error(err);
         }
+    } else {
+        // TURN OFF CAMERA
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null; // release the camera
+        }
+        cameraActive = false;
+        updateStatus('Camera inactive. Click Turn On Camera.', 'info');
+        registerButton.style.display = 'none';
+        retakeButton.style.display = 'none';
+        resetScans();
+        turnOnButton.textContent = 'Turn On Camera';
+    }
+});
+
 
         /* ========== MODEL LOADING ========== */
         Promise.all([

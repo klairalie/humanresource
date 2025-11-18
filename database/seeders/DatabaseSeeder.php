@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
 
         // 🗓️ For each employee, seed multiple attendances (Jan–Nov)
         Employeeprofiles::all()->each(function ($employee) {
-            Attendance::factory()->count(200)->create([
+            Attendance::factory()->count(16)->create([
                 'employeeprofiles_id' => $employee->employeeprofiles_id,
             ]);
         });

@@ -11,6 +11,8 @@ class Employeeprofiles extends Model
 
     protected $table = 'employeeprofiles';
     protected $primaryKey = 'employeeprofiles_id';
+       public $incrementing = true;     // ← ADD THIS
+    protected $keyType = 'int'; 
     protected $fillable = [
 
         'first_name',
@@ -45,10 +47,12 @@ class Employeeprofiles extends Model
         return $this->hasMany(Leaveovertimerequest::class);
     }
 
-    public function payrolls()
-    {
-        return $this->hasMany(Payroll::class);
-    }
+   public function payrolls()
+{
+    return $this->hasMany(Payroll::class, 'employeeprofiles_id', 'employeeprofiles_id');
+}
+
+
     
     public function archiveprofiles()
     {

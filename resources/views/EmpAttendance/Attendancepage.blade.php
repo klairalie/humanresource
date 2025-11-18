@@ -8,220 +8,329 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- face-api.js (using CDN) -->
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js/dist/face-api.min.js"></script>
-
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
-      /* Ensure canvas overlays video correctly inside modal */
-      .video-wrapper { position: relative; width: 100%; }
-      #modalVideo { display: block; width: 100%; border-radius: 8px; }
-      #overlayCanvas { position: absolute; top: 0; left: 0; pointer-events: none; }
-      #statusDivCustom { padding: .5rem; border-radius: .375rem; color: white; background: rgba(0,0,0,0.6); margin-top: .5rem; }
+        /* Blinking colon animation */
+        @keyframes blink { 0%,50%,100%{opacity:1} 25%,75%{opacity:0} }
+        .blink { animation: blink 1s infinite; }
+        
+        /* Scanner line animation */
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00ffff, transparent);
+            box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+            animation: scan 2s ease-in-out infinite;
+            z-index: 10;
+        }
+        
+        /* Scanner frame effect */
+        .scanner-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 20px #00ffff inset, 0 0 30px rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        /* Status indicators */
+        .status-scanning { background: rgba(0, 255, 255, 0.1) !important; color: #00ffff !important; }
+        .status-success { background: rgba(40, 200, 120, 0.9) !important; color: white !important; }
+        .status-error { background: rgba(255, 75, 75, 0.9) !important; color: white !important; }
+        .status-info { background: rgba(0, 0, 0, 0.06) !important; color: black !important; }
     </style>
 </head>
 
-<body class="bg-gray-100 text-black relative">
+<body class="bg-gray-900 text-white">
 
-    <div 
-        x-data="attendanceModal()" 
-        x-cloak 
-        class="max-w-5xl mx-auto p-5 mt-10 bg-white rounded-lg shadow-lg border border-gray-200 relative mr-90">
+<div x-data="attendanceModal()" x-init="initClock()" x-cloak class="max-w-3xl mx-auto mt-20 bg-gray-800 rounded-3xl shadow-2xl p-8">
 
-        <!-- Title -->
-        <div class="flex items-center justify-between mb-4 border-b pb-2">
-            <h1 class="text-2xl font-bold flex items-center gap-2">
-                <i data-lucide="calendar-days" class="w-6 h-6"></i>
-                My Attendance Records
-            </h1>
-        </div>
+    <!-- Title -->
+    <h1 class="text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2 text-cyan-400">
+        <i data-lucide="calendar-days" class="w-7 h-7"></i>
+        My Attendance
+    </h1>
 
-        <!-- Scrollable Table -->
-        <div class="overflow-y-auto max-h-[70vh] pr-6">
-            <table class="w-4xl border border-gray-200 text-sm">
-                <thead class="bg-gray-100 sticky top-0 z-10">
-                    <tr class="text-left">
-                        <th class="px-4 py-2 border">Name</th>
-                        <th class="px-4 py-2 border">Date</th>
-                        <th class="px-4 py-2 border">Time In</th>
-                        <th class="px-4 py-2 border">Time Out</th>
-                        <th class="px-4 py-2 border">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($attendances as $attendance)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-4 py-2 border">{{ $attendance->employeeprofiles?->last_name }}</td>
-                            <td class="px-4 py-2 border">{{ $attendance->date }}</td>
-                            <td class="px-4 py-2 border">
-                                {{ $attendance->time_in ? \Carbon\Carbon::parse($attendance->time_in)->format('h:i A') : '-' }}
-                            </td>
-                            <td class="px-4 py-2 border">
-                                {{ $attendance->time_out ? \Carbon\Carbon::parse($attendance->time_out)->format('h:i A') : '-' }}
-                            </td>
-                            <td class="px-4 py-2 border">{{ $attendance->status }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-4">No records found</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Fixed Time Buttons -->
-        <div class="fixed right-30 top-1/2 -translate-y-1/2 flex flex-col gap-6 z-50">
-            <button @click="openModal('time_in')"
-                class="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2">
-                <i data-lucide="log-in" class="w-5 h-5"></i>
-                Time In
-            </button>
-            <button @click="openModal('time_out')"
-                class="px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
-                Time Out
-            </button>
-        </div>
-
-        <!-- FACE SCAN MODAL -->
-        <template x-if="showModal">
-            <div class="fixed inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
-                <div class="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl relative">
-
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                        <i data-lucide="camera" class="w-6 h-6"></i>
-                        Facial Attendance Scan
-                    </h2>
-
-                    <!-- Employee selector -->
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium mb-1">Who's clocking?</label>
-                        <select x-model="selectedEmployeeId" id="employeeSelect" class="w-full border p-2 rounded">
-                            <option value="">-- Select employee --</option>
-                        </select>
-                    </div>
-
-                    <!-- Video Feed + overlay canvas -->
-                    <div class="video-wrapper mb-3">
-                        <video id="modalVideo" width="500" height="350" autoplay muted playsinline class="rounded-lg bg-black w-full"></video>
-                        <canvas id="overlayCanvas"></canvas>
-                    </div>
-
-                    <div id="statusDivCustom">Camera inactive</div>
-
-                    <div class="mt-5 flex justify-end gap-2">
-                        <button @click="closeModal"
-                            class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg flex items-center gap-1">
-                            <i data-lucide="x-circle" class="w-5 h-5"></i> Cancel
-                        </button>
-
-                        <button :disabled="processing" @click="startValidationFlow"
-                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-1">
-                            <i data-lucide="check-circle" class="w-5 h-5"></i> <span x-text="buttonText"></span>
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        </template>
-
+    <!-- Stylish Clock -->
+    <div class="flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 rounded-2xl p-8 shadow-lg">
+        <div class="text-6xl font-extrabold font-mono text-cya-400 drop-shadow-[0_0_10px_cyan] tracking-widest" x-html="currentTime"></div>
+        <div class="mt-3 text-xl text-purple-400 drop-shadow-md" x-text="currentDate"></div>
     </div>
+
+    @php
+        $now = \Carbon\Carbon::now('Asia/Manila');
+    @endphp
+
+    <!-- Attendance Buttons -->
+    <div class="mt-8 flex justify-center gap-6">
+        <button @click="openModal('time_in')"
+            class="px-10 py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-semibold shadow-lg transform transition-transform hover:scale-105 flex items-center gap-2">
+            <i data-lucide="log-in" class="w-6 h-6"></i> Time In
+        </button>
+        <button @click="openModal('time_out')"
+            class="px-10 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-semibold shadow-lg transform transition-transform hover:scale-105 flex items-center gap-2">
+            <i data-lucide="log-out" class="w-6 h-6"></i> Time Out
+        </button>
+    </div>
+
+    <!-- FACE SCAN MODAL with Scanner Effect -->
+    <template x-if="showModal">
+        <div class="fixed inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50 p-4">
+            <div class="relative w-full max-w-lg rounded-3xl shadow-2xl p-6 bg-white flex flex-col items-center">
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 text-black">
+                    <i data-lucide="scan" class="w-6 h-6"></i> Facial Recognition Scanner
+                </h2>
+
+                <!-- Video feed with scanner overlay -->
+                <div class="relative w-full mb-3 rounded-xl overflow-hidden shadow-lg ring-2 ring-cyan-400 bg-gray-100">
+                    <video id="modalVideo" autoplay muted playsinline class="w-full h-auto rounded-xl"></video>
+                    
+                    <!-- Scanner Frame -->
+                    <div class="scanner-frame"></div>
+                    
+                    <!-- Scanner Line -->
+                    <div class="scanner-line" x-show="scanLoopRunning || blinkLoopRunning"></div>
+                    
+                    <!-- Face detection indicator -->
+                    <div class="absolute top-3 right-3 flex items-center gap-2" x-show="faceDetected">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-white text-sm font-semibold bg-black bg-opacity-50 px-2 py-1 rounded">Face Detected</span>
+                    </div>
+                    
+                    <!-- Match indicator -->
+                    <div class="absolute top-3 left-3 flex items-center gap-2" x-show="matchedEmployee">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span class="text-white text-sm font-semibold bg-black bg-opacity-50 px-2 py-1 rounded" x-text="'Matched: ' + (matchedEmployee?.name || '')"></span>
+                    </div>
+                    
+                    <!-- Blink counter -->
+                    <div class="absolute bottom-3 left-3 bg-black bg-opacity-70 text-white px-3 py-2 rounded-lg" 
+                         x-show="blinkLoopRunning && blinkCount > 0">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                            <span x-text="'Blinks: ' + blinkCount + '/' + REQUIRED_BLINKS"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status with scanner-style messages -->
+                <div id="statusDivCustom" class="w-full text-center p-3 rounded-xl font-semibold shadow-md status-info">
+                    Scanner Ready
+                </div>
+
+                <!-- Progress indicators -->
+                <div class="w-full mt-3 space-y-2" x-show="processing">
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>Face Detection</span>
+                        <span x-text="faceDetected ? '✅' : '⏳'"></span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>Recognition</span>
+                        <span x-text="matchedEmployee ? '✅' : '⏳'"></span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600" x-show="blinkLoopRunning">
+                        <span>Liveness Check</span>
+                        <span x-text="blinkCount >= REQUIRED_BLINKS ? '✅' : '⏳'"></span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="mt-5 flex justify-end gap-3 w-full">
+                    <button @click="closeModal" class="px-5 py-2 bg-gray-300 hover:bg-gray-400 text-black rounded-xl flex items-center gap-1 shadow-md">
+                        <i data-lucide="x-circle" class="w-5 h-5"></i> Cancel
+                    </button>
+
+                    <button @click="manualRetry" :disabled="processing" class="px-5 py-2 bg-cyan-200 hover:bg-cyan-300 text-black rounded-xl flex items-center gap-1 shadow-md">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i> Retry Scan
+                    </button>
+                </div>
+
+                <div class="absolute inset-0 rounded-3xl pointer-events-none"></div>
+            </div>
+        </div>
+    </template>
+
+</div>
 
 <script>
 function attendanceModal() {
     return {
+        currentTime: '',
+        currentDate: '',
+
+        initClock() {
+            const updateClock = () => {
+                const now = new Date();
+                let h = String(now.getHours()).padStart(2,'0');
+                let m = String(now.getMinutes()).padStart(2,'0');
+                let s = String(now.getSeconds()).padStart(2,'0');
+                this.currentTime = `${h}<span class="blink">:</span>${m}<span class="blink">:</span>${s}`;
+                this.currentDate = now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
+        },
+
         // UI state
         showModal: false,
         actionType: '',
         videoStream: null,
-        selectedEmployeeId: '',
         processing: false,
-        buttonText: 'Start Validation',
+        faceDetected: false,
 
-        // face-api & validation state
-        storedDescriptor: null, // Float32Array
-        detectLoopRunning: false,
+        // face-api & matching state
+        employeesDescriptors: [],
+        MAX_DISTANCE: 0.6,
+
+        // blink / EAR validation params
+        EAR_THRESHOLD: 0.28,
+        BLINK_COOLDOWN: 400,
+        BLINK_SEQUENCE_TIMEOUT: 6000,
+        REQUIRED_BLINKS: 2,
+
+        // runtime blink state
+        matchedEmployee: null,
         blinkCount: 0,
         blinkedRecently: false,
         lastBlinkTime: 0,
-        validationComplete: false,
+        blinkLoopRunning: false,
+        scanLoopRunning: false,
 
-        // thresholds and configuration
-        MAX_DISTANCE: 0.6,
-        EAR_THRESHOLD: 0.28,
-        BLINK_COOLDOWN: 400, // ms
-        BLINK_SEQUENCE_TIMEOUT: 6000, // ms allowed between blinks before reset
-        REQUIRED_BLINKS: 2, // you chose 2 blinks
-
-        // ---------------- UI / lifecycle ----------------
         async openModal(action) {
             this.actionType = action;
             this.showModal = true;
-            this.selectedEmployeeId = '';
-            this.resetValidationState();
-            await this.fetchEmployees();
-            await this.startCamera();
+            this.processing = false;
+            this.matchedEmployee = null;
+            this.faceDetected = false;
+            this.updateStatus('🚀 Initializing facial scanner...', 'info');
+
+            try {
+                this.updateStatus('📦 Loading recognition models...', 'info');
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                    faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+                ]);
+
+                await this.fetchAllDescriptors();
+                await this.startCamera();
+
+                this.processing = true;
+                this.updateStatus('🔍 Scanning for registered employee. Please face the scanner.', 'scanning');
+                this.scanLoopRunning = true;
+                this.scanLoop();
+            } catch (err) {
+                console.error(err);
+                this.updateStatus('❌ Initialization error: ' + (err.message || ''), 'error');
+                this.processing = false;
+            }
         },
 
         closeModal() {
-            // If user closes the modal while processing, stop and reset
             this.stopCamera();
             this.showModal = false;
-            this.resetValidationState();
+            this.processing = false;
+            this.employeesDescriptors = [];
+            this.resetBlinkState();
+            this.matchedEmployee = null;
+            this.faceDetected = false;
         },
 
-        async fetchEmployees() {
-            try {
-                const res = await fetch('/attendance/employees');
-                const json = await res.json();
-                if (!json.success) {
-                    this.updateStatus('Failed to load employees', 'error');
-                    return;
-                }
-                const select = document.getElementById('employeeSelect');
-                // clear existing options except placeholder
-                select.innerHTML = '<option value="">-- Select employee --</option>';
-                json.employees.forEach(e => {
-                    const id = e.employeeprofiles_id ?? e.id ?? e.employeeprofiles_id;
-                    const opt = document.createElement('option');
-                    opt.value = id;
-                    opt.textContent = `${e.full_name ?? (e.first_name + ' ' + e.last_name)} — ${e.position ?? ''}`;
-                    select.appendChild(opt);
-                });
-            } catch (err) {
-                console.error(err);
-                this.updateStatus('Error fetching employees', 'error');
-            }
+        manualRetry() {
+            if (!this.showModal) return;
+            this.updateStatus('🔄 Retrying facial scan...', 'info');
+            this.processing = true;
+            this.scanLoopRunning = true;
+            this.matchedEmployee = null;
+            this.resetBlinkState();
+            this.scanLoop();
         },
 
         updateStatus(msg, type = 'info') {
             const el = document.getElementById('statusDivCustom');
             if (!el) return;
             el.textContent = msg;
-            el.style.background = type === 'error' ? 'rgba(255,75,75,0.9)' : (type === 'success' ? 'rgba(40,200,120,0.9)' : 'rgba(0,0,0,0.6)');
+            el.className = 'w-full text-center p-3 rounded-xl font-semibold shadow-md status-' + 
+                (type === 'error' ? 'error' : 
+                 type === 'success' ? 'success' : 
+                 type === 'scanning' ? 'scanning' : 'info');
+        },
+
+        async fetchAllDescriptors() {
+            try {
+                const res = await fetch('/attendance/descriptors');
+                const json = await res.json();
+                if (!json.success) throw new Error(json.message || 'Failed loading descriptors');
+
+                this.employeesDescriptors = json.data.map(e => ({
+                    id: e.id,
+                    name: e.name,
+                    position: e.position,
+                    descriptor: new Float32Array(e.descriptor)
+                }));
+
+                if (this.employeesDescriptors.length === 0) {
+                    this.updateStatus('❌ No registered faces in system.', 'error');
+                    throw new Error('No descriptors found');
+                }
+
+                this.updateStatus('✅ Database loaded. Scanner ready.', 'info');
+            } catch (err) {
+                console.error(err);
+                this.updateStatus('❌ Failed to load employee database', 'error');
+                throw err;
+            }
         },
 
         async startCamera() {
             try {
-                this.videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const cameras = devices.filter(d => d.kind === "videoinput");
+
+                if (cameras.length === 0) {
+                    this.updateStatus('❌ No camera detected', 'error');
+                    throw new Error('No camera found');
+                }
+
+                let externalCam = cameras.find(cam =>
+                    cam.label.toLowerCase().includes("usb") ||
+                    cam.label.toLowerCase().includes("webcam") ||
+                    cam.label.toLowerCase().includes("external")
+                );
+
+                let chosenCam = externalCam ?? cameras[0];
+
+                this.videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        deviceId: { exact: chosenCam.deviceId },
+                        width: 640,
+                        height: 480
+                    }
+                });
+
                 const video = document.getElementById('modalVideo');
                 video.srcObject = this.videoStream;
                 await video.play();
 
-                // set canvas size to video
-                const canvas = document.getElementById('overlayCanvas');
-                canvas.width = video.videoWidth || 640;
-                canvas.height = video.videoHeight || 480;
-                canvas.style.width = video.offsetWidth + 'px';
-                canvas.style.height = video.offsetHeight + 'px';
-
-                this.updateStatus('Camera ready. Select employee and click Start Validation.');
+                this.updateStatus(`📷 Camera active: ${chosenCam.label}`, 'info');
             } catch (err) {
                 console.error(err);
-                this.updateStatus('Camera access denied', 'error');
+                this.updateStatus('❌ Camera access failed', 'error');
+                throw err;
             }
         },
 
@@ -230,28 +339,18 @@ function attendanceModal() {
                 this.videoStream.getTracks().forEach(t => t.stop());
                 this.videoStream = null;
             }
-            // stop detection loop
-            this.detectLoopRunning = false;
-            // reset blink state
+            this.scanLoopRunning = false;
+            this.blinkLoopRunning = false;
+            this.resetBlinkState();
+        },
+
+        resetBlinkState() {
             this.blinkCount = 0;
             this.blinkedRecently = false;
             this.lastBlinkTime = 0;
-
-            const canvas = document.getElementById('overlayCanvas');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0,0,canvas.width,canvas.height);
-            }
+            this.blinkLoopRunning = false;
         },
 
-        async fetchDescriptor(employeeId) {
-            const res = await fetch(`/attendance/descriptor/${employeeId}`);
-            const json = await res.json();
-            if (!json.success) throw new Error(json.message || 'No descriptor');
-            return json.descriptor;
-        },
-
-        /* EAR helpers */
         getEAR(eye) {
             const a = this.distance(eye[1], eye[5]);
             const b = this.distance(eye[2], eye[4]);
@@ -264,89 +363,9 @@ function attendanceModal() {
             return Math.hypot(p1.x - p2.x, p1.y - p2.y);
         },
 
-        resetValidationState() {
-            this.storedDescriptor = null;
-            this.detectLoopRunning = false;
-            this.blinkCount = 0;
-            this.blinkedRecently = false;
-            this.lastBlinkTime = 0;
-            this.validationComplete = false;
-            this.processing = false;
-            this.buttonText = 'Start Validation';
-        },
-
-        // ----------------- Main flow -------------------
-        async startValidationFlow() {
-    if (!this.selectedEmployeeId) {
-        this.updateStatus('Please select an employee first', 'error');
-        return;
-    }
-
-    // disable action button immediately
-    this.processing = true;
-    this.buttonText = 'Validating...';
-    this.updateStatus('Preparing validation...', 'info');
-
-    try {
-        // load face-api models
-        this.updateStatus('Loading face models...', 'info');
-        await Promise.all([
-            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-            faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-        ]);
-
-        // fetch stored descriptor
-        const descriptorArray = await this.fetchDescriptor(this.selectedEmployeeId);
-        if (!descriptorArray) throw new Error('Not registered');
-        this.storedDescriptor = new Float32Array(descriptorArray);
-
-        this.updateStatus('Descriptor loaded. Looking for your face...', 'info');
-
-        // wait until a face is detected and matches
-        await this.waitForFaceMatch();
-
-        // face matched — start blink detection immediately
-        this.updateStatus('Face matched! Please blink twice to validate.', 'success');
-        this.buttonText = 'Blinking...';
-
-        this.blinkCount = 0;
-        this.detectLoopRunning = true;
-        this.runDetectLoop();
-
-    } catch (err) {
-        console.error(err);
-        const msg = err.message || 'Failed to start validation';
-        this.updateStatus(msg, 'error');
-        this.processing = false;
-        this.buttonText = 'Start Validation';
-    }
-},
-
-        // show a short countdown message for each required blink
-        async blinkCountdown(times) {
-            for (let i = 0; i < times; i++) {
-                for (let j = 3; j >= 1; j--) {
-                    this.updateStatus(`Blink ${i+1}: ${j}...`, 'info');
-                    await new Promise(r => setTimeout(r, 600)); // faster rhythm
-                }
-                this.updateStatus(`Blink ${i+1}: Now!`, 'info');
-                // small pause to allow user to blink
-                await new Promise(r => setTimeout(r, 800));
-            }
-        },
-
-        // Detection loop: runs continuously while detectLoopRunning = true
-        async runDetectLoop() {
+        async scanLoop() {
             const video = document.getElementById('modalVideo');
-            const canvas = document.getElementById('overlayCanvas');
-            const ctx = canvas.getContext('2d');
-
-            // If detectLoopRunning is false, bail out quickly (no blink detection)
-            if (!this.detectLoopRunning) {
-                // do not flip processing flag here — we keep processing true until success/error
-                return;
-            }
+            if (!video || !this.scanLoopRunning) return;
 
             try {
                 const detections = await faceapi
@@ -354,153 +373,155 @@ function attendanceModal() {
                     .withFaceLandmarks()
                     .withFaceDescriptors();
 
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Update face detection status
+                this.faceDetected = detections && detections.length > 0;
 
-                if (!detections || detections.length === 0) {
-                    this.updateStatus('No face detected. Keep facing the camera.', 'error');
-                    // continue loop
-                    if (this.detectLoopRunning) requestAnimationFrame(() => this.runDetectLoop());
+                if (!this.faceDetected) {
+                    this.updateStatus('👤 No face detected. Please position yourself in the scanner.', 'info');
+                    if (this.scanLoopRunning) requestAnimationFrame(() => this.scanLoop());
                     return;
                 }
 
-                // Use first detection (you may change logic to find best match among multiple)
-                const displaySize = { width: canvas.width, height: canvas.height };
-                const resized = faceapi.resizeResults(detections, displaySize);
-                faceapi.draw.drawDetections(canvas, resized);
-                faceapi.draw.drawFaceLandmarks(canvas, resized);
+                this.updateStatus('✅ Face detected. Analyzing identity...', 'scanning');
 
-                const detection = detections[0];
-                const distance = faceapi.euclideanDistance(detection.descriptor, this.storedDescriptor);
+                const descriptor = detections[0].descriptor;
+                let best = { id: null, name: null, position: null, distance: Infinity };
+                let bestEmpDescriptor = null;
 
-                // If face doesn't match stored descriptor, treat as not recognized
-                if (distance > this.MAX_DISTANCE) {
-                    this.updateStatus('Face not recognized (match failed).', 'error');
-                    // reset blink sequence to be safe
-                    this.blinkCount = 0;
-                    // continue loop to keep checking
-                    if (this.detectLoopRunning) requestAnimationFrame(() => this.runDetectLoop());
-                    return;
-                }
-
-                // face matched: compute EAR & detect blink transitions
-                const leftEye = detection.landmarks.getLeftEye().map(p => ({ x: p.x, y: p.y }));
-                const rightEye = detection.landmarks.getRightEye().map(p => ({ x: p.x, y: p.y }));
-                const leftEAR = this.getEAR(leftEye);
-                const rightEAR = this.getEAR(rightEye);
-                const ear = (leftEAR + rightEAR) / 2;
-
-                // overlay debug text
-                ctx.fillStyle = 'white';
-                ctx.font = '16px Arial';
-                ctx.fillText(`EAR: ${ear.toFixed(3)}`, 10, 20);
-                ctx.fillText(`Blinks: ${this.blinkCount}/${this.REQUIRED_BLINKS}`, 10, 40);
-                ctx.fillText(`Match score: ${(1 - distance).toFixed(3)}`, 10, 60);
-
-                const now = Date.now();
-
-                // Blink detection: only when EAR drops below threshold and not recently blinked
-                if (ear < this.EAR_THRESHOLD && !this.blinkedRecently && (now - this.lastBlinkTime) > this.BLINK_COOLDOWN) {
-                    this.blinkCount++;
-                    this.blinkedRecently = true;
-                    this.lastBlinkTime = now;
-                    this.updateStatus(`Blink detected! (${this.blinkCount}/${this.REQUIRED_BLINKS})`, 'info');
-
-                    // If required blinks reached, validation success
-                    if (this.blinkCount >= this.REQUIRED_BLINKS) {
-                        this.validationComplete = true;
-                        this.detectLoopRunning = false;
-                        this.updateStatus('Face validated successfully!', 'success');
-
-                        // record attendance (AJAX)
-                        try {
-                            await this.recordAttendanceAJAX(this.selectedEmployeeId, this.actionType);
-                        } catch (err) {
-                            console.error('Error recording attendance:', err);
-                            // continue to close modal and reset anyway
-                        }
-
-                        // give a small visual pause then close modal & reset
-                        setTimeout(() => {
-                            this.stopCamera();
-                            this.showModal = false;
-                            this.resetValidationState();
-                        }, 700);
-
-                        return; // stop the loop after success
+                for (const emp of this.employeesDescriptors) {
+                    const dist = faceapi.euclideanDistance(descriptor, emp.descriptor);
+                    if (dist < best.distance) {
+                        best = { id: emp.id, name: emp.name, position: emp.position, distance: dist };
+                        bestEmpDescriptor = emp.descriptor;
                     }
-                } else if (ear >= this.EAR_THRESHOLD) {
-                    // reset recent blink flag when eyes open again
-                    this.blinkedRecently = false;
                 }
 
-                // Reset blink sequence if too slow between blinks
-                if (this.blinkCount > 0 && (now - this.lastBlinkTime) > this.BLINK_SEQUENCE_TIMEOUT) {
-                    this.blinkCount = 0;
-                    this.updateStatus('Blink sequence reset. Please blink twice in sequence.', 'info');
+                if (best.distance <= this.MAX_DISTANCE) {
+                    this.scanLoopRunning = false;
+                    this.matchedEmployee = { ...best, descriptor: bestEmpDescriptor };
+                    this.updateStatus(`✅ Identity confirmed: ${best.name}. Please blink ${this.REQUIRED_BLINKS} times for verification.`, 'scanning');
+
+                    this.resetBlinkState();
+                    this.blinkLoopRunning = true;
+                    this.blinkValidationLoop(detections[0]);
+                    return;
+                } else {
+                    this.updateStatus('❌ Face not recognized. Please ensure you are registered.', 'error');
                 }
 
-                if (this.detectLoopRunning) requestAnimationFrame(() => this.runDetectLoop());
+                if (this.scanLoopRunning) requestAnimationFrame(() => this.scanLoop());
             } catch (err) {
                 console.error(err);
-                this.updateStatus('Detection error', 'error');
-                // Stop running further to avoid flood; allow retry by user (processing remains true so button remains disabled).
-                this.detectLoopRunning = false;
+                this.updateStatus('❌ Scanner error', 'error');
+                this.scanLoopRunning = false;
                 this.processing = false;
-                this.buttonText = 'Start Validation';
             }
         },
 
-        // Wait until a face is detected AND matched to stored descriptor
-        async waitForFaceMatch(timeoutMs = 20000) {
+        async blinkValidationLoop(initialDetection = null) {
             const video = document.getElementById('modalVideo');
-            const start = Date.now();
+            this.lastBlinkTime = Date.now();
 
-            return new Promise((resolve, reject) => {
-                const loop = async () => {
-                    try {
-                        if (!video || video.readyState < 2) {
-                            // video not ready yet
-                            if ((Date.now() - start) > timeoutMs) return reject(new Error('Camera not ready'));
-                            requestAnimationFrame(loop);
+            const loop = async () => {
+                if (!this.blinkLoopRunning) return;
+
+                try {
+                    if (!video || video.readyState < 2) {
+                        requestAnimationFrame(loop);
+                        return;
+                    }
+
+                    const detections = await faceapi
+                        .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptors();
+
+                    this.faceDetected = detections && detections.length > 0;
+
+                    if (!this.faceDetected) {
+                        this.updateStatus('👤 Face lost. Please remain in frame.', 'info');
+                        if ((Date.now() - this.lastBlinkTime) > this.BLINK_SEQUENCE_TIMEOUT) {
+                            this.updateStatus('⏰ Verification timeout. Restarting scan.', 'error');
+                            this.blinkLoopRunning = false;
+                            this.matchedEmployee = null;
+                            this.scanLoopRunning = true;
+                            this.scanLoop();
                             return;
                         }
-
-                        const detections = await faceapi
-                            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-                            .withFaceLandmarks()
-                            .withFaceDescriptors();
-
-                        if (detections && detections.length > 0) {
-                            // check first face for match
-                            const dist = faceapi.euclideanDistance(detections[0].descriptor, this.storedDescriptor);
-                            if (dist <= this.MAX_DISTANCE) {
-                                // matched
-                                return resolve(true);
-                            } else {
-                                // not matched yet — inform user
-                                this.updateStatus('Face detected but not recognized. Make sure it\'s the selected employee.', 'error');
-                            }
-                        } else {
-                            this.updateStatus('No face detected. Please face the camera.', 'info');
-                        }
-
-                        if ((Date.now() - start) > timeoutMs) {
-                            return reject(new Error('Face not detected in time. Try again.'));
-                        }
-
                         requestAnimationFrame(loop);
-                    } catch (err) {
-                        reject(err);
+                        return;
                     }
-                };
 
-                loop();
-            });
+                    const detection = detections[0];
+                    const distance = faceapi.euclideanDistance(detection.descriptor, this.matchedEmployee.descriptor);
+
+                    if (distance > this.MAX_DISTANCE) {
+                        this.updateStatus('❌ Identity changed. Restarting scan.', 'error');
+                        this.resetBlinkState();
+                        this.matchedEmployee = null;
+                        this.blinkLoopRunning = false;
+                        this.scanLoopRunning = true;
+                        this.scanLoop();
+                        return;
+                    }
+
+                    const leftEyePts = detection.landmarks.getLeftEye().map(p => ({ x: p.x, y: p.y }));
+                    const rightEyePts = detection.landmarks.getRightEye().map(p => ({ x: p.x, y: p.y }));
+                    const leftEAR = this.getEAR(leftEyePts);
+                    const rightEAR = this.getEAR(rightEyePts);
+                    const ear = (leftEAR + rightEAR) / 2;
+
+                    const now = Date.now();
+
+                    if (ear < this.EAR_THRESHOLD && !this.blinkedRecently && (now - this.lastBlinkTime) > this.BLINK_COOLDOWN) {
+                        this.blinkCount++;
+                        this.blinkedRecently = true;
+                        this.lastBlinkTime = now;
+                        this.updateStatus(`👁️ Blink detected! (${this.blinkCount}/${this.REQUIRED_BLINKS})`, 'scanning');
+
+                        if (this.blinkCount >= this.REQUIRED_BLINKS) {
+                            this.updateStatus('🎉 Verification successful! Recording attendance...', 'success');
+                            this.blinkLoopRunning = false;
+
+                            try {
+                                await this.recordAttendanceAJAX(this.matchedEmployee.id, this.actionType, this.matchedEmployee.name, this.matchedEmployee.position);
+                            } catch (err) {
+                                console.error('Error recording attendance:', err);
+                                this.updateStatus('❌ Error recording attendance', 'error');
+                            }
+
+                            setTimeout(() => {
+                                this.stopCamera();
+                                this.showModal = false;
+                                this.resetBlinkState();
+                                this.matchedEmployee = null;
+                            }, 700);
+                            return;
+                        }
+                    } else if (ear >= this.EAR_THRESHOLD) {
+                        this.blinkedRecently = false;
+                    }
+
+                    if (this.blinkCount > 0 && (now - this.lastBlinkTime) > this.BLINK_SEQUENCE_TIMEOUT) {
+                        this.blinkCount = 0;
+                        this.updateStatus('🔄 Blink sequence reset. Please blink again.', 'info');
+                    }
+
+                    if (this.blinkLoopRunning) requestAnimationFrame(loop);
+                } catch (err) {
+                    console.error(err);
+                    this.updateStatus('❌ Scanner error during verification', 'error');
+                    this.blinkLoopRunning = false;
+                    this.scanLoopRunning = false;
+                    this.processing = false;
+                }
+            };
+
+            requestAnimationFrame(loop);
         },
 
-        // ------------------ AJAX -----------------------
-        async recordAttendanceAJAX(employeeId, action) {
-            this.updateStatus('Recording attendance...', 'info');
+        async recordAttendanceAJAX(employeeId, action, name = '', position = '') {
+            this.updateStatus('💾 Recording attendance...', 'info');
             try {
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 const res = await fetch('/attendance/record', {
@@ -523,20 +544,21 @@ function attendanceModal() {
                     return;
                 }
 
-                this.updateStatus(json.message || 'Recorded', 'success');
+                const uppercaseAction = action === 'time_in' ? 'TIME IN' : 'TIME OUT';
+                const displayName = name || (json.employee_name ?? '');
+                const displayPosition = position || (json.position ?? '');
 
                 await Swal.fire({
                     icon: 'success',
-                    title: action === 'time_in' ? 'Time In Recorded' : 'Time Out Recorded',
+                    title: `SUCCESSFULLY ${uppercaseAction} EMPLOYEE: ${displayName} — ${displayPosition}`,
                     text: json.message || 'Attendance logged successfully.',
                     confirmButtonColor: '#2563eb'
                 });
 
-                // reload to reflect updated table
                 window.location.reload();
             } catch (err) {
                 console.error(err);
-                this.updateStatus('Server error', 'error');
+                this.updateStatus('❌ Server error', 'error');
                 Swal.fire({ icon: 'error', title: 'Error', text: 'Server error while recording attendance.' });
                 throw err;
             }
@@ -548,6 +570,5 @@ document.addEventListener("alpine:init", () => {
     lucide.createIcons();
 });
 </script>
-
 </body>
 </html>

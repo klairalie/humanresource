@@ -28,14 +28,14 @@ return new class extends Migration
                 'Administrative Manager',
                 'Finance Manager'
             ]);
-            $table->longText('career_objective');
-            $table->longText('work_experience');   
-            $table->longText('education');         
-            $table->longText('skills');            
-            $table->longText('achievements');      
-            $table->longText('references');       
-            $table->string('good_moral_file');    
-            $table->string('coe_file');    
+            $table->longText('career_objective')->nullable();
+            $table->longText('work_experience')->nullable();   
+            $table->longText('education')->nullable();         
+            $table->longText('skills')->nullable();            
+            $table->longText('achievements')->nullable();      
+            $table->longText('references')->nullable();       
+            $table->string('good_moral_file')->nullable();    
+            $table->string('coe_file')->nullable();    
             $table->string('resume_file');        
             $table->enum('applicant_status', [
                 'Pending',

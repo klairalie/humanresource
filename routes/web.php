@@ -24,7 +24,7 @@ use App\Http\Controllers\AuthTransferController;
 use App\Http\Middleware\CheckAuth;
 use App\Http\Controllers\ProfileController;
  use App\Http\Controllers\HolidayController;
-
+use App\Http\Controllers\AnnouncementController;
 //COMMENTED ROUTES ARE NOT ALREADY USED
 
 Route::get('/auth/verify', [AuthTransferController::class, 'verify'])->name('auth.verify');
@@ -254,19 +254,43 @@ Route::controller(AssessmentController::class)->group(function () {
 
 Route::post('/attendance/manual-update', [EmployeeAttendanceController::class, 'manualUpdate'])->name('attendance.manualUpdate');
 
-
-
-Route::get('/cam', function() {
-    
-    return view('HR.xample');
-});
-
 Route::controller(EmployeeAttendanceController::class)->group(function () {
     Route::get('/Attendancepage', 'showEmpAttendance')->name('employee.attendance');
 });
 Route::get('/attendance/employees', [EmployeeAttendanceController::class, 'getEmployees']);
 Route::get('/attendance/descriptor/{id}', [EmployeeAttendanceController::class, 'getDescriptor']);
 Route::post('/attendance/record', [EmployeeAttendanceController::class, 'recordAttendance']);
+Route::get('/attendance/statuses', [AttendanceController::class, 'getStatuses'])->name('attendance.statuses');
+Route::post('/attendance/admin-update', [EmployeeAttendanceController::class, 'adminUpdate'])->name('attendance.adminUpdate');
 // web.php
 Route::post('/check-face-duplicate', [EmployeeprofilesController::class, 'checkFaceDuplicate'])
     ->name('check-face-duplicate');
+
+    // Payroll Routes
+Route::get('/payrolls', [PayrollController::class, 'payrollRecord'])
+    ->name('payroll.records');
+
+Route::get('/payroll/filter/{id}', [PayrollController::class, 'filterRecords'])
+    ->name('payroll.filter');
+
+Route::get('/payroll/export/excel/{employee}', [PayrollController::class, 'excel'])
+    ->name('payroll.export.excel');
+
+Route::get('/payroll/export/pdf/{employee}', [PayrollController::class, 'pdf'])
+    ->name('payroll.export.pdf');
+
+Route::get('/payroll/print/{employee}', [PayrollController::class, 'print'])
+    ->name('payroll.print');
+
+Route::get('/payroll/print/company', [PayrollController::class, 'printCompany'])
+    ->name('payroll.print.company');
+
+
+// get all descriptors (used by frontend)
+Route::get('/attendance/descriptors', [EmployeeAttendanceController::class, 'getAllDescriptors']);
+
+
+Route::get('/announcements',  [AnnouncementController::class, 'index'])->name('announcements.index');
+Route::post('/announcements',  [AnnouncementController::class, 'store'])->name('announcements.store');
+Route::put('/announcements/{id}',  [AnnouncementController::class, 'update'])->name('announcements.update');
+Route::delete('/announcements/{id}',  [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
